@@ -1,0 +1,345 @@
+# =========================================================
+# Environment / Secrets
+# =========================================================
+
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+*.pem
+*.key
+*.crt
+
+secrets/
+credentials/
+
+
+# =========================================================
+# Node.js
+# =========================================================
+
+node_modules/
+
+# npm
+npm-debug.log*
+.npm/
+
+# yarn
+yarn-debug.log*
+yarn-error.log*
+.yarn/
+.pnp.*
+
+# pnpm
+.pnpm-store/
+
+# package manager cache
+.cache/
+
+# Keep lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+
+# =========================================================
+# Frontend / Node Build
+# =========================================================
+
+dist/
+build/
+out/
+
+.next/
+.nuxt/
+.output/
+.svelte-kit/
+
+.vite/
+.parcel-cache/
+
+coverage/
+.nyc_output/
+
+*.tsbuildinfo
+
+
+# =========================================================
+# Python
+# =========================================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+*.so
+*.pyd
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+
+.coverage
+.coverage.*
+htmlcov/
+
+.cache/
+
+
+# =========================================================
+# Python Virtual Environment
+# =========================================================
+
+venv/
+.venv/
+env/
+.envdir/
+
+ENV/
+env.bak/
+venv.bak/
+
+
+# =========================================================
+# Python Build / Packaging
+# =========================================================
+
+build/
+dist/
+
+*.egg-info/
+.eggs/
+*.egg
+
+pip-wheel-metadata/
+wheels/
+
+MANIFEST
+
+
+# =========================================================
+# Jupyter Notebook
+# =========================================================
+
+.ipynb_checkpoints/
+
+# Jupyter runtime
+.jupyter/
+.ipython/
+
+
+# =========================================================
+# AI / ML Data
+# =========================================================
+
+data/
+datasets/
+
+# 폴더 자체는 Git에 유지하고 싶을 경우
+data/*
+!data/.gitkeep
+!data/sample/
+!data/sample/**
+
+datasets/*
+!datasets/.gitkeep
+!datasets/sample/
+!datasets/sample/**
+
+
+# =========================================================
+# AI Model / Training Artifacts
+# =========================================================
+
+artifacts/
+checkpoints/
+weights/
+models/weights/
+models/checkpoints/
+
+runs/
+
+# PyTorch
+*.pt
+*.pth
+*.ckpt
+
+# TensorFlow / Keras
+*.h5
+*.hdf5
+*.keras
+
+# ONNX
+*.onnx
+
+# sklearn / pickle
+*.pkl
+*.pickle
+*.joblib
+
+# Safetensors
+*.safetensors
+
+
+# =========================================================
+# ML Experiment Tracking
+# =========================================================
+
+wandb/
+mlruns/
+mlartifacts/
+
+lightning_logs/
+
+
+# =========================================================
+# Data Files
+# =========================================================
+
+*.csv
+*.tsv
+
+*.parquet
+*.feather
+
+*.npy
+*.npz
+
+*.arrow
+
+*.db
+*.sqlite
+*.sqlite3
+
+*.shp
+*.shx
+*.dbf
+
+# 필요하다면 작은 샘플 데이터는 예외 처리
+# !data/sample.csv
+
+
+# =========================================================
+# Compressed / Archive Files
+# =========================================================
+
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+*.bz2
+*.xz
+
+*.rar
+*.7z
+
+
+# =========================================================
+# Temporary Files
+# =========================================================
+
+tmp/
+temp/
+
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+*~
+
+
+# =========================================================
+# Logs
+# =========================================================
+
+logs/
+
+*.log
+*.log.*
+
+
+# =========================================================
+# IDE / Editor
+# =========================================================
+
+# VS Code
+.vscode/
+
+# IntelliJ / PyCharm
+.idea/
+
+*.iml
+
+# Visual Studio
+.vs/
+
+
+# =========================================================
+# OS Generated Files
+# =========================================================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+.directory
+.Trash-*
+
+
+# =========================================================
+# Docker
+# =========================================================
+
+# Docker 자체 설정 파일은 Git에 포함
+# Dockerfile
+# docker-compose.yml
+
+# Docker runtime / local volumes
+docker-data/
+volumes/
+
+
+# =========================================================
+# Runtime / Local Storage
+# =========================================================
+
+storage/
+uploads/
+downloads/
+
+sessions/
+
+
+# =========================================================
+# Generated Reports / Results
+# =========================================================
+
+results/
+outputs/
+reports/generated/
+
+predictions/
+
+
+# =========================================================
+# Misc
+# =========================================================
+
+*.pid
+*.seed
+*.pid.lock
+
+.history/

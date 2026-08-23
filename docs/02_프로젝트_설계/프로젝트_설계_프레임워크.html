@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>프로젝트 설계 트리</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --line: #e2e5e9;
+      --line-strong: #cfd4da;
+      --text: #202124;
+      --muted: #747a82;
+      --accent: #202124;
+      --danger: #b42318;
+      --link: #2563eb;
+      --soft: #f0f2f4;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid var(--line-strong);
+      background: #fff;
+      border-radius: 9px;
+      padding: 8px 11px;
+      cursor: pointer;
+      color: var(--text);
+      transition: 0.15s ease;
+    }
+
+    button:hover { background: var(--soft); }
+
+    button.primary {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    button.primary:hover { opacity: 0.9; }
+
+    button.danger {
+      color: var(--danger);
+    }
+
+    button.ghost {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .app {
+      width: min(1180px, calc(100% - 28px));
+      margin: 28px auto 72px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .project-title-wrap {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .project-title {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .project-meta {
+      margin-top: 7px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: flex-end;
+      max-width: 560px;
+    }
+
+    .section-nav-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(245, 246, 248, 0.94);
+      backdrop-filter: blur(8px);
+      padding: 10px 0;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(226,229,233,.85);
+    }
+
+    .section-nav {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: thin;
+    }
+
+    .section-tab {
+      white-space: nowrap;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 13px;
+    }
+
+    .section-tab.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .overview-box {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .overview-title {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 8px;
+    }
+
+    .overview-item {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 10px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .overview-item:hover {
+      background: var(--soft);
+    }
+
+    .overview-item-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .overview-item-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    #tree {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .node-wrap {
+      position: relative;
+    }
+
+    .node {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 13px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.025);
+    }
+
+    .node.root-node {
+      border-color: #d7dbe0;
+    }
+
+    .node-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .node-title-view {
+      flex: 1;
+      font-size: 16px;
+      font-weight: 700;
+      word-break: break-word;
+      min-width: 0;
+    }
+
+    .root-node .node-title-view {
+      font-size: 18px;
+    }
+
+    .node-title-edit {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 7px 9px;
+      outline: none;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .node-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .mini-btn {
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
+    .node-body {
+      margin-top: 10px;
+    }
+
+    .description-view {
+      border-top: 1px solid #eef0f2;
+      padding-top: 10px;
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 20px;
+      color: #34373b;
+      white-space: normal;
+      word-break: break-word;
+    }
+
+    .description-view.empty {
+      color: #a0a4aa;
+      font-style: italic;
+    }
+
+    .description-edit {
+      width: 100%;
+      min-height: 92px;
+      resize: vertical;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 9px 10px;
+      line-height: 1.55;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .edit-help {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+
+    .links-view {
+      margin-top: 9px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      max-width: 100%;
+      border: 1px solid #dce4f4;
+      background: #f7faff;
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: var(--link);
+      text-decoration: none;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .links-edit {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .link-row {
+      display: grid;
+      grid-template-columns: minmax(130px, .8fr) minmax(220px, 1.5fr) auto;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .link-input {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      padding: 7px 8px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .children {
+      margin-left: 28px;
+      margin-top: 9px;
+      padding-left: 14px;
+      border-left: 2px solid #e4e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .collapsed > .children {
+      display: none;
+    }
+
+    .empty-state {
+      border: 1px dashed var(--line-strong);
+      background: #fff;
+      color: var(--muted);
+      border-radius: 12px;
+      padding: 34px 16px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    .unsaved {
+      color: #a15c00;
+      font-weight: 600;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.34);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(460px, 100%);
+      background: white;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      padding: 18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.18);
+    }
+
+    .modal h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .modal label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .modal input {
+      width: 100%;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      padding: 9px 10px;
+      outline: none;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 7px;
+      margin-top: 14px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 820px) {
+      .header { flex-direction: column; }
+      .toolbar { justify-content: flex-start; max-width: none; }
+      .children { margin-left: 14px; padding-left: 10px; }
+      .link-row { grid-template-columns: 1fr; }
+      .node-header { align-items: flex-start; }
+      .node-actions { max-width: 220px; }
+    }
+
+    /* 인쇄 / PDF 저장용 */
+    @media print {
+      @page {
+        size: A4;
+        margin: 13mm;
+      }
+
+      body {
+        background: white;
+        color: black;
+      }
+
+      .app {
+        width: 100%;
+        margin: 0;
+      }
+
+      .toolbar,
+      .section-nav-wrap,
+      .overview-box,
+      .status-bar,
+      .node-actions,
+      .edit-help,
+      .modal-backdrop {
+        display: none !important;
+      }
+
+      .header {
+        display: block;
+        margin-bottom: 14px;
+      }
+
+      .project-title {
+        font-size: 24px;
+      }
+
+      #tree {
+        gap: 10px;
+      }
+
+      .node {
+        box-shadow: none;
+        break-inside: avoid;
+        border-color: #cfd3d8;
+      }
+
+      .root-section {
+        break-before: page;
+      }
+
+      .root-section:first-child {
+        break-before: auto;
+      }
+
+      .children {
+        border-left: 1px solid #cfd3d8;
+      }
+
+      .collapsed > .children {
+        display: flex !important;
+      }
+
+      .description-view,
+      .links-view {
+        display: block !important;
+      }
+
+      .node-title-edit,
+      .description-edit,
+      .links-edit {
+        display: none !important;
+      }
+
+      .link-chip {
+        color: black;
+        border-color: #d0d0d0;
+        background: white;
+        text-decoration: underline;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="project-title-wrap">
+        <h1 id="projectTitle" class="project-title">프로젝트 설계 트리</h1>
+        <div class="project-meta">
+          큰 구조 → 하위 요소 → 기술 → 구현 방법 → 문제/충돌 → 결정 이유를 계층적으로 정리합니다.
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button onclick="renameProject()">프로젝트명</button>
+        <button class="primary" onclick="openAddModal(null)">+ 최상위 항목</button>
+        <button onclick="exportJSON()">JSON 저장</button>
+        <button onclick="document.getElementById('jsonInput').click()">JSON 불러오기</button>
+        <button onclick="printPDF()">PDF 저장</button>
+        <button class="danger" onclick="resetTree()">초기화</button>
+      </div>
+    </header>
+
+    <input id="jsonInput" type="file" accept=".json,application/json" class="hidden" />
+
+    <div class="section-nav-wrap">
+      <div id="sectionNav" class="section-nav"></div>
+    </div>
+
+    <div id="overviewBox" class="overview-box"></div>
+
+    <section id="tree"></section>
+
+    <div class="status-bar">
+      <span id="statusText">현재 브라우저 메모리에만 있습니다.</span>
+      <span id="dirtyText" class="unsaved">JSON 저장 권장</span>
+    </div>
+  </main>
+
+  <div id="addModalBackdrop" class="modal-backdrop" onclick="backdropClose(event)">
+    <div class="modal">
+      <h2 id="addModalTitle">항목 추가</h2>
+      <label for="newItemName">항목 이름</label>
+      <input id="newItemName" type="text" placeholder="예: 추천 알고리즘 설계" />
+      <div class="modal-actions">
+        <button onclick="closeAddModal()">취소</button>
+        <button class="primary" onclick="confirmAdd()">추가</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const APP_VERSION = 2;
+
+    function uid() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return "id-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+    }
+
+    function makeItem(title = "새 항목", description = "") {
+      return {
+        id: uid(),
+        title,
+        description,
+        links: [],
+        children: [],
+        collapsed: false
+      };
+    }
+
+    function createInitialTree() {
+      return [
+        {
+          ...makeItem("① 서비스", "우리가 어떤 문제를 해결하는가?"),
+          children: []
+        },
+        {
+          ...makeItem("② 기능 / 사용자 흐름"),
+          children: [
+            makeItem("코스 추천"),
+            makeItem("조건 입력"),
+            makeItem("후보 비교"),
+            makeItem("러닝 진행")
+          ]
+        },
+        {
+          ...makeItem("③ 서비스 정책"),
+          children: [
+            makeItem("조건 충돌 시 어떻게 할 것인가?"),
+            makeItem("필수조건 / 선호조건을 구분할 것인가?"),
+            makeItem("추천 후보는 왜 3개인가?"),
+            makeItem("추천 실패를 어떻게 표현할 것인가?")
+          ]
+        },
+        {
+          ...makeItem("④ 기술적 설계"),
+          children: [
+            makeItem("데이터"),
+            makeItem("추천 / AI 알고리즘"),
+            makeItem("프론트"),
+            makeItem("백엔드"),
+            makeItem("AI Serving"),
+            makeItem("DB / API / Architecture")
+          ]
+        },
+        {
+          ...makeItem("⑤ 구체적인 구현"),
+          children: [
+            makeItem("어떤 데이터 형식?"),
+            makeItem("어떤 API?"),
+            makeItem("어떤 모델?"),
+            makeItem("어떤 점수 계산식?"),
+            makeItem("어떤 UI?")
+          ]
+        },
+        {
+          ...makeItem("⑥ 검증"),
+          children: [
+            makeItem("왜 이렇게 설계했는가?"),
+            makeItem("다른 방법은 무엇이 있었나?"),
+            makeItem("성능은 어떻게 평가할 것인가?"),
+            makeItem("서비스적으로 괜찮은가?")
+          ]
+        }
+      ];
+    }
+
+    let project = {
+      version: APP_VERSION,
+      projectTitle: "프로젝트 설계 트리",
+      updatedAt: new Date().toISOString(),
+      tree: createInitialTree()
+    };
+
+    let activeRootId = "all";
+    let editingIds = new Set();
+    let dirty = true;
+
+    function touch() {
+      project.updatedAt = new Date().toISOString();
+      dirty = true;
+      updateStatus();
+    }
+
+    function updateStatus(message) {
+      const status = document.getElementById("statusText");
+      const dirtyText = document.getElementById("dirtyText");
+      status.textContent = message || "현재 브라우저 메모리에만 있습니다.";
+      dirtyText.textContent = dirty ? "저장되지 않은 변경사항 있음" : "JSON 파일로 저장됨";
+      dirtyText.classList.toggle("unsaved", dirty);
+    }
+
+    function findNode(id, nodes = project.tree) {
+      for (const node of nodes) {
+        if (node.id === id) return node;
+        const found = findNode(id, node.children || []);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    function deleteNodeById(id, nodes = project.tree) {
+      const idx = nodes.findIndex(n => n.id === id);
+      if (idx !== -1) {
+        nodes.splice(idx, 1);
+        return true;
+      }
+      for (const node of nodes) {
+        if (deleteNodeById(id, node.children || [])) return true;
+      }
+      return false;
+    }
+
+    function normalizeTree(nodes) {
+      return (Array.isArray(nodes) ? nodes : []).map(raw => ({
+        id: raw.id || uid(),
+        title: String(raw.title || "이름 없는 항목"),
+        description: String(raw.description || ""),
+        links: Array.isArray(raw.links) ? raw.links.map(l => ({
+          text: String(l?.text || ""),
+          url: String(l?.url || "")
+        })) : [],
+        collapsed: !!raw.collapsed,
+        children: normalizeTree(raw.children || [])
+      }));
+    }
+
+    // ---------- 항목 추가 ----------
+    let addTargetId = null;
+
+    function openAddModal(parentId) {
+      addTargetId = parentId;
+      const parent = parentId ? findNode(parentId) : null;
+      document.getElementById("addModalTitle").textContent =
+        parent ? `"${parent.title}" 아래에 항목 추가` : "최상위 항목 추가";
+
+      const input = document.getElementById("newItemName");
+      input.value = "";
+      document.getElementById("addModalBackdrop").classList.add("show");
+
+      setTimeout(() => input.focus(), 30);
+    }
+
+    function closeAddModal() {
+      document.getElementById("addModalBackdrop").classList.remove("show");
+      addTargetId = null;
+    }
+
+    function backdropClose(event) {
+      if (event.target.id === "addModalBackdrop") closeAddModal();
+    }
+
+    function confirmAdd() {
+      const input = document.getElementById("newItemName");
+      const name = input.value.trim();
+      if (!name) {
+        alert("항목 이름을 입력해주세요.");
+        input.focus();
+        return;
+      }
+
+      const item = makeItem(name);
+
+      if (addTargetId) {
+        const parent = findNode(addTargetId);
+        if (!parent) return;
+        parent.children.push(item);
+        parent.collapsed = false;
+      } else {
+        project.tree.push(item);
+      }
+
+      touch();
+      closeAddModal();
+      render();
+    }
+
+    document.getElementById("newItemName").addEventListener("keydown", e => {
+      if (e.key === "Enter") confirmAdd();
+      if (e.key === "Escape") closeAddModal();
+    });
+
+    // ---------- 편집 ----------
+    function startEdit(id) {
+      editingIds.add(id);
+      render();
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-title-edit="${id}"]`);
+        if (el) el.focus();
+      });
+    }
+
+    function finishEdit(id) {
+      editingIds.delete(id);
+      touch();
+      render();
+    }
+
+    function updateNode(id, key, value) {
+      const node = findNode(id);
+      if (!node) return;
+      node[key] = value;
+      touch();
+    }
+
+    function addLink(id) {
+      const node = findNode(id);
+      if (!node) return;
+      node.links.push({ text: "", url: "" });
+      editingIds.add(id);
+      touch();
+      render();
+    }
+
+    function updateLink(nodeId, index, key, value) {
+      const node = findNode(nodeId);
+      if (!node || !node.links[index]) return;
+      node.links[index][key] = value;
+      touch();
+    }
+
+    function removeLink(nodeId, index) {
+      const node = findNode(nodeId);
+      if (!node) return;
+      node.links.splice(index, 1);
+      touch();
+      render();
+    }
+
+    function removeNode(id) {
+      const node = findNode(id);
+      if (!node) return;
+      if (!confirm(`"${node.title}" 항목과 모든 하위 항목을 삭제할까요?`)) return;
+
+      deleteNodeById(id);
+      editingIds.delete(id);
+
+      if (activeRootId === id) activeRootId = "all";
+
+      touch();
+      render();
+    }
+
+    function toggleCollapse(id) {
+      const node = findNode(id);
+      if (!node) return;
+      node.collapsed = !node.collapsed;
+      touch();
+      render();
+    }
+
+    // ---------- 프로젝트 ----------
+    function renameProject() {
+      const next = prompt("프로젝트 이름을 입력하세요.", project.projectTitle);
+      if (next === null) return;
+      const value = next.trim();
+      if (!value) return;
+      project.projectTitle = value;
+      touch();
+      render();
+    }
+
+    function resetTree() {
+      if (!confirm("현재 내용을 모두 지우고 초기 구조로 되돌릴까요?")) return;
+      project = {
+        version: APP_VERSION,
+        projectTitle: "프로젝트 설계 트리",
+        updatedAt: new Date().toISOString(),
+        tree: createInitialTree()
+      };
+      activeRootId = "all";
+      editingIds.clear();
+      dirty = true;
+      render();
+      updateStatus("초기 구조로 되돌렸습니다.");
+    }
+
+    // ---------- JSON 저장/로드 ----------
+    function safeFilename(name) {
+      return (name || "project-design")
+        .replace(/[\\/:*?"<>|]+/g, "_")
+        .replace(/\s+/g, "_")
+        .slice(0, 80);
+    }
+
+    function exportJSON() {
+      project.version = APP_VERSION;
+      project.updatedAt = new Date().toISOString();
+
+      const blob = new Blob(
+        [JSON.stringify(project, null, 2)],
+        { type: "application/json;charset=utf-8" }
+      );
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${safeFilename(project.projectTitle)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      dirty = false;
+      updateStatus("JSON 파일로 저장했습니다.");
+    }
+
+    document.getElementById("jsonInput").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        if (!data || !Array.isArray(data.tree)) {
+          throw new Error("지원하지 않는 JSON 구조입니다.");
+        }
+
+        project = {
+          version: data.version || APP_VERSION,
+          projectTitle: String(data.projectTitle || file.name.replace(/\.json$/i, "")),
+          updatedAt: data.updatedAt || new Date().toISOString(),
+          tree: normalizeTree(data.tree)
+        };
+
+        activeRootId = "all";
+        editingIds.clear();
+        dirty = false;
+        render();
+        updateStatus(`"${file.name}" 파일을 불러왔습니다.`);
+      } catch (err) {
+        alert("JSON 파일을 불러오지 못했습니다.\n" + err.message);
+      } finally {
+        event.target.value = "";
+      }
+    });
+
+    // ---------- PDF ----------
+    function printPDF() {
+      const editingNow = editingIds.size > 0;
+      if (editingNow) {
+        const ok = confirm(
+          "현재 편집 중인 항목이 있습니다.\nPDF에는 보기 형태로 출력됩니다. 계속할까요?"
+        );
+        if (!ok) return;
+      }
+
+      // 인쇄 직전에 모든 root를 DOM에 보이게 한 뒤,
+      // 현재 선택 상태는 data attribute로 유지해 화면에는 영향 없게 처리
+      document.body.dataset.printing = "true";
+      render(true);
+
+      setTimeout(() => {
+        window.print();
+        delete document.body.dataset.printing;
+        render();
+      }, 100);
+    }
+
+    // ---------- 섹션 이동 ----------
+    function setActiveRoot(id) {
+      activeRootId = id;
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderSectionNav() {
+      const nav = document.getElementById("sectionNav");
+      const buttons = [
+        `<button class="section-tab ${activeRootId === "all" ? "active" : ""}"
+          onclick="setActiveRoot('all')">전체 보기</button>`
+      ];
+
+      for (const root of project.tree) {
+        buttons.push(
+          `<button class="section-tab ${activeRootId === root.id ? "active" : ""}"
+            onclick="setActiveRoot('${root.id}')">${escapeHtml(root.title)}</button>`
+        );
+      }
+
+      nav.innerHTML = buttons.join("");
+    }
+
+    function renderOverview() {
+      const box = document.getElementById("overviewBox");
+
+      if (activeRootId !== "all" || project.tree.length === 0) {
+        box.classList.add("hidden");
+        box.innerHTML = "";
+        return;
+      }
+
+      box.classList.remove("hidden");
+
+      const items = project.tree.map(root => `
+        <div class="overview-item" onclick="setActiveRoot('${root.id}')">
+          <div class="overview-item-title">${escapeHtml(root.title)}</div>
+          <div class="overview-item-sub">
+            하위 항목 ${countDescendants(root)}개
+          </div>
+        </div>
+      `).join("");
+
+      box.innerHTML = `
+        <div class="overview-title">큰 그림 — 섹션을 누르면 해당 영역만 볼 수 있습니다.</div>
+        <div class="overview-grid">${items}</div>
+      `;
+    }
+
+    function countDescendants(node) {
+      let count = (node.children || []).length;
+      for (const child of node.children || []) {
+        count += countDescendants(child);
+      }
+      return count;
+    }
+
+    // ---------- 보기용 텍스트 ----------
+    function renderText(text) {
+      if (!text) return "";
+
+      let safe = escapeHtml(text);
+
+      // 간단한 보기용 표현:
+      // **굵게**, `코드`, 줄바꿈
+      safe = safe
+        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\n/g, "<br>");
+
+      return safe;
+    }
+
+    function normalizeUrl(url) {
+      const value = String(url || "").trim();
+      if (!value) return "";
+      if (/^(https?:\/\/|mailto:)/i.test(value)) return value;
+      return "https://" + value;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderLinksView(node) {
+      if (!node.links || node.links.length === 0) return "";
+
+      const valid = node.links
+        .filter(link => link.text.trim() || link.url.trim())
+        .map(link => {
+          const href = normalizeUrl(link.url);
+          const label = link.text.trim() || link.url.trim() || "링크";
+          if (!href) return `<span class="link-chip">${escapeHtml(label)}</span>`;
+
+          return `
+            <a class="link-chip"
+               href="${escapeHtml(href)}"
+               target="_blank"
+               rel="noopener noreferrer"
+               title="${escapeHtml(link.url)}">
+              ${escapeHtml(label)}
+            </a>
+          `;
+        }).join("");
+
+      return valid ? `<div class="links-view">${valid}</div>` : "";
+    }
+
+    function renderLinksEdit(node) {
+      const rows = (node.links || []).map((link, index) => `
+        <div class="link-row">
+          <input
+            class="link-input"
+            value="${escapeHtml(link.text)}"
+            placeholder="표시할 링크 텍스트"
+            oninput="updateLink('${node.id}', ${index}, 'text', this.value)"
+          />
+          <input
+            class="link-input"
+            value="${escapeHtml(link.url)}"
+            placeholder="https://..."
+            oninput="updateLink('${node.id}', ${index}, 'url', this.value)"
+          />
+          <button class="mini-btn danger" onclick="removeLink('${node.id}', ${index})">링크 삭제</button>
+        </div>
+      `).join("");
+
+      return `
+        <div class="links-edit">
+          ${rows}
+          <div>
+            <button class="mini-btn" onclick="addLink('${node.id}')">+ 링크 추가</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderNode(node, depth = 0, forcePrintView = false) {
+      const editing = editingIds.has(node.id) && !forcePrintView;
+      const hasChildren = node.children && node.children.length > 0;
+
+      const titlePart = editing
+        ? `<input
+             class="node-title-edit"
+             data-title-edit="${node.id}"
+             value="${escapeHtml(node.title)}"
+             oninput="updateNode('${node.id}', 'title', this.value)"
+           />`
+        : `<div class="node-title-view">${escapeHtml(node.title)}</div>`;
+
+      const bodyPart = editing
+        ? `
+          <div class="node-body">
+            <textarea
+              class="description-edit"
+              placeholder="내용, 구현 방법, 문제점, 결정 이유 등을 적으세요."
+              oninput="updateNode('${node.id}', 'description', this.value)"
+            >${escapeHtml(node.description)}</textarea>
+            <div class="edit-help">
+              보기 모드에서는 **굵게**, \`코드\`, 줄바꿈을 간단히 표현합니다.
+            </div>
+            ${renderLinksEdit(node)}
+          </div>
+        `
+        : `
+          <div class="node-body">
+            <div class="description-view ${node.description ? "" : "empty"}">
+              ${node.description ? renderText(node.description) : "내용이 없습니다."}
+            </div>
+            ${renderLinksView(node)}
+          </div>
+        `;
+
+      const actionPart = forcePrintView ? "" : `
+        <div class="node-actions">
+          ${hasChildren
+            ? `<button class="mini-btn" onclick="toggleCollapse('${node.id}')">${node.collapsed ? "펼치기" : "접기"}</button>`
+            : ""
+          }
+          ${editing
+            ? `<button class="mini-btn primary" onclick="finishEdit('${node.id}')">편집 완료</button>`
+            : `<button class="mini-btn" onclick="startEdit('${node.id}')">편집</button>`
+          }
+          <button class="mini-btn" onclick="openAddModal('${node.id}')">+ 하위</button>
+          ${!editing ? `<button class="mini-btn" onclick="addLink('${node.id}')">+ 링크</button>` : ""}
+          <button class="mini-btn danger" onclick="removeNode('${node.id}')">삭제</button>
+        </div>
+      `;
+
+      const childrenHtml = hasChildren
+        ? `<div class="children">${
+            node.children.map(child => renderNode(child, depth + 1, forcePrintView)).join("")
+          }</div>`
+        : "";
+
+      const rootClass = depth === 0 ? "root-node" : "";
+      const wrapClass = [
+        "node-wrap",
+        depth === 0 ? "root-section" : "",
+        node.collapsed && !forcePrintView ? "collapsed" : ""
+      ].join(" ");
+
+      return `
+        <div class="${wrapClass}">
+          <div class="node ${rootClass}">
+            <div class="node-header">
+              ${titlePart}
+              ${actionPart}
+            </div>
+            ${bodyPart}
+          </div>
+          ${childrenHtml}
+        </div>
+      `;
+    }
+
+    function render(forcePrintView = false) {
+      document.getElementById("projectTitle").textContent = project.projectTitle;
+
+      if (!forcePrintView) {
+        renderSectionNav();
+        renderOverview();
+      }
+
+      const treeEl = document.getElementById("tree");
+
+      let rootsToRender = project.tree;
+      if (!forcePrintView && activeRootId !== "all") {
+        rootsToRender = project.tree.filter(r => r.id === activeRootId);
+      }
+
+      treeEl.innerHTML = rootsToRender.length
+        ? rootsToRender.map(root => renderNode(root, 0, forcePrintView)).join("")
+        : `<div class="empty-state">아직 항목이 없습니다. “+ 최상위 항목”으로 시작하세요.</div>`;
+
+      if (!forcePrintView) updateStatus();
+    }
+
+    window.addEventListener("beforeunload", event => {
+      if (!dirty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    });
+
+    render();
+  </script>
+</body>
+</html>

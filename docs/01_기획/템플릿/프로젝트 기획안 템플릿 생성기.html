@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 서비스 기획서 템플릿</title>
+  <style>
+    :root{
+      --navy:#1f426d;
+      --blue:#78a6dc;
+      --ink:#1e2530;
+      --muted:#6d7784;
+      --line:#d8e0ea;
+      --panel:#f5f7fa;
+      --soft:#eef4fb;
+      --danger:#b83a3a;
+      --paper:#ffffff;
+      --shadow:0 10px 28px rgba(20,46,80,.10);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      color:var(--ink);
+      background:#edf1f6;
+      font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",Arial,sans-serif;
+      line-height:1.65;
+    }
+    button,input,textarea{font:inherit}
+    button{cursor:pointer}
+    .topbar{
+      position:sticky; top:0; z-index:20;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:12px 18px;
+      background:rgba(255,255,255,.96);
+      border-bottom:1px solid var(--line);
+      backdrop-filter:blur(10px);
+    }
+    .topbar .title{font-weight:800;color:var(--navy)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{
+      border:1px solid var(--line); background:#fff; color:var(--ink);
+      padding:9px 14px; border-radius:9px; font-weight:700;
+    }
+    .btn:hover{border-color:#a9b9cb;background:#f9fbfd}
+    .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+    .btn.soft{background:var(--soft);border-color:#cfe0f4;color:var(--navy)}
+    .btn.danger{color:var(--danger)}
+    .app{max-width:1080px;margin:24px auto 80px;padding:0 18px}
+    .paper{
+      background:var(--paper); box-shadow:var(--shadow); border:1px solid #e3e8ef;
+      border-radius:14px; padding:54px 64px 72px;
+    }
+    .hero{margin-bottom:34px}
+    .hero input{
+      width:100%;border:none;border-bottom:3px solid var(--navy);outline:none;
+      padding:0 0 12px;background:transparent;color:var(--navy);
+    }
+    .hero .project-title{font-size:36px;font-weight:900;letter-spacing:-.02em}
+    .hero .tagline{font-size:17px;font-weight:700;color:#2d3540;border-bottom:none;margin-top:12px;padding:0}
+    .section{margin-top:34px}
+    .section-title{
+      display:flex;align-items:center;gap:12px;color:var(--navy);
+      font-size:25px;font-weight:900;letter-spacing:-.02em;margin:0 0 18px;
+    }
+    .section-title::before{content:"";width:6px;height:39px;background:var(--blue);border-radius:2px}
+    .section-help{margin:-8px 0 15px 18px;color:var(--muted);font-size:13px}
+    .field{margin:14px 0}
+    .label{display:block;font-weight:800;font-size:14px;margin-bottom:6px;color:#313a46}
+    .input,.textarea{
+      width:100%;border:1px solid #cfd8e3;border-radius:9px;background:#fff;
+      padding:12px 14px;outline:none;transition:.15s;border-color:#ccd6e2;
+    }
+    .input:focus,.textarea:focus{border-color:#76a2d4;box-shadow:0 0 0 3px rgba(120,166,220,.17)}
+    .textarea{min-height:150px;resize:vertical;line-height:1.7}
+    .flow textarea{min-height:190px}
+    .upload-box{
+      border:1.5px dashed #aebdce;border-radius:12px;padding:18px;background:#fafcff;
+      display:grid;gap:12px;place-items:center;text-align:center;color:var(--muted);
+    }
+    .upload-box.drag{border-color:var(--blue);background:#f1f7ff}
+    .upload-box input[type=file]{max-width:100%}
+    .image-preview-wrap{width:100%;display:none;position:relative}
+    .image-preview-wrap.active{display:block}
+    .image-preview{display:block;max-width:100%;max-height:420px;margin:0 auto;border-radius:8px;border:1px solid #d9e0e8}
+    .image-actions{display:flex;gap:8px;justify-content:center;margin-top:10px}
+    .resource-list{display:grid;gap:18px}
+    .resource-card{
+      border:1px solid var(--line);border-radius:12px;padding:20px;background:#fff;
+      box-shadow:0 3px 12px rgba(28,53,82,.04);position:relative;
+    }
+    .resource-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px}
+    .resource-index{font-weight:900;color:var(--navy)}
+    .remove-btn{border:0;background:transparent;color:var(--danger);font-weight:800;padding:4px 6px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .add-row{margin-top:16px}
+    .add-btn{
+      width:100%;border:1px dashed #8da8c5;background:#f7fbff;color:var(--navy);
+      padding:13px;border-radius:10px;font-weight:900;
+    }
+    .add-btn:hover{background:#edf6ff}
+    .note{
+      margin-top:20px;padding:14px 16px;border-left:4px solid var(--blue);background:#f4f7fb;
+      color:#46515e;font-size:14px;
+    }
+    .print-report{display:none}
+    .toast{
+      position:fixed;right:18px;bottom:18px;z-index:100;background:#17263a;color:#fff;
+      padding:11px 14px;border-radius:9px;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s;
+      box-shadow:0 8px 28px rgba(0,0,0,.16);font-size:14px;
+    }
+    .toast.show{opacity:1;transform:translateY(0)}
+
+    /* Printable report */
+    .report-sheet{color:#20252d;background:#fff;font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",Arial,sans-serif}
+    .report-header{margin-bottom:30px}
+    .report-title{font-size:30px;font-weight:900;color:var(--navy);border-bottom:2px solid var(--navy);padding-bottom:10px;margin:0}
+    .report-tagline{font-size:15px;font-weight:700;margin-top:10px}
+    .report-section{margin:28px 0}
+    .report-section h2{display:flex;align-items:center;gap:10px;color:var(--navy);font-size:22px;margin:0 0 13px;font-weight:900}
+    .report-section h2::before{content:"";display:inline-block;width:5px;height:31px;background:var(--blue)}
+    .report-text{white-space:pre-wrap;font-size:14px;line-height:1.75}
+    .report-image{max-width:100%;max-height:390px;display:block;margin:16px auto 0;border:1px solid #e0e5eb;border-radius:4px}
+    .report-caption{text-align:center;color:#6a7480;font-size:11px;margin-top:6px}
+    .report-card{break-inside:avoid-page;margin:20px 0 26px}
+    .report-card h3{font-size:22px;color:#183a63;margin:0 0 5px;padding-bottom:7px;border-bottom:2px solid #27496e}
+    .report-card .desc{white-space:pre-wrap;font-size:14px;line-height:1.7;margin:10px 0}
+    .report-card .link{font-size:12px;word-break:break-all;color:#2b65a5;margin:6px 0}
+    .empty-print{color:#929aa4;font-style:italic}
+
+    @media (max-width:760px){
+      .paper{padding:34px 22px 50px}.hero .project-title{font-size:29px}.grid2{grid-template-columns:1fr}
+      .topbar{align-items:flex-start}.topbar .title{display:none}
+    }
+    @media print{
+      @page{size:A4;margin:15mm 17mm 17mm}
+      body{background:#fff}
+      .topbar,.app,.toast{display:none!important}
+      .print-report{display:block!important}
+      .report-sheet{font-size:10.5pt}
+      a{color:inherit;text-decoration:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title">AI 서비스 기획서 템플릿</div>
+    <div class="actions">
+      <button class="btn soft" id="previewBtn">미리보기</button>
+      <button class="btn primary" id="pdfBtn">PDF 저장</button>
+      <button class="btn" id="zipBtn">폴더묶음 ZIP</button>
+      <button class="btn danger" id="resetBtn">초기화</button>
+    </div>
+  </div>
+
+  <main class="app">
+    <article class="paper">
+      <header class="hero">
+        <input class="project-title" id="projectTitle" placeholder="프로젝트명" value="" />
+        <input class="tagline" id="tagline" placeholder="서비스 한 줄 소개 (선택)" value="" />
+      </header>
+
+      <section class="section">
+        <h2 class="section-title">1. 프로젝트 개요 및 추진 배경</h2>
+        <p class="section-help">해결하려는 문제, 서비스가 필요한 배경, 주요 사용자와 목표를 중심으로 작성하세요.</p>
+        <textarea class="textarea" id="overview" placeholder="예) 사용자가 어떤 불편을 겪고 있으며, 이 서비스를 왜 만들게 되었는지 작성"></textarea>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">2. 기존 서비스와의 차별점과 흥미를 끌 요소</h2>
+        <p class="section-help">기존 방식의 한계와 우리 서비스만의 차별점, 사용자가 ‘써보고 싶다’고 느낄 요소를 함께 작성하세요.</p>
+        <textarea class="textarea" id="differentiation" placeholder="예) 기존 서비스는 무엇에 집중하고 있으며, 본 서비스는 무엇을 추가로 해결하는지 작성"></textarea>
+      </section>
+
+      <section class="section flow">
+        <h2 class="section-title">3. 서비스 플로우</h2>
+        <p class="section-help">기술 흐름이 아니라 실제 사용자의 시점에서 ‘무엇을 입력하고 → 무엇을 확인하고 → 무엇을 선택하는지’ 작성하세요.</p>
+        <textarea class="textarea" id="flow" placeholder="예) 조건 입력 → 결과 확인 → 후보 비교 → 추천 이유 확인 → 최종 선택"></textarea>
+        <div class="field">
+          <label class="label">사용 이미지 (선택, 1장)</label>
+          <div class="upload-box" data-upload="flow">
+            <div>서비스 사용 화면, 사용자 사용 장면 또는 서비스 플로우 이미지를 넣을 수 있습니다.</div>
+            <input type="file" id="flowImage" accept="image/*" />
+            <div class="image-preview-wrap" id="flowPreviewWrap">
+              <img class="image-preview" id="flowPreview" alt="서비스 플로우 이미지 미리보기" />
+              <div class="image-actions"><button class="btn danger" type="button" id="removeFlowImage">이미지 삭제</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">4. 활용 데이터</h2>
+        <p class="section-help">학습용 입력 변수(Feature)와 정답(Label/Target)을 구성하는 데이터셋을 자료 단위로 추가하세요.</p>
+        <div class="resource-list" id="dataList"></div>
+        <div class="add-row"><button class="add-btn" type="button" id="addDataBtn">+ 활용 데이터 자료 추가</button></div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-title">5. 해당 주제를 진행하기 위한 근거 자료</h2>
+        <p class="section-help">변수 간 관계, 예측 가능성, 선행연구, 통계/논문 등 ‘왜 이 주제가 성립하는가’를 뒷받침하는 자료를 추가하세요.</p>
+        <div class="resource-list" id="evidenceList"></div>
+        <div class="add-row"><button class="add-btn" type="button" id="addEvidenceBtn">+ 근거 자료 추가</button></div>
+      </section>
+
+      <div class="note">
+        <b>내보내기:</b> “PDF 저장”은 브라우저 인쇄 창을 열며, Chrome/Edge에서 대상 프린터를 <b>PDF로 저장</b>으로 선택하면 업로드한 이미지까지 포함됩니다. “폴더묶음 ZIP”은 작성 내용, 보고서 HTML, 이미지 원본, JSON 데이터를 하나의 ZIP으로 묶습니다.
+      </div>
+    </article>
+  </main>
+
+  <div class="print-report"><div class="report-sheet" id="reportSheet"></div></div>
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = (s, root=document) => root.querySelector(s);
+  const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+  const state = { data: [], evidence: [], flowImage: null };
+  let seq = 0;
+
+  const esc = (s='') => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const textOrEmpty = s => (s && s.trim()) ? esc(s.trim()) : '<span class="empty-print">내용 없음</span>';
+  const extFromMime = mime => ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','image/svg+xml':'svg'}[mime] || 'img');
+  const toast = msg => { const el=$('#toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); };
+
+  function makeResource(kind){
+    const id = ++seq;
+    const item = { id, title:'', content:'', link:'', imageFile:null, imageDataUrl:'' };
+    state[kind].push(item);
+    const list = kind==='data' ? $('#dataList') : $('#evidenceList');
+    const card = document.createElement('div');
+    card.className='resource-card'; card.dataset.id=id; card.dataset.kind=kind;
+    card.innerHTML = `
+      <div class="resource-card-head">
+        <div class="resource-index"></div>
+        <button class="remove-btn" type="button">삭제</button>
+      </div>
+      <div class="field"><label class="label">자료 제목</label><input class="input r-title" placeholder="자료/데이터셋/논문 제목" /></div>
+      <div class="field"><label class="label">내용</label><textarea class="textarea r-content" placeholder="${kind==='data' ? '입력 변수(Feature), 정답(Label/Target), 데이터 규모, 활용 방법 등을 작성' : '핵심 근거, 변수 간 관계, 연구 결과, 본 프로젝트와 연결되는 이유를 작성'}"></textarea></div>
+      <div class="field"><label class="label">링크</label><input class="input r-link" type="url" placeholder="https://..." /></div>
+      <div class="field">
+        <label class="label">이미지 (1장)</label>
+        <div class="upload-box resource-upload">
+          <div>증빙 화면 또는 핵심 결과 이미지를 선택하세요.</div>
+          <input type="file" class="r-image" accept="image/*" />
+          <div class="image-preview-wrap r-preview-wrap"><img class="image-preview r-preview" alt="자료 이미지 미리보기" /><div class="image-actions"><button class="btn danger r-remove-image" type="button">이미지 삭제</button></div></div>
+        </div>
+      </div>`;
+    list.appendChild(card);
+    bindResource(card, item, kind);
+    renumber(kind);
+  }
+
+  function bindResource(card,item,kind){
+    $('.r-title',card).addEventListener('input',e=>item.title=e.target.value);
+    $('.r-content',card).addEventListener('input',e=>item.content=e.target.value);
+    $('.r-link',card).addEventListener('input',e=>item.link=e.target.value);
+    $('.remove-btn',card).addEventListener('click',()=>{
+      state[kind]=state[kind].filter(x=>x.id!==item.id); card.remove(); renumber(kind);
+    });
+    const fileInput=$('.r-image',card), preview=$('.r-preview',card), wrap=$('.r-preview-wrap',card);
+    fileInput.addEventListener('change', async e=>{
+      const file=e.target.files?.[0]; if(!file) return;
+      item.imageFile=file; item.imageDataUrl=await fileToDataUrl(file);
+      preview.src=item.imageDataUrl; wrap.classList.add('active');
+    });
+    $('.r-remove-image',card).addEventListener('click',()=>{
+      item.imageFile=null;item.imageDataUrl='';fileInput.value='';preview.removeAttribute('src');wrap.classList.remove('active');
+    });
+    const upload=$('.resource-upload',card);
+    ['dragenter','dragover'].forEach(ev=>upload.addEventListener(ev,e=>{e.preventDefault();upload.classList.add('drag')}));
+    ['dragleave','drop'].forEach(ev=>upload.addEventListener(ev,e=>{e.preventDefault();upload.classList.remove('drag')}));
+    upload.addEventListener('drop',async e=>{
+      const file=[...e.dataTransfer.files].find(f=>f.type.startsWith('image/')); if(!file) return;
+      item.imageFile=file; item.imageDataUrl=await fileToDataUrl(file); preview.src=item.imageDataUrl; wrap.classList.add('active');
+    });
+  }
+
+  function renumber(kind){
+    const list = kind==='data' ? $('#dataList') : $('#evidenceList');
+    $$('.resource-card',list).forEach((card,i)=>$('.resource-index',card).textContent=`자료 ${i+1}`);
+  }
+  const fileToDataUrl = file => new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)});
+
+  $('#addDataBtn').addEventListener('click',()=>makeResource('data'));
+  $('#addEvidenceBtn').addEventListener('click',()=>makeResource('evidence'));
+
+  const flowInput=$('#flowImage'), flowPreview=$('#flowPreview'), flowWrap=$('#flowPreviewWrap');
+  flowInput.addEventListener('change',async e=>{
+    const file=e.target.files?.[0];if(!file)return; state.flowImage={file,dataUrl:await fileToDataUrl(file)};flowPreview.src=state.flowImage.dataUrl;flowWrap.classList.add('active');
+  });
+  $('#removeFlowImage').addEventListener('click',()=>{state.flowImage=null;flowInput.value='';flowPreview.removeAttribute('src');flowWrap.classList.remove('active')});
+  const flowBox=$('[data-upload="flow"]');
+  ['dragenter','dragover'].forEach(ev=>flowBox.addEventListener(ev,e=>{e.preventDefault();flowBox.classList.add('drag')}));
+  ['dragleave','drop'].forEach(ev=>flowBox.addEventListener(ev,e=>{e.preventDefault();flowBox.classList.remove('drag')}));
+  flowBox.addEventListener('drop',async e=>{const file=[...e.dataTransfer.files].find(f=>f.type.startsWith('image/'));if(!file)return;state.flowImage={file,dataUrl:await fileToDataUrl(file)};flowPreview.src=state.flowImage.dataUrl;flowWrap.classList.add('active')});
+
+  function collect(){
+    return {
+      projectTitle:$('#projectTitle').value,
+      tagline:$('#tagline').value,
+      overview:$('#overview').value,
+      differentiation:$('#differentiation').value,
+      flow:$('#flow').value,
+      flowImage:state.flowImage,
+      data:state.data,
+      evidence:state.evidence,
+      exportedAt:new Date().toISOString()
+    };
+  }
+
+  function resourceHtml(items, imageResolver){
+    if(!items.length) return '<div class="empty-print">등록된 자료 없음</div>';
+    return items.map((it,i)=>{
+      const src=imageResolver(it,i);
+      const link=(it.link||'').trim();
+      return `<article class="report-card">
+        <h3>${esc(it.title||`자료 ${i+1}`)}</h3>
+        <div class="desc">${textOrEmpty(it.content)}</div>
+        ${link?`<div class="link">${esc(link)}</div>`:''}
+        ${src?`<img class="report-image" src="${src}" alt="${esc(it.title||'자료')} 이미지"><div class="report-caption">${esc(it.title||`자료 ${i+1}`)} 증빙 이미지</div>`:''}
+      </article>`;
+    }).join('');
+  }
+
+  function reportBody(data, mode='dataurl', paths={}){
+    const flowSrc = mode==='dataurl' ? (data.flowImage?.dataUrl||'') : (paths.flow||'');
+    const dataResolver = (it,i)=> mode==='dataurl' ? (it.imageDataUrl||'') : (paths.data?.[i]||'');
+    const evResolver = (it,i)=> mode==='dataurl' ? (it.imageDataUrl||'') : (paths.evidence?.[i]||'');
+    return `
+      <header class="report-header">
+        <h1 class="report-title">${esc(data.projectTitle||'AI 서비스 기획서')}</h1>
+        ${data.tagline?.trim()?`<div class="report-tagline">${esc(data.tagline.trim())}</div>`:''}
+      </header>
+      <section class="report-section"><h2>1. 프로젝트 개요 및 추진 배경</h2><div class="report-text">${textOrEmpty(data.overview)}</div></section>
+      <section class="report-section"><h2>2. 기존 서비스와의 차별점과 흥미를 끌 요소</h2><div class="report-text">${textOrEmpty(data.differentiation)}</div></section>
+      <section class="report-section"><h2>3. 서비스 플로우</h2><div class="report-text">${textOrEmpty(data.flow)}</div>${flowSrc?`<img class="report-image" src="${flowSrc}" alt="서비스 플로우 이미지"><div class="report-caption">서비스 사용/플로우 이미지</div>`:''}</section>
+      <section class="report-section"><h2>4. 활용 데이터</h2>${resourceHtml(data.data,dataResolver)}</section>
+      <section class="report-section"><h2>5. 해당 주제를 진행하기 위한 근거 자료</h2>${resourceHtml(data.evidence,evResolver)}</section>`;
+  }
+
+  function buildPrint(){ $('#reportSheet').innerHTML=reportBody(collect(),'dataurl'); }
+
+  $('#pdfBtn').addEventListener('click',()=>{ buildPrint(); setTimeout(()=>window.print(),60); });
+  $('#previewBtn').addEventListener('click',()=>{
+    const data=collect();
+    const html=standaloneHtml(data,'dataurl');
+    const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
+    window.open(url,'_blank'); setTimeout(()=>URL.revokeObjectURL(url),60000);
+  });
+
+  function standaloneHtml(data, mode='dataurl', paths={}){
+    const style = `
+      *{box-sizing:border-box}body{margin:0;background:#edf1f6;color:#20252d;font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",Arial,sans-serif;line-height:1.65}
+      .wrap{max-width:900px;margin:28px auto;background:#fff;padding:55px 64px 70px;box-shadow:0 10px 28px rgba(20,46,80,.1)}
+      .report-header{margin-bottom:30px}.report-title{font-size:30px;font-weight:900;color:#1f426d;border-bottom:2px solid #1f426d;padding-bottom:10px;margin:0}.report-tagline{font-size:15px;font-weight:700;margin-top:10px}
+      .report-section{margin:28px 0}.report-section h2{display:flex;align-items:center;gap:10px;color:#1f426d;font-size:22px;margin:0 0 13px;font-weight:900}.report-section h2:before{content:"";display:inline-block;width:5px;height:31px;background:#78a6dc}
+      .report-text{white-space:pre-wrap;font-size:14px;line-height:1.75}.report-image{max-width:100%;max-height:420px;display:block;margin:16px auto 0;border:1px solid #e0e5eb;border-radius:4px}.report-caption{text-align:center;color:#6a7480;font-size:11px;margin-top:6px}
+      .report-card{break-inside:avoid-page;margin:20px 0 26px}.report-card h3{font-size:22px;color:#183a63;margin:0 0 5px;padding-bottom:7px;border-bottom:2px solid #27496e}.report-card .desc{white-space:pre-wrap;font-size:14px;line-height:1.7;margin:10px 0}.report-card .link{font-size:12px;word-break:break-all;color:#2b65a5;margin:6px 0}.empty-print{color:#929aa4;font-style:italic}
+      @media print{@page{size:A4;margin:15mm 17mm 17mm}body{background:#fff}.wrap{max-width:none;margin:0;padding:0;box-shadow:none}}
+      @media(max-width:700px){.wrap{margin:0;padding:32px 22px;box-shadow:none}}
+    `;
+    return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(data.projectTitle||'AI 서비스 기획서')}</title><style>${style}</style></head><body><main class="wrap">${reportBody(data,mode,paths)}</main></body></html>`;
+  }
+
+  $('#resetBtn').addEventListener('click',()=>{
+    if(!confirm('작성한 내용을 모두 초기화할까요?'))return;
+    ['projectTitle','tagline','overview','differentiation','flow'].forEach(id=>$('#'+id).value='');
+    state.data=[];state.evidence=[];state.flowImage=null;$('#dataList').innerHTML='';$('#evidenceList').innerHTML='';flowInput.value='';flowWrap.classList.remove('active');makeResource('data');makeResource('evidence');toast('초기화했습니다.');
+  });
+
+  // Minimal ZIP writer (STORE/no compression) - self-contained, no CDN required.
+  const crcTable=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
+  const crc32 = bytes => {let c=0xffffffff;for(const b of bytes)c=crcTable[(c^b)&255]^(c>>>8);return (c^0xffffffff)>>>0;};
+  const u16=(n)=>new Uint8Array([n&255,(n>>>8)&255]);
+  const u32=(n)=>new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]);
+  const concat=(parts)=>{const len=parts.reduce((a,b)=>a+b.length,0),out=new Uint8Array(len);let o=0;for(const p of parts){out.set(p,o);o+=p.length;}return out;};
+  const dos=()=>{const d=new Date();const time=((d.getHours()&31)<<11)|((d.getMinutes()&63)<<5)|((Math.floor(d.getSeconds()/2))&31);const date=(((d.getFullYear()-1980)&127)<<9)|(((d.getMonth()+1)&15)<<5)|(d.getDate()&31);return {time,date};};
+  function zipStore(files){
+    const enc=new TextEncoder(), locals=[], centrals=[];let offset=0;const dt=dos();
+    for(const f of files){const name=enc.encode(f.name),data=f.bytes,crc=crc32(data),flags=0x0800;
+      const local=concat([u32(0x04034b50),u16(20),u16(flags),u16(0),u16(dt.time),u16(dt.date),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),name,data]);
+      locals.push(local);
+      const central=concat([u32(0x02014b50),u16(20),u16(20),u16(flags),u16(0),u16(dt.time),u16(dt.date),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),name]);
+      centrals.push(central);offset+=local.length;
+    }
+    const cd=concat(centrals), body=concat(locals), end=concat([u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cd.length),u32(body.length),u16(0)]);
+    return concat([body,cd,end]);
+  }
+
+  $('#zipBtn').addEventListener('click',async()=>{
+    const data=collect(), files=[], paths={data:[],evidence:[],flow:''};
+    const addImg=async(file,path)=>{files.push({name:path,bytes:new Uint8Array(await file.arrayBuffer())});return path;};
+    if(data.flowImage?.file){const ext=extFromMime(data.flowImage.file.type);paths.flow=await addImg(data.flowImage.file,`images/service-flow.${ext}`)}
+    for(let i=0;i<data.data.length;i++){const it=data.data[i];if(it.imageFile){const ext=extFromMime(it.imageFile.type);paths.data[i]=await addImg(it.imageFile,`images/data-${String(i+1).padStart(2,'0')}.${ext}`)}else paths.data[i]='';}
+    for(let i=0;i<data.evidence.length;i++){const it=data.evidence[i];if(it.imageFile){const ext=extFromMime(it.imageFile.type);paths.evidence[i]=await addImg(it.imageFile,`images/evidence-${String(i+1).padStart(2,'0')}.${ext}`)}else paths.evidence[i]='';}
+    const html=standaloneHtml(data,'relative',paths);
+    const safeData={...data,flowImage:undefined,data:data.data.map(({imageFile,imageDataUrl,...x})=>x),evidence:data.evidence.map(({imageFile,imageDataUrl,...x})=>x)};
+    const readme=`AI 서비스 기획서 내보내기 묶음\n\n- report.html : 작성한 기획서 완성본\n- data.json   : 입력 내용 원본(JSON)\n- images/     : 업로드한 이미지 원본\n\nreport.html을 Chrome/Edge에서 열고 Ctrl+P -> PDF로 저장하면 이미지가 포함된 PDF를 만들 수 있습니다.\n`;
+    files.unshift({name:'README.txt',bytes:new TextEncoder().encode(readme)});
+    files.unshift({name:'data.json',bytes:new TextEncoder().encode(JSON.stringify(safeData,null,2))});
+    files.unshift({name:'report.html',bytes:new TextEncoder().encode(html)});
+    const zip=zipStore(files), blob=new Blob([zip],{type:'application/zip'}), a=document.createElement('a');
+    const base=(data.projectTitle||'ai-project-plan').trim().replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,'_');
+    a.href=URL.createObjectURL(blob);a.download=`${base}_bundle.zip`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('ZIP 파일을 만들었습니다.');
+  });
+
+  // Start with one item in each repeatable section.
+  makeResource('data');
+  makeResource('evidence');
+})();
+</script>
+</body>
+</html>
