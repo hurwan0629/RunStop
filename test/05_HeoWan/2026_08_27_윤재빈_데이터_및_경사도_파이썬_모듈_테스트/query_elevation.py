@@ -10,6 +10,7 @@ import numpy as np
 import json
 import os
 from pyproj import Transformer
+from typing import Optional
 
 DEM_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,7 +21,7 @@ with open(f"{DEM_DIR}/서울_DEM_10m_meta.json", encoding="utf-8") as f:
 _dem = np.load(f"{DEM_DIR}/서울_DEM_10m.npy")
 
 
-def get_elevation(lat: float, lon: float) -> float:
+def get_elevation(lat: float, lon: float) -> Optional[float | None]:
     """위경도(WGS84) -> 고도(m). 격자 범위 밖이면 None."""
     x, y = _to_5179.transform(lon, lat)
     col = int((x - _meta["x_min"]) / _meta["resolution_m"])
@@ -30,7 +31,7 @@ def get_elevation(lat: float, lon: float) -> float:
     return None
 
 
-def slope_percent(lat1, lon1, lat2, lon2) -> float:
+def slope_percent(lat1, lon1, lat2, lon2) -> Optional[float | None]:
     """두 지점 간 경사(%) = 고도차 / 수평거리 * 100"""
     e1, e2 = get_elevation(lat1, lon1), get_elevation(lat2, lon2)
     if e1 is None or e2 is None:
@@ -49,4 +50,6 @@ if __name__ == "__main__":
     myeongdong = (37.5636, 126.9850)
     print("남산 고도:", get_elevation(*namsan), "m")
     print("명동 고도:", get_elevation(*myeongdong), "m")
-    print("두 지점 간 경사:", round(slope_percent(*namsan, *myeongdong), 2), "%")
+
+    res =slope_percent(*namsan, *myeongdong)
+    print("두 지점 간 경사:", round(res, 2) if res is not None else "" , "%")
