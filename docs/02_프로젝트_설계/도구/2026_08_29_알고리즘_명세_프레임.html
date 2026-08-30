@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RunStop Algorithm Interface Document Builder</title>
+<style>
+:root{
+  --bg:#f5f7fb; --panel:#fff; --line:#d8e0eb; --text:#172033; --muted:#667085;
+  --blue:#175cd3; --blue2:#0b4db5; --nav:#101828; --danger:#b42318;
+  --sidebar:280px; --radius:14px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;line-height:1.58}
+button,input,select,textarea{font:inherit}
+.app{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr);min-height:100vh}
+aside{position:sticky;top:0;height:100vh;padding:24px 18px;background:var(--nav);color:#fff;overflow:auto}
+.brand{font-size:20px;font-weight:850;margin-bottom:5px}
+.brand-sub{font-size:12px;color:#b7c0cf;margin-bottom:18px}
+.sidebar-actions{display:grid;gap:8px;margin-bottom:22px}
+.side-btn,.file-label{width:100%;border:1px solid #344054;border-radius:10px;padding:10px 12px;background:#1d2939;color:white;cursor:pointer;text-align:center}
+.side-btn.primary{background:var(--blue);border-color:var(--blue)}
+.side-btn:hover,.file-label:hover{filter:brightness(1.1)}
+.toc-title{font-size:12px;font-weight:800;color:#98a2b3;margin:18px 0 7px;text-transform:uppercase;letter-spacing:.08em}
+.toc a{display:block;color:#eaecf0;text-decoration:none;padding:7px 9px;border-radius:8px;font-size:14px}
+.toc a:hover{background:#1d2939}
+main{width:min(1180px,calc(100vw - var(--sidebar)));margin:0 auto;padding:36px}
+.hero,.section{background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.hero{padding:28px;margin-bottom:20px;background:linear-gradient(135deg,#fff,#eef4ff)}
+.hero h1{margin:0 0 7px;font-size:30px;line-height:1.25}
+.hero p{margin:0;color:var(--muted)}
+.section{padding:24px;margin:18px 0;scroll-margin-top:18px}
+.section h2{margin:0 0 5px;font-size:23px}
+.section-desc{margin:0 0 18px;color:var(--muted);font-size:14px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+label.field{display:grid;gap:6px;font-size:13px;font-weight:750;color:#344054}
+input[type=text],input[type=number],textarea,select{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:9px 10px;background:#fff;color:var(--text);outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(23,92,211,.08)}
+textarea{resize:vertical;min-height:92px}
+.code-area{min-height:180px;font-family:Consolas,"SFMono-Regular",monospace;font-size:13px;line-height:1.5}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.btn{border:1px solid #cbd5e1;background:#fff;color:#344054;border-radius:8px;padding:7px 10px;cursor:pointer;font-weight:750;font-size:13px}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:white}
+.btn.danger{color:var(--danger);border-color:#f1c7c3}
+.btn.small{padding:5px 8px;font-size:12px}
+.builder{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.builder-head,.node-row{display:grid;grid-template-columns:1.1fr .7fr 1.4fr .52fr auto;gap:8px;align-items:center}
+.builder-head{padding:9px 10px;background:#eaf2ff;color:#344054;font-weight:800;font-size:12px}
+.node-row{padding:8px 10px;border-top:1px solid #e9eef5}
+.node-row.depth-1{padding-left:28px}.node-row.depth-2{padding-left:46px}.node-row.depth-3{padding-left:64px}.node-row.depth-4{padding-left:82px}.node-row.depth-5{padding-left:100px}
+.node-row input,.node-row select{padding:7px 8px;font-size:13px}
+.node-actions{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap}
+.checkbox-wrap{display:flex;justify-content:center}
+.preview-box{margin-top:11px;padding:13px;border-radius:10px;background:#101828;color:#edf2f7;font:13px/1.5 Consolas,monospace;white-space:pre-wrap;overflow:auto}
+.mini-note,.status{font-size:12px;color:var(--muted)}
+.repeat-list{display:grid;gap:10px}
+
+/* Compact collapsible cards */
+.compact-card{border:1px solid var(--line);border-radius:11px;background:#fcfdff;overflow:hidden}
+.compact-summary{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:#f8fafc}
+.compact-summary:hover{background:#eef4ff}
+.step-number{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:850}
+.summary-title{font-weight:800;font-size:14px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.summary-actions{display:flex;gap:6px}
+.compact-body{display:none;padding:12px;border-top:1px solid #e7edf5}
+.compact-card.open .compact-body{display:block}
+.compact-card.open .compact-summary{background:#eef4ff}
+.row-fields{display:grid;gap:10px;align-items:start}
+.row-fields.algorithm{grid-template-columns:minmax(180px,.7fr) minmax(0,2fr)}
+.row-fields.data{grid-template-columns:minmax(160px,.7fr) minmax(180px,.9fr) minmax(0,1.7fr)}
+.row-fields.exception{grid-template-columns:minmax(145px,.65fr) minmax(180px,1fr) minmax(180px,1fr) minmax(0,1.5fr)}
+.row-fields.dependency{grid-template-columns:minmax(150px,.8fr) minmax(110px,.5fr) minmax(0,1.8fr)}
+.row-fields textarea{min-height:70px}
+.row-fields input,.row-fields textarea{font-size:13px}
+.card-label{display:block;font-size:12px;font-weight:800;color:#475467;margin-bottom:5px}
+
+/* Test cards */
+.test-case{border:1px solid var(--line);border-radius:12px;padding:17px;background:#fff;margin-bottom:13px}
+.test-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:11px}
+.file-input{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
+
+/* Static print document */
+#printDocument{display:none}
+.print-cover{border-top:10px solid var(--blue);padding-top:18px;margin-bottom:18px}
+.print-cover .kicker{font-size:12px;font-weight:800;color:var(--blue);letter-spacing:.08em}
+.print-cover h1{font-size:28px;margin:4px 0 8px}
+.print-sub{font-size:13px;color:#475467}
+.print-section{margin:0 0 18px;break-inside:auto}
+.print-section h2{font-size:19px;color:var(--blue);border-bottom:2px solid var(--blue);padding-bottom:5px;margin:0 0 10px}
+.print-table{width:100%;border-collapse:collapse;font-size:10pt;margin:8px 0 14px}
+.print-table th,.print-table td{border:1px solid #9aa6b2;padding:7px 8px;vertical-align:top;text-align:left}
+.print-table th{background:#eaf2ff;font-weight:800}
+.print-block{border:1px solid #9aa6b2;border-left:4px solid var(--blue);padding:10px 12px;margin:8px 0;white-space:pre-wrap;break-inside:avoid}
+.print-code{font-family:Consolas,monospace;font-size:9pt;white-space:pre-wrap;word-break:break-word;background:#f7f9fc;border:1px solid #9aa6b2;padding:10px}
+.print-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin:10px 0 18px}
+.print-meta div{border-bottom:1px solid #aeb8c4;padding:5px 0}
+.print-toc{border:1px solid #9aa6b2;padding:12px 16px;margin:14px 0 22px}
+.print-toc ol{margin:4px 0;padding-left:22px}
+.print-step{display:grid;grid-template-columns:30px 1fr;gap:10px;margin:8px 0}
+.print-step .num{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;font-size:10pt}
+.print-test{border:1px solid #9aa6b2;padding:12px;margin:0 0 12px;break-inside:avoid}
+.print-link{word-break:break-all;color:#0b4db5}
+
+@media(max-width:940px){
+  .app{grid-template-columns:1fr}
+  aside{position:relative;height:auto}
+  main{width:100%;padding:18px}
+  .grid-2,.row-fields.algorithm,.row-fields.data,.row-fields.exception,.row-fields.dependency{grid-template-columns:1fr}
+  .builder-head{display:none}
+  .node-row{grid-template-columns:1fr 1fr}
+  .node-row>*:nth-child(3){grid-column:1/-1}
+  .node-actions{grid-column:1/-1;justify-content:flex-start}
+}
+@media print{
+  @page{size:A4;margin:14mm 14mm 16mm}
+  body{background:#fff;color:#111}
+  .app{display:block}
+  aside,main>.hero,main>.section,main>.footer-note{display:none!important}
+  main{width:auto;margin:0;padding:0}
+  #printDocument{display:block!important}
+  a{color:#0b4db5;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+  <div class="brand">Worker Interface Builder</div>
+  <div class="brand-sub">Node.js ↔ Python Algorithm Contract</div>
+  <div class="sidebar-actions">
+    <button class="side-btn primary" onclick="preparePrint()">PDF로 변환하기</button>
+    <button class="side-btn" onclick="exportMetadata()">JSON 메타데이터 저장</button>
+    <label class="file-label">JSON 메타데이터 불러오기
+      <input id="metadataLoader" type="file" accept=".json,application/json" hidden />
+    </label>
+  </div>
+  <div class="toc-title">목차</div>
+  <nav class="toc">
+    <a href="#basic">1. 기본 정보</a>
+    <a href="#io">2. 입출력 JSON</a>
+    <a href="#algorithm">3. 알고리즘 구조</a>
+    <a href="#data">4. 사용하는 데이터</a>
+    <a href="#exceptions">5. 예외 / 오류</a>
+    <a href="#constraints">6. 전제조건 / 제약</a>
+    <a href="#dependencies">7. 의존성</a>
+    <a href="#tests">8. 테스트 케이스</a>
+  </nav>
+</aside>
+
+<main>
+<section class="hero">
+  <h1>Python Worker Algorithm Interface Document</h1>
+  <p>알고리즘 구현부만 교체해도 Node.js 서버와 연결될 수 있도록 입출력·데이터·예외·테스트 규격을 작성합니다.</p>
+</section>
+
+<section class="section" id="basic">
+  <h2>1. 기본 정보</h2>
+  <p class="section-desc">알고리즘 문서의 식별 정보와 담당 범위를 기록합니다.</p>
+  <div class="grid-2">
+    <label class="field">알고리즘 이름<input id="algorithmName" type="text" placeholder="예: Route Recommendation Algorithm"></label>
+    <label class="field">버전<input id="version" type="text" placeholder="예: 0.1.0"></label>
+    <label class="field">작성자 / 담당자<input id="author" type="text" placeholder="이름 또는 팀명"></label>
+    <label class="field">Python 진입 함수<input id="entryFunction" type="text" value="route_algorithm(request: dict) -> dict"></label>
+  </div>
+  <label class="field" style="margin-top:14px;">한 줄 설명<textarea id="summary" placeholder="이 알고리즘이 무엇을 입력받아 무엇을 반환하는지"></textarea></label>
+</section>
+
+<section class="section" id="io">
+  <h2>2. 입출력 JSON</h2>
+  <p class="section-desc">string, number, boolean, object, array, null을 지원하며 object/array는 계속 중첩할 수 있습니다.</p>
+  <h3>Request DTO</h3>
+  <div id="requestBuilder" class="builder"></div>
+  <div class="toolbar"><button class="btn" onclick="addRootNode('request')">+ Request 필드 추가</button></div>
+  <div id="requestPreview" class="preview-box">{}</div>
+
+  <h3 style="margin-top:24px;">Response DTO</h3>
+  <div id="responseBuilder" class="builder"></div>
+  <div class="toolbar"><button class="btn" onclick="addRootNode('response')">+ Response 필드 추가</button></div>
+  <div id="responsePreview" class="preview-box">{}</div>
+  <div class="mini-note">required는 인터페이스 문서용 메타데이터이며 JSON 값 자체에는 포함되지 않습니다.</div>
+</section>
+
+<section class="section" id="algorithm">
+  <h2>3. 알고리즘 구조</h2>
+  <p class="section-desc">단계를 추가하면 번호가 자동으로 붙습니다. 제목 행을 눌러 내용을 열고 닫을 수 있습니다.</p>
+  <div id="algorithmSteps" class="repeat-list"></div>
+  <div class="toolbar"><button class="btn" onclick="addCompactCard('algorithm')">+ 단계 추가</button></div>
+</section>
+
+<section class="section" id="data">
+  <h2>4. 사용하는 데이터</h2>
+  <p class="section-desc">이름과 위치는 짧게, 사용 목적은 넓게 작성할 수 있도록 비율을 나눴습니다.</p>
+  <div id="dataItems" class="repeat-list"></div>
+  <div class="toolbar"><button class="btn" onclick="addCompactCard('data')">+ 데이터 추가</button></div>
+</section>
+
+<section class="section" id="exceptions">
+  <h2>5. 예외 및 오류 발생 가능 지점</h2>
+  <p class="section-desc">발생 지점·조건·오류·처리 방식을 한 줄 비율형 레이아웃으로 작성하고 필요할 때만 펼칩니다.</p>
+  <div id="exceptionItems" class="repeat-list"></div>
+  <div class="toolbar"><button class="btn" onclick="addCompactCard('exception')">+ 예외 추가</button></div>
+</section>
+
+<section class="section" id="constraints">
+  <h2>6. 전제조건 / 제약사항</h2>
+  <p class="section-desc">좌표계, 단위, 필수값, 지원 범위, 처리 제한 등을 작성합니다.</p>
+  <textarea id="constraintsText" placeholder="예:
+- 입력 좌표는 EPSG:4326
+- 거리 단위는 km
+- targetDistanceKm은 0보다 커야 함"></textarea>
+</section>
+
+<section class="section" id="dependencies">
+  <h2>7. 의존성</h2>
+  <p class="section-desc">이름·버전은 좁게, 용도는 넓게 작성합니다.</p>
+  <div id="dependencyItems" class="repeat-list"></div>
+  <div class="toolbar"><button class="btn" onclick="addCompactCard('dependency')">+ 의존성 추가</button></div>
+</section>
+
+<section class="section" id="tests">
+  <h2>8. 테스트 케이스</h2>
+  <p class="section-desc">코드를 직접 작성하거나 파일에서 읽어올 수 있고, 별도 저장소·Notebook·테스트 파일 링크도 기록할 수 있습니다.</p>
+  <div id="testCases"></div>
+  <div class="toolbar"><button class="btn primary" onclick="addTestCase()">+ 테스트 케이스 추가</button></div>
+  <div class="mini-note">이 HTML은 코드를 직접 실행하지 않습니다. 실제 실행 입력/출력, stderr, Exit Code, 실행 시간을 기록하는 용도입니다.</div>
+</section>
+
+<div class="footer-note">JSON 메타데이터에는 DTO 트리, 알고리즘 단계, 데이터, 예외, 의존성, 테스트 코드와 링크가 함께 저장됩니다.</div>
+
+<!-- Print-only static document -->
+<div id="printDocument"></div>
+</main>
+</div>
+
+<script>
+const TYPES=["string","number","boolean","object","array","null"];
+const state={request:[],response:[]};
+
+function uid(p="id"){return p+"_"+Math.random().toString(36).slice(2,10)+"_"+Date.now().toString(36)}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function makeNode(key="",type="string",value="",required=true){return{id:uid("node"),key,type,value,required,children:[]}}
+
+function normalizePrimitive(type,value){
+  if(type==="string") return value??"";
+  if(type==="number"){if(value===""||value==null)return 0;const n=Number(value);return Number.isNaN(n)?0:n}
+  if(type==="boolean"){if(typeof value==="boolean")return value;return String(value).toLowerCase()==="true"}
+  if(type==="null") return null;
+  return value;
+}
+function nodeToValue(node){
+  if(node.type==="object"){const o={};node.children.forEach(c=>o[c.key||"unnamed"]=nodeToValue(c));return o}
+  if(node.type==="array") return node.children.map(nodeToValue);
+  return normalizePrimitive(node.type,node.value);
+}
+function treeToJson(kind){const o={};state[kind].forEach(n=>o[n.key||"unnamed"]=nodeToValue(n));return o}
+
+function renderBuilder(kind){
+  const root=document.getElementById(kind+"Builder");
+  root.innerHTML=`<div class="builder-head"><div>Key</div><div>Type</div><div>Value</div><div>Required</div><div>Actions</div></div><div id="${kind}Rows"></div>`;
+  const rows=root.querySelector("#"+kind+"Rows");
+  state[kind].forEach(n=>renderNodeRow(kind,n,rows,0,null));
+  refreshPreview(kind);
+}
+function renderNodeRow(kind,node,container,depth,parent){
+  const row=document.createElement("div");row.className="node-row depth-"+Math.min(depth,5);
+
+  const key=document.createElement("input");key.type="text";key.value=node.key;key.placeholder="key";
+  if(parent?.type==="array"){key.disabled=true;key.value="";key.placeholder="array item"}
+  key.oninput=e=>{node.key=e.target.value;refreshPreview(kind)};
+
+  const type=document.createElement("select");
+  TYPES.forEach(t=>{const o=document.createElement("option");o.value=t;o.textContent=t;o.selected=t===node.type;type.appendChild(o)});
+  type.onchange=e=>{node.type=e.target.value;if(!["object","array"].includes(node.type))node.children=[];if(node.type==="boolean")node.value=false;if(node.type==="null")node.value=null;renderBuilder(kind)};
+
+  let val;
+  if(["object","array"].includes(node.type)){val=document.createElement("div");val.className="status";val.textContent=`${node.children.length} ${node.type==="object"?"child field(s)":"item(s)"}`}
+  else if(node.type==="boolean"){val=document.createElement("select");["true","false"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;o.selected=String(node.value)===v;val.appendChild(o)});val.onchange=e=>{node.value=e.target.value==="true";refreshPreview(kind)}}
+  else if(node.type==="null"){val=document.createElement("div");val.className="status";val.textContent="null"}
+  else{val=document.createElement("input");val.type=node.type==="number"?"number":"text";val.value=node.value??"";val.placeholder="value";val.oninput=e=>{node.value=e.target.value;refreshPreview(kind)}}
+
+  const reqWrap=document.createElement("div");reqWrap.className="checkbox-wrap";
+  const req=document.createElement("input");req.type="checkbox";req.checked=!!node.required;req.onchange=e=>node.required=e.target.checked;reqWrap.appendChild(req);
+
+  const acts=document.createElement("div");acts.className="node-actions";
+  if(["object","array"].includes(node.type)){const add=document.createElement("button");add.className="btn small";add.textContent=node.type==="object"?"+ child":"+ item";add.onclick=()=>{node.children.push(makeNode());renderBuilder(kind)};acts.appendChild(add)}
+  const del=document.createElement("button");del.className="btn small danger";del.textContent="삭제";del.onclick=()=>{if(parent)parent.children=parent.children.filter(x=>x.id!==node.id);else state[kind]=state[kind].filter(x=>x.id!==node.id);renderBuilder(kind)};acts.appendChild(del);
+
+  row.append(key,type,val,reqWrap,acts);container.appendChild(row);
+  node.children.forEach(c=>renderNodeRow(kind,c,container,depth+1,node));
+}
+function addRootNode(kind){state[kind].push(makeNode());renderBuilder(kind)}
+function refreshPreview(kind){document.getElementById(kind+"Preview").textContent=JSON.stringify(treeToJson(kind),null,2)}
+
+/* Compact cards */
+const configs={
+  algorithm:{container:"algorithmSteps",title:"알고리즘 단계",cls:"algorithm",fields:[["단계 이름","text"],["처리 내용","textarea"]]},
+  data:{container:"dataItems",title:"사용 데이터",cls:"data",fields:[["데이터 이름","text"],["형태 / 위치","text"],["사용 목적","textarea"]]},
+  exception:{container:"exceptionItems",title:"예외 항목",cls:"exception",fields:[["발생 지점","text"],["발생 조건","textarea"],["예외 / 오류","textarea"],["처리 방법","textarea"]]},
+  dependency:{container:"dependencyItems",title:"의존성",cls:"dependency",fields:[["이름","text"],["버전","text"],["용도","textarea"]]}
+};
+
+function updateAlgorithmNumbers(){
+  [...document.querySelectorAll("#algorithmSteps .compact-card")].forEach((card,i)=>{
+    const el=card.querySelector(".step-number"); if(el) el.textContent=i+1;
+  });
+}
+function updateSummary(card,kind){
+  const cfg=configs[kind];
+  const first=card.querySelector(`[data-field="${cfg.fields[0][0]}"]`);
+  const title=card.querySelector(".summary-title");
+  const prefix=kind==="algorithm"?"단계 ":"";
+  title.textContent=(first?.value||"").trim() || cfg.title;
+}
+function addCompactCard(kind,values=null,open=true){
+  const cfg=configs[kind],container=document.getElementById(cfg.container);
+  const card=document.createElement("div");card.className="compact-card"+(open?" open":"");card.dataset.kind=kind;card.dataset.id=uid("card");
+
+  const summary=document.createElement("div");summary.className="compact-summary";
+  const num=document.createElement("div");num.className="step-number";num.textContent=kind==="algorithm"?"1":"•";
+  if(kind!=="algorithm"){num.style.background="#344054"}
+  const title=document.createElement("div");title.className="summary-title";title.textContent=cfg.title;
+  const acts=document.createElement("div");acts.className="summary-actions";
+  const toggle=document.createElement("button");toggle.className="btn small";toggle.type="button";toggle.textContent=open?"접기":"펼치기";
+  toggle.onclick=e=>{e.stopPropagation();card.classList.toggle("open");toggle.textContent=card.classList.contains("open")?"접기":"펼치기"};
+  const del=document.createElement("button");del.className="btn small danger";del.type="button";del.textContent="삭제";
+  del.onclick=e=>{e.stopPropagation();card.remove();updateAlgorithmNumbers()};
+  acts.append(toggle,del);summary.append(num,title,acts);
+  summary.onclick=()=>{card.classList.toggle("open");toggle.textContent=card.classList.contains("open")?"접기":"펼치기"};
+
+  const body=document.createElement("div");body.className="compact-body";
+  const row=document.createElement("div");row.className="row-fields "+cfg.cls;
+  cfg.fields.forEach(([name,type])=>{
+    const wrap=document.createElement("div");
+    const lab=document.createElement("span");lab.className="card-label";lab.textContent=name;
+    const el=document.createElement(type==="textarea"?"textarea":"input");
+    if(type!=="textarea")el.type="text";
+    el.dataset.field=name;el.value=values?.[name]??"";
+    el.oninput=()=>updateSummary(card,kind);
+    wrap.append(lab,el);row.appendChild(wrap);
+  });
+  body.appendChild(row);card.append(summary,body);container.appendChild(card);
+  updateSummary(card,kind);updateAlgorithmNumbers();return card;
+}
+function serializeCompact(kind){
+  const cfg=configs[kind];
+  return [...document.querySelectorAll(`#${cfg.container} .compact-card`)].map(card=>{
+    const o={};card.querySelectorAll("[data-field]").forEach(el=>o[el.dataset.field]=el.value);return o;
+  });
+}
+function restoreCompact(kind,items){
+  const cfg=configs[kind];document.getElementById(cfg.container).innerHTML="";
+  (items||[]).forEach((x,i)=>addCompactCard(kind,x,i===0));
+}
+
+/* Tests */
+function addTestCase(data=null){
+  const container=document.getElementById("testCases");
+  const card=document.createElement("div");card.className="test-case";card.dataset.id=data?.id||uid("test");
+  card.innerHTML=`
+    <div class="test-head"><strong>테스트 케이스</strong><button class="btn small danger" type="button">삭제</button></div>
+    <div class="grid-2">
+      <label class="field">테스트 이름<input type="text" data-test="name" placeholder="예: 정상적인 5km 순환 경로 생성"></label>
+      <label class="field">테스트 종류<select data-test="type"><option value="normal">정상</option><option value="edge">경계값</option><option value="error">오류</option><option value="performance">성능</option></select></label>
+    </div>
+    <label class="field" style="margin-top:12px;">테스트 설명<textarea data-test="description" placeholder="무엇을 검증하는 테스트인지"></textarea></label>
+
+    <div class="file-input">
+      <input type="file" data-test-file>
+      <span class="status" data-file-status>코드 파일을 선택하면 아래 코드 영역에 읽어옵니다.</span>
+    </div>
+
+    <label class="field">테스트 코드<textarea class="code-area" data-test="code" placeholder="직접 코드를 작성하거나 코드 파일을 불러오세요."></textarea></label>
+
+    <label class="field" style="margin-top:12px;">코드 / 저장소 / Notebook 링크
+      <input type="text" data-test="codeUrl" placeholder="예: GitHub 파일 URL, Colab/Notebook 링크, 팀 문서 링크">
+    </label>
+
+    <div class="grid-2" style="margin-top:12px;">
+      <label class="field">실행 명령<input type="text" data-test="command" placeholder="예: python test_route.py"></label>
+      <label class="field">불러온 파일명<input type="text" data-test="fileName" readonly></label>
+    </div>
+
+    <label class="field" style="margin-top:12px;">실제 실행 입력<textarea class="code-area" data-test="stdin" placeholder='예: {"start":{"latitude":37.5,"longitude":127.0}}'></textarea></label>
+    <label class="field" style="margin-top:12px;">실제 실행 출력<textarea class="code-area" data-test="stdout" placeholder='예: {"status":"success","routes":[...]}'></textarea></label>
+    <label class="field" style="margin-top:12px;">stderr / 오류 출력<textarea class="code-area" data-test="stderr"></textarea></label>
+
+    <div class="grid-2" style="margin-top:12px;">
+      <label class="field">Exit Code<input type="number" data-test="exitCode" placeholder="0"></label>
+      <label class="field">실행 시간(ms)<input type="number" data-test="durationMs" placeholder="예: 182"></label>
+    </div>
+    <label class="field" style="margin-top:12px;">결과<select data-test="result"><option value="PASS">PASS</option><option value="FAIL">FAIL</option><option value="NOT_RUN">NOT RUN</option></select></label>
+    <label class="field" style="margin-top:12px;">비고<textarea data-test="note"></textarea></label>
+  `;
+  card.querySelector(".danger").onclick=()=>card.remove();
+  const fi=card.querySelector("[data-test-file]"),status=card.querySelector("[data-file-status]");
+  fi.addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;try{const t=await f.text();card.querySelector('[data-test="code"]').value=t;card.querySelector('[data-test="fileName"]').value=f.name;status.textContent=`불러옴: ${f.name} (${f.size} bytes)`}catch{status.textContent="파일을 읽지 못했습니다."}});
+  if(data){Object.entries(data).forEach(([k,v])=>{if(k==="id")return;const el=card.querySelector(`[data-test="${k}"]`);if(el)el.value=v??""})}
+  else card.querySelector('[data-test="result"]').value="NOT_RUN";
+  container.appendChild(card);
+}
+function serializeTests(){
+  return [...document.querySelectorAll("#testCases .test-case")].map(card=>{
+    const o={id:card.dataset.id};card.querySelectorAll("[data-test]").forEach(el=>o[el.dataset.test]=el.value);return o;
+  });
+}
+
+/* Metadata */
+function getMetadata(){
+  return{
+    schemaVersion:2,generatedAt:new Date().toISOString(),
+    document:{
+      algorithmName:document.getElementById("algorithmName").value,
+      version:document.getElementById("version").value,
+      author:document.getElementById("author").value,
+      entryFunction:document.getElementById("entryFunction").value,
+      summary:document.getElementById("summary").value
+    },
+    dto:{requestTree:state.request,responseTree:state.response,requestExample:treeToJson("request"),responseExample:treeToJson("response")},
+    algorithmSteps:serializeCompact("algorithm"),
+    dataItems:serializeCompact("data"),
+    exceptions:serializeCompact("exception"),
+    constraints:document.getElementById("constraintsText").value,
+    dependencies:serializeCompact("dependency"),
+    testCases:serializeTests()
+  }
+}
+function exportMetadata(){
+  const data=JSON.stringify(getMetadata(),null,2),blob=new Blob([data],{type:"application/json;charset=utf-8"}),url=URL.createObjectURL(blob);
+  const name=(document.getElementById("algorithmName").value.trim()||"algorithm_interface").replace(/[\\/:*?"<>|]+/g,"_").replace(/\s+/g,"_");
+  const a=document.createElement("a");a.href=url;a.download=name+".json";document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+function loadMetadata(data){
+  const d=data.document||{};
+  ["algorithmName","version","author","entryFunction","summary"].forEach(k=>document.getElementById(k).value=d[k]??(k==="entryFunction"?"route_algorithm(request: dict) -> dict":""));
+  state.request=data.dto?.requestTree||[];state.response=data.dto?.responseTree||[];renderBuilder("request");renderBuilder("response");
+  restoreCompact("algorithm",data.algorithmSteps||[]);restoreCompact("data",data.dataItems||[]);restoreCompact("exception",data.exceptions||[]);
+  document.getElementById("constraintsText").value=data.constraints||"";
+  restoreCompact("dependency",data.dependencies||[]);
+  document.getElementById("testCases").innerHTML="";(data.testCases||[]).forEach(addTestCase);
+}
+document.getElementById("metadataLoader").addEventListener("change",async e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  try{loadMetadata(JSON.parse(await f.text()));alert("메타데이터를 불러왔습니다.")}
+  catch(err){alert("JSON 파일을 불러오지 못했습니다.\n"+err.message)}
+  finally{e.target.value=""}
+});
+
+/* Print renderer */
+function flattenTree(nodes,prefix="",rows=[]){
+  nodes.forEach((n,i)=>{
+    const key=n.key || (prefix?`[${i}]`:"unnamed");
+    const path=prefix ? (n.key ? `${prefix}.${n.key}` : `${prefix}[${i}]`) : key;
+    rows.push({path,type:n.type,required:n.required?"Y":"N",example:["object","array"].includes(n.type)?"":JSON.stringify(normalizePrimitive(n.type,n.value))});
+    if(n.children?.length) flattenTree(n.children,path,rows);
+  });
+  return rows;
+}
+function table(headers,rows){
+  return `<table class="print-table"><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c??""}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+function printSection(title,body){return `<section class="print-section"><h2>${esc(title)}</h2>${body}</section>`}
+function nl(s){return esc(s).replace(/\n/g,"<br>")}
+function buildPrintDocument(){
+  const m=getMetadata(),d=m.document||{};
+  const reqRows=flattenTree(state.request).map(x=>[esc(x.path),esc(x.type),esc(x.required),esc(x.example)]);
+  const resRows=flattenTree(state.response).map(x=>[esc(x.path),esc(x.type),esc(x.required),esc(x.example)]);
+
+  let html=`
+    <div class="print-cover">
+      <div class="kicker">RUNSTOP · PYTHON WORKER</div>
+      <h1>${esc(d.algorithmName||"알고리즘 인터페이스 문서")}</h1>
+      <div class="print-sub">${esc(d.summary||"Node.js ↔ Python Worker Algorithm Contract")}</div>
+    </div>
+    <div class="print-meta">
+      <div><strong>버전</strong> ${esc(d.version||"-")}</div>
+      <div><strong>작성자 / 담당자</strong> ${esc(d.author||"-")}</div>
+      <div><strong>Python 진입 함수</strong> ${esc(d.entryFunction||"-")}</div>
+      <div><strong>생성 시각</strong> ${esc(new Date().toLocaleString("ko-KR"))}</div>
+    </div>
+    <div class="print-toc"><strong>목차</strong><ol>
+      <li>기본 정보</li><li>입출력 JSON</li><li>알고리즘 구조</li><li>사용하는 데이터</li>
+      <li>예외 및 오류 발생 가능 지점</li><li>전제조건 / 제약사항</li><li>의존성</li><li>테스트 케이스</li>
+    </ol></div>
+  `;
+
+  html+=printSection("1. 기본 정보",`<div class="print-block"><strong>설명</strong><br>${nl(d.summary||"-")}</div>`);
+
+  html+=printSection("2. 입출력 JSON",`
+    <h3>Request DTO</h3>
+    ${table(["Key Path","Type","Required","Example"],reqRows)}
+    <div class="print-code">${esc(JSON.stringify(m.dto.requestExample,null,2))}</div>
+    <h3 style="margin-top:16px">Response DTO</h3>
+    ${table(["Key Path","Type","Required","Example"],resRows)}
+    <div class="print-code">${esc(JSON.stringify(m.dto.responseExample,null,2))}</div>
+  `);
+
+  const steps=(m.algorithmSteps||[]).map((x,i)=>`<div class="print-step"><div class="num">${i+1}</div><div><strong>${esc(x["단계 이름"]||`단계 ${i+1}`)}</strong><div>${nl(x["처리 내용"]||"-")}</div></div></div>`).join("");
+  html+=printSection("3. 알고리즘 구조",steps||"<div>-</div>");
+
+  html+=printSection("4. 사용하는 데이터",
+    table(["데이터 이름","형태 / 위치","사용 목적"],(m.dataItems||[]).map(x=>[nl(x["데이터 이름"]),nl(x["형태 / 위치"]),nl(x["사용 목적"])]))
+  );
+
+  html+=printSection("5. 예외 및 오류 발생 가능 지점",
+    table(["발생 지점","발생 조건","예외 / 오류","처리 방법"],(m.exceptions||[]).map(x=>[nl(x["발생 지점"]),nl(x["발생 조건"]),nl(x["예외 / 오류"]),nl(x["처리 방법"])]))
+  );
+
+  html+=printSection("6. 전제조건 / 제약사항",`<div class="print-block">${nl(m.constraints||"-")}</div>`);
+
+  html+=printSection("7. 의존성",
+    table(["이름","버전","용도"],(m.dependencies||[]).map(x=>[nl(x["이름"]),nl(x["버전"]),nl(x["용도"])]))
+  );
+
+  const tests=(m.testCases||[]).map((t,i)=>`
+    <div class="print-test">
+      <strong>${i+1}. ${esc(t.name||"테스트 케이스")}</strong>
+      <div style="margin:4px 0 8px">${nl(t.description||"")}</div>
+      ${t.codeUrl?`<div><strong>코드/저장소 링크:</strong> <span class="print-link">${esc(t.codeUrl)}</span></div>`:""}
+      ${t.fileName?`<div><strong>파일:</strong> ${esc(t.fileName)}</div>`:""}
+      ${t.command?`<div><strong>실행 명령:</strong> ${esc(t.command)}</div>`:""}
+      ${t.code?`<h4>테스트 코드</h4><div class="print-code">${esc(t.code)}</div>`:""}
+      ${t.stdin?`<h4>실제 입력</h4><div class="print-code">${esc(t.stdin)}</div>`:""}
+      ${t.stdout?`<h4>실제 출력</h4><div class="print-code">${esc(t.stdout)}</div>`:""}
+      ${t.stderr?`<h4>stderr</h4><div class="print-code">${esc(t.stderr)}</div>`:""}
+      <div style="margin-top:8px"><strong>결과:</strong> ${esc(t.result||"NOT_RUN")}
+      &nbsp; | &nbsp;<strong>Exit Code:</strong> ${esc(t.exitCode||"-")}
+      &nbsp; | &nbsp;<strong>실행 시간:</strong> ${esc(t.durationMs||"-")} ms</div>
+      ${t.note?`<div><strong>비고:</strong> ${nl(t.note)}</div>`:""}
+    </div>`).join("");
+  html+=printSection("8. 테스트 케이스",tests||"<div>-</div>");
+
+  document.getElementById("printDocument").innerHTML=html;
+}
+function preparePrint(){buildPrintDocument();setTimeout(()=>window.print(),80)}
+window.addEventListener("beforeprint",buildPrintDocument);
+
+/* Initial samples */
+state.request=[
+  {...makeNode("start","object"),children:[makeNode("latitude","number","37.543",true),makeNode("longitude","number","127.044",true)]},
+  makeNode("targetDistanceKm","number","5",true)
+];
+state.response=[
+  makeNode("status","string","success",true),
+  {...makeNode("routes","array"),children:[{...makeNode("","object"),children:[makeNode("routeId","string","route-001",true),makeNode("distanceKm","number","5.1",true)]}]}
+];
+renderBuilder("request");renderBuilder("response");
+addCompactCard("algorithm",{"단계 이름":"입력 검증","처리 내용":"RouteRequest의 필수 필드와 값 범위를 확인한다."},true);
+addCompactCard("data",null,true);
+addCompactCard("exception",null,true);
+addCompactCard("dependency",null,true);
+addTestCase();
+</script>
+</body>
+</html>
