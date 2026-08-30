@@ -1,0 +1,5 @@
+# Dockerfile에서 복사 등의 작업에서 사용하지 않을 폴더
+node_modules
+dist
+.env*
+.git

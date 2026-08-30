@@ -130,3 +130,115 @@ React Native 의 경우에는 설치형이기 때문에 따로 `docker-compose`�
 ```
 
 [dir1](./assets/2026-08-30_dir.png)
+
+### docker-compose 먼저 작성해보기
+`2026-08-30 12:40:01`
+> 우선 계속 고민만 하고있으면 진행이 안되니 먼저 `docker-compose`를 작성해보겠습니다.
+
+```yml
+# MidProject/docker-compose.yml
+  # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+ #     다음과 같은 구조를 가지고 있다는 가정 하에 동작합니다.    # 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#  MidProject/                                            #
+#  ├─ .env.development                                    #
+#  ├─ .env.test                                           #
+#  ├─ .env.production                                     #
+#  ├─ docker-compose.yml                                  #
+#  │                                                      #
+#  ├─ backend/                                            #  
+#  │  └─ Dockerfile                                       #  
+#  │                                                      #      
+#  └─ routing-worker/                                     #    
+#     └─ Dockerfile                                       #    
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+services:
+  backend: # Node 서버
+    build: # `./backend/Dockerfile` 을 빌드합니다.
+      context: ./backend 
+    env_file:
+      - .env.development
+    ports:
+      - "3000:3000"
+    depends_on: # DB와 워커 FastAPI가 먼저 시작 후 실행 (healthcheck를 이용해서 서버 정상동작까지 가능)
+      - database
+      - routing-worker
+  
+  routing-worker:
+    build: # `/routing-worker/Dockerfile` 을 빌드합니다.
+      context: ./routing-worker
+    env_file: # 메인 폴더의 환경을 그대로 사용합니다.
+      - .env.development
+    
+    # ports는 워커 테스트 시에만 사용
+    # ports: # FastAPI의 기본 포트인 8000번을 호스트의 포트와 연결시킵니다.
+      # - "8000:8000"
+    
+  database:
+    # PostGIS Extention이 붙어있는 17-3.5 버전을 거져옵니다.
+    image: postgis/postgis:17-3.5
+    env_file: # 동일한 파일에서 환경변수를 관리해줍니다.
+      - .env.development
+    ports:
+      - "5432:5432"
+    volumes: # 컨테이너 데비안의 /var/lib/postgrersql/data에 있는 데이터를 볼륨으로 영속화합니다.
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
+```
+
+```yml
+# MidProject/.env.example
+
+# # # # # # # # # # # # # # # # # # # # #
+#        Node Server [API Server]       #
+# # # # # # # # # # # # # # # # # # # # #
+
+# 실행 환경
+#   - 개발: development
+#   - 테스트: test
+#   - 배포: production
+NODE_ENV=development
+# Node 서버 포트
+PORT=3000
+
+# JWT 시크릿
+JWT_SECRET=
+
+
+     
+# # # # # # # # # # # # # # # # # # # # #
+#        Python Worker [FastAPI]        #
+# # # # # # # # # # # # # # # # # # # # #
+
+# Docker Compose 내부에서 localhost 대신 service 이름을 hostname로 설정
+# > compose 내부에 있는 docker-network를 사용
+WORKER_URL=http://routing-worker:8000
+
+# 로컬용 WORKER_URL
+# WORKER_URL=http://localhost:8000
+
+
+
+
+# # # # # # # # # # # # # # # # # # # # #
+#               데이터베이스              #
+# # # # # # # # # # # # # # # # # # # # #
+
+# Docker Compose 내부에서 서버/워커 -> database:5432 로 통신
+DATABASE_URL=postgresql://postgres:1234@database:5432/runstop
+
+# 로컬용 WORKER_URL
+# DATABASE_URL=postgresql://postgres:postgres@localhost:5432/runstop
+
+POSTGRES_DB=runstop
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=1234
+```
+
+### Dockerfile 작성
+`2026-08-30 13:06:24`
+
+> 이제 `backend/`와 `route-worker/`을 빌드하기 위한 `Dockerfile`을 작성하겠습니다.
+
