@@ -3,8 +3,10 @@ Enum user_role {
   ADMIN
 }
 
-Enum auth_provider {
-  GOOGLE
+Enum user_status {
+  ENABLED
+  SUSPENDED
+  WITHDRAWN
 }
 
 Enum goal_type {
@@ -25,33 +27,61 @@ Enum route_point_type {
   END
 }
 
-
-Table users {
-  idx integer [pk, not null]
-  nickname varchar
-  total_exp integer [not null, default: 0]
-  role user_role [not null, default: 'USER']
-  created_at timestamp [not null]
-  updated_at timestamp
+Enum inquiry_status {
+  PENDING
+  IN_PROGRESS
+  ANSWERED
 }
 
 
-Table user_auths {
-  idx integer [pk, not null]
-  user_idx integer [not null]
-  provider auth_provider [not null, default: 'GOOGLE']
-  provider_user_id varchar [not null, note: '현재 Google OIDC의 sub 저장']
+Table users {
+  idx integer [pk, increment]
+
+  login_id varchar [not null, unique]
+  password_hash varchar [not null]
+  nickname varchar [not null]
+
+  total_exp integer [not null, default: 0]
+  role user_role [not null, default: 'USER']
+
+  phone varchar
+
+  status user_status [not null, default: 'ENABLED']
+
+  suspended_until timestamp
+  last_login_at timestamp
+
   created_at timestamp [not null]
+  updated_at timestamp
+
+  admin_memo text
 
   indexes {
-    (provider, provider_user_id) [unique]
+    nickname
+    phone
+    status
   }
 }
 
 
-Table running_goal {
-  idx integer [pk, not null]
-  user_idx integer [not null]
+Table user_profiles {
+  idx integer [pk, increment]
+
+  users_idx integer [not null, unique]
+
+  weight numeric
+  height numeric
+
+  running_settings jsonb
+
+  profile_image_url varchar
+}
+
+
+Table running_goals {
+  idx integer [pk, increment]
+
+  users_idx integer [not null]
 
   goal_type goal_type [not null]
   target_distance numeric [not null]
@@ -64,49 +94,20 @@ Table running_goal {
   finished_at timestamp
 
   created_at timestamp [not null]
+
+  indexes {
+    users_idx
+    (users_idx, status)
+  }
 }
 
 
-Table route_requests {
-  idx integer [pk, not null]
-  user_idx integer [not null]
+Table point_bookmarks {
+  idx integer [pk, increment]
 
-  prompt text
-  element_conditions json
+  users_idx integer [not null]
 
-  selected_recommendation_idx integer
-
-  created_at timestamp [not null]
-}
-
-
-Table route_recommendation {
-  idx integer [pk, not null]
-  route_requests_idx integer [not null]
-
-  score numeric
-  total_distance numeric
-  total_ascent numeric
-
-  geometry geometry [
-    not null,
-    note: 'PostGIS geometry(LineString, 4326)'
-  ]
-
-  created_at timestamp [not null]
-}
-
-
-Table route_point {
-  idx integer [pk, not null]
-  route_recommendation_idx integer [not null]
-
-  sequence integer [not null]
-
-  title varchar
-  point_type route_point_type [not null]
-
-  elevation numeric
+  name varchar [not null]
 
   point geometry [
     not null,
@@ -114,35 +115,213 @@ Table route_point {
   ]
 
   indexes {
-    (route_recommendation_idx, sequence) [unique]
+    users_idx
   }
 }
 
 
-Table running_session {
-  idx integer [pk, not null]
+Table route_requests {
+  idx integer [pk, increment]
 
-  user_idx integer [not null]
-  route_recommendation_idx integer [not null]
+  users_idx integer [not null]
+
+  prompt text
+
+  element_conditions jsonb
+
+  selected_recommendations_idx integer
+
+  created_at timestamp [not null]
+
+  indexes {
+    users_idx
+    selected_recommendations_idx
+    created_at
+  }
+
+  Note: '''
+  selected_recommendations_idx가 설정되는 경우
+  해당 route_recommendation이 반드시 현재 route_request에서
+  생성된 후보인지 서비스 로직에서 추가 검증한다.
+  '''
+}
+
+
+Table route_request_points {
+  idx integer [pk, increment]
+
+  route_requests_idx integer [not null]
+
+  sequence integer [not null]
+
+  point_type route_point_type [not null]
+
+  point geometry [
+    not null,
+    note: 'PostGIS geometry(Point, 4326)'
+  ]
+
+  indexes {
+    route_requests_idx
+    (route_requests_idx, sequence) [unique]
+  }
+}
+
+
+Table route_recommendations {
+  idx integer [pk, increment]
+
+  route_requests_idx integer [not null]
+
+  score numeric
+
+  feature_scores jsonb
+  feature_values jsonb
+
+  total_distance numeric
+  total_ascent numeric
+
+  slope_std numeric [
+    note: '경사도 표준편차. 알고리즘 정책 변경 시 elevation_std로 변경 가능'
+  ]
+
+  route geometry [
+    not null,
+    note: 'PostGIS geometry(LineString, 4326)'
+  ]
+
+  created_at timestamp [not null]
+
+  indexes {
+    route_requests_idx
+    (route_requests_idx, score)
+  }
+}
+
+
+Table route_points {
+  idx integer [pk, increment]
+
+  route_recommendations_idx integer [not null]
+
+  sequence integer [not null]
+
+  title varchar
+
+  point_type route_point_type [not null]
+
+  elevation numeric [
+    note: '해당 지점의 고도(m)'
+  ]
+
+  slope numeric [
+    note: '해당 지점의 경사도. % 또는 degree 중 하나의 단위로 통일'
+  ]
+
+  point geometry [
+    not null,
+    note: 'PostGIS geometry(Point, 4326)'
+  ]
+
+  indexes {
+    route_recommendations_idx
+    (route_recommendations_idx, sequence) [unique]
+  }
+}
+
+
+Table route_bookmarks {
+  idx integer [pk, increment]
+
+  users_idx integer [not null]
+  route_recommendations_idx integer [not null]
+
+  indexes {
+    users_idx
+    route_recommendations_idx
+
+    (users_idx, route_recommendations_idx) [unique]
+  }
+}
+
+
+Table running_sessions {
+  idx integer [pk, increment]
+
+  users_idx integer [not null]
+  route_recommendations_idx integer [not null]
 
   started_at timestamp [not null]
   finished_at timestamp
 
-  average_pace numeric
+  average_pace numeric [
+    note: '전체 평균 페이스. 초/km 등 하나의 단위로 통일'
+  ]
+
+  indexes {
+    users_idx
+    route_recommendations_idx
+    started_at
+  }
 }
 
 
-Table running_trackpoint {
-  idx integer [pk, not null]
+Table running_trackpoints {
+  idx integer [pk, increment]
 
-  running_session_idx integer [not null]
+  running_sessions_idx integer [not null]
 
-  latitude numeric [not null]
-  longitude numeric [not null]
+  point geometry [
+    not null,
+    note: 'PostGIS geometry(Point, 4326)'
+  ]
 
   recorded_at timestamp [not null]
 
   accuracy numeric
+
+  indexes {
+    running_sessions_idx
+    (running_sessions_idx, recorded_at)
+  }
+}
+
+
+Table inquiries {
+  idx integer [pk, increment]
+
+  users_idx integer [not null]
+
+  title varchar [not null]
+  content text [not null]
+
+  status inquiry_status [not null, default: 'PENDING']
+
+  answer text
+
+  answerer_idx integer
+
+  memo text
+
+  created_at timestamp [not null]
+  answered_at timestamp
+
+  indexes {
+    users_idx
+    answerer_idx
+    status
+    (users_idx, created_at)
+    (status, created_at)
+  }
+
+  Note: '''
+  answerer_idx는 users.idx를 참조한다.
+  실제 답변 처리 시 해당 사용자의 role이 ADMIN인지
+  서비스 로직에서 검증한다.
+
+  ANSWERED 상태에서는 answer, answerer_idx,
+  answered_at이 존재하도록 서비스 로직에서 검증한다.
+  '''
 }
 
 
@@ -150,20 +329,32 @@ Table running_trackpoint {
 Relationships
 */
 
-Ref: user_auths.user_idx > users.idx
+Ref: user_profiles.users_idx > users.idx
 
-Ref: running_goal.user_idx > users.idx
+Ref: running_goals.users_idx > users.idx
 
-Ref: route_requests.user_idx > users.idx
+Ref: point_bookmarks.users_idx > users.idx
 
-Ref: route_recommendation.route_requests_idx > route_requests.idx
+Ref: route_requests.users_idx > users.idx
 
-Ref: route_requests.selected_recommendation_idx >? route_recommendation.idx
+Ref: route_request_points.route_requests_idx > route_requests.idx
 
-Ref: route_point.route_recommendation_idx > route_recommendation.idx
+Ref: route_recommendations.route_requests_idx > route_requests.idx
 
-Ref: running_session.user_idx > users.idx
+Ref: route_requests.selected_recommendations_idx >? route_recommendations.idx
 
-Ref: running_session.route_recommendation_idx > route_recommendation.idx
+Ref: route_points.route_recommendations_idx > route_recommendations.idx
 
-Ref: running_trackpoint.running_session_idx > running_session.idx
+Ref: route_bookmarks.users_idx > users.idx
+
+Ref: route_bookmarks.route_recommendations_idx > route_recommendations.idx
+
+Ref: running_sessions.users_idx > users.idx
+
+Ref: running_sessions.route_recommendations_idx > route_recommendations.idx
+
+Ref: running_trackpoints.running_sessions_idx > running_sessions.idx
+
+Ref: inquiries.users_idx > users.idx
+
+Ref: inquiries.answerer_idx >? users.idx

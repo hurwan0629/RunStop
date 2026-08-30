@@ -242,3 +242,39 @@ POSTGRES_PASSWORD=1234
 
 > 이제 `backend/`와 `route-worker/`을 빌드하기 위한 `Dockerfile`을 작성하겠습니다.
 
+## 3. Python 서버 이미지 생성
+`2026-08-30 14:37:51`
+
+파이썬 도커 이미지 빌드부터 실행까지 테스트하였습니다.
+
+![python](image.png)
+
+## 4. Node 서버 이미지 생성
+
+노드서버 또한 이미지 생성을 테스트해주었습니다.
+
+![alt text](image-2.png)
+
+## 5. postgis 이미지 테스트
+
+`postgis/postgis:17-3.5` 도커 이미지를 테스트하였습니다.
+
+![alt text](image-3.png)
+
+## 6. `docker-compose`로 묶어주기
+
+잘 올라가집니다.
+
+![alt text](image-4.png)
+
+## 다음으로 할일 
+1. Node / Python 기본 구조
+2. Health 기준 최소 정의
+3. env 규격 정리
+4. Docker Compose 통합
+5. DB schema / migration / seed / import
+6. DTO / interface 고정
+7. Node ↔ Python ↔ DB 통합
+8. 외부 API Adapter
+9. 테스트 CI
+10. 데이터베이스 레포지토리 계층 작업
