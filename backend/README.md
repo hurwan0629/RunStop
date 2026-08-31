@@ -20,8 +20,8 @@
 
 ### 라이브러리 다운
 ```bash
-npm install zod pg pino pino-http helmet express jsonwebtoken bcrypt dotenv
-npm install -D typescript @types/node @types/express cross-env @types/jsonwebtoken @types/bcrypt @types/pg tsx
+npm install zod pg pino pino-http helmet express jsonwebtoken bcrypt dotenv 
+npm install -D typescript @types/node @types/express cross-env @types/jsonwebtoken @types/bcrypt @types/pg tsx vitest node-pg-migrate
 ```
 
 ### 스크립트

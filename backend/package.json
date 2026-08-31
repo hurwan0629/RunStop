@@ -23,10 +23,9 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-
-    "db:migrate": "echo 'on-going... node ../infra/db/migrations/'",
-    "db:seed": "echo 'on-going... node ../infra/db/seeds/'",
-    "db:reset": "echo 'on-going... node ../infra/db/imports/'"
+    "db:migrate": "node-pg-migrate up -m ../infra/db/migrations",
+    "db:migrate:down": "node-pg-migrate down -m ../infra/db/migrations",
+    "db:migration:create": "node-pg-migrate create -m ../infra/db/migrations"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -46,7 +45,9 @@
     "@types/node": "^26.4.0",
     "@types/pg": "^8.23.1",
     "cross-env": "^10.1.0",
+    "node-pg-migrate": "^9.0.0",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
   }
 }
