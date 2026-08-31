@@ -22,7 +22,11 @@
     "test": "cross-env NODE_ENV=test vitest",
     "build": "tsc",
     "start": "node dist/server.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+
+    "db:migrate": "echo 'on-going... node ../infra/db/migrations/'",
+    "db:seed": "echo 'on-going... node ../infra/db/seeds/'",
+    "db:reset": "echo 'on-going... node ../infra/db/imports/'"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

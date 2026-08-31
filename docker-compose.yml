@@ -15,8 +15,11 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 services:
   backend: # Node 서버
+    name: runstop-backend
     build: # `./backend/Dockerfile` 을 빌드합니다.
       context: ./backend 
+    # 배포시에는 ▼ 해당 이미지 ▼ 사용
+    # image: hurwan0629/runstop-backend
     env_file:
       - .env.development
     ports:
@@ -26,8 +29,11 @@ services:
       - routing-worker
   
   routing-worker:
+    name: runstop-routing-worker
     build: # `/routing-worker/Dockerfile` 을 빌드합니다.
       context: ./routing-worker
+    # 배포시에는 ▼ 해당 이미지 ▼ 사용
+    # image: hurwan0629/runstop-routing-worker
     env_file: # 메인 폴더의 환경을 그대로 사용합니다.
       - .env.development
     
@@ -36,6 +42,7 @@ services:
       - "8000:8000"
     
   database:
+    name: runstop-database
     # PostGIS Extention이 붙어있는 17-3.5 버전을 거져옵니다.
     image: postgis/postgis:17-3.5
     env_file: # 동일한 파일에서 환경변수를 관리해줍니다.
