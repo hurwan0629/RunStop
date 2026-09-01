@@ -1,4 +1,20 @@
 /**
+ * RunStop DB migration
+ *
+ * service:
+ * - 현재 service ERD 수정사항 반영
+ * - route_recommendations.name 추가
+ * - running_sessions.status / distance 추가
+ * - profile_image_url 제거 (프로필 이미지는 프론트에서 처리)
+ * - varchar / numeric 길이 및 정밀도 명시
+ *
+ * datasets:
+ * - 기존 테이블/컬럼 구조 유지
+ * - 범위가 없던 varchar / numeric에 길이 및 정밀도만 명시
+ *
+ * 전제:
+ * - service / datasets schema는 이전 create-schema migration에서 생성되어 있음
+ *
  * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
  */
 export const shorthands = undefined;
@@ -15,6 +31,7 @@ const ref = (schema, name) => ({
   schema,
   name,
 });
+
 
 /**
  * @param pgm {import('node-pg-migrate').MigrationBuilder}
@@ -60,6 +77,11 @@ export const up = (pgm) => {
   );
 
   pgm.createType(
+    table(SERVICE, "running_session_status"),
+    ["IN_PROGRESS", "COMPLETED", "STOPPED", "FAILED"]
+  );
+
+  pgm.createType(
     table(SERVICE, "inquiry_status"),
     ["PENDING", "IN_PROGRESS", "ANSWERED"]
   );
@@ -76,18 +98,19 @@ export const up = (pgm) => {
     },
 
     login_id: {
-      type: "varchar",
+      type: "varchar(50)",
       notNull: true,
       unique: true,
     },
 
+    // bcrypt는 현재 60자지만 향후 해시 포맷 변경 여유를 둔다.
     password_hash: {
-      type: "varchar",
+      type: "varchar(255)",
       notNull: true,
     },
 
     nickname: {
-      type: "varchar",
+      type: "varchar(30)",
       notNull: true,
     },
 
@@ -103,8 +126,10 @@ export const up = (pgm) => {
       default: "USER",
     },
 
+    // 정규화된 전화번호 저장을 기준으로 충분한 여유를 둔다.
     phone: {
-      type: "varchar",
+      type: "varchar(20)",
+      unique: true,
     },
 
     status: {
@@ -114,20 +139,25 @@ export const up = (pgm) => {
     },
 
     suspended_until: {
-      type: "timestamp",
+      type: "timestamptz",
     },
 
     last_login_at: {
-      type: "timestamp",
+      type: "timestamptz",
     },
 
     created_at: {
-      type: "timestamp",
+      type: "timestamptz",
       notNull: true,
+      default: pgm.func("now()"),
     },
 
     updated_at: {
-      type: "timestamp",
+      type: "timestamptz",
+    },
+
+    withdrawn_at: {
+      type: "timestamptz",
     },
 
     admin_memo: {
@@ -138,19 +168,25 @@ export const up = (pgm) => {
   pgm.createIndex(
     table(SERVICE, "users"),
     "nickname",
-    { name: "idx_users_nickname" }
+    {
+      name: "idx_users_nickname",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "users"),
     "phone",
-    { name: "idx_users_phone" }
+    {
+      name: "idx_users_phone",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "users"),
     "status",
-    { name: "idx_users_status" }
+    {
+      name: "idx_users_status",
+    }
   );
 
 
@@ -171,20 +207,20 @@ export const up = (pgm) => {
       references: ref(SERVICE, "users"),
     },
 
+    // kg / 최대 999.99
     weight: {
-      type: "numeric",
+      type: "numeric(5,2)",
     },
 
+    // cm / 최대 999.99
     height: {
-      type: "numeric",
+      type: "numeric(5,2)",
     },
 
+    // 거리: m
+    // 경사: %
     running_settings: {
       type: "jsonb",
-    },
-
-    profile_image_url: {
-      type: "varchar",
     },
   });
 
@@ -210,8 +246,9 @@ export const up = (pgm) => {
       notNull: true,
     },
 
+    // 단위: meter
     target_distance: {
-      type: "numeric",
+      type: "integer",
       notNull: true,
     },
 
@@ -232,25 +269,30 @@ export const up = (pgm) => {
     },
 
     finished_at: {
-      type: "timestamp",
+      type: "timestamptz",
     },
 
     created_at: {
-      type: "timestamp",
+      type: "timestamptz",
       notNull: true,
+      default: pgm.func("now()"),
     },
   });
 
   pgm.createIndex(
     table(SERVICE, "running_goals"),
     "users_idx",
-    { name: "idx_running_goals_users" }
+    {
+      name: "idx_running_goals_users",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "running_goals"),
     ["users_idx", "status"],
-    { name: "idx_running_goals_users_status" }
+    {
+      name: "idx_running_goals_users_status",
+    }
   );
 
 
@@ -271,7 +313,7 @@ export const up = (pgm) => {
     },
 
     name: {
-      type: "varchar",
+      type: "varchar(100)",
       notNull: true,
     },
 
@@ -284,7 +326,9 @@ export const up = (pgm) => {
   pgm.createIndex(
     table(SERVICE, "point_bookmarks"),
     "users_idx",
-    { name: "idx_point_bookmarks_users" }
+    {
+      name: "idx_point_bookmarks_users",
+    }
   );
 
   pgm.createIndex(
@@ -317,6 +361,10 @@ export const up = (pgm) => {
       type: "text",
     },
 
+    // 권장 단위:
+    // 거리 = m
+    // 경사 = %
+    // 시설 = count
     element_conditions: {
       type: "jsonb",
     },
@@ -327,27 +375,34 @@ export const up = (pgm) => {
     },
 
     created_at: {
-      type: "timestamp",
+      type: "timestamptz",
       notNull: true,
+      default: pgm.func("now()"),
     },
   });
 
   pgm.createIndex(
     table(SERVICE, "route_requests"),
     "users_idx",
-    { name: "idx_route_requests_users" }
+    {
+      name: "idx_route_requests_users",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "route_requests"),
     "selected_recommendations_idx",
-    { name: "idx_route_requests_selected_recommendation" }
+    {
+      name: "idx_route_requests_selected_recommendation",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "route_requests"),
     "created_at",
-    { name: "idx_route_requests_created_at" }
+    {
+      name: "idx_route_requests_created_at",
+    }
   );
 
 
@@ -386,7 +441,9 @@ export const up = (pgm) => {
   pgm.createIndex(
     table(SERVICE, "route_request_points"),
     "route_requests_idx",
-    { name: "idx_route_request_points_request" }
+    {
+      name: "idx_route_request_points_request",
+    }
   );
 
   pgm.createIndex(
@@ -424,28 +481,50 @@ export const up = (pgm) => {
       references: ref(SERVICE, "route_requests"),
     },
 
-    score: {
-      type: "numeric",
+    // 러닝 기록 / 즐겨찾기 등에서 표시할 추천 코스 이름
+    name: {
+      type: "varchar(100)",
+      notNull: true,
     },
 
+    // 권장 점수 범위: 0 ~ 100
+    // 예: 98.325
+    score: {
+      type: "numeric(6,3)",
+    },
+
+    // 각 Feature의 평가 점수
+    // 권장: 각 점수 0 ~ 100
     feature_scores: {
       type: "jsonb",
     },
 
+    // Feature 실제 계산값
+    //
+    // 예:
+    // distance: m
+    // slope: %
+    // ascent: m
+    // toilet_count: count
+    // streetlight_density: count/km
     feature_values: {
       type: "jsonb",
     },
 
+    // 단위: meter
     total_distance: {
-      type: "numeric",
+      type: "integer",
     },
 
+    // 단위: meter
     total_ascent: {
-      type: "numeric",
+      type: "numeric(8,2)",
     },
 
+    // 경사도 단위: %
+    // slope 값들의 표준편차
     slope_std: {
-      type: "numeric",
+      type: "numeric(7,3)",
     },
 
     route: {
@@ -454,21 +533,26 @@ export const up = (pgm) => {
     },
 
     created_at: {
-      type: "timestamp",
+      type: "timestamptz",
       notNull: true,
+      default: pgm.func("now()"),
     },
   });
 
   pgm.createIndex(
     table(SERVICE, "route_recommendations"),
     "route_requests_idx",
-    { name: "idx_route_recommendations_request" }
+    {
+      name: "idx_route_recommendations_request",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "route_recommendations"),
     ["route_requests_idx", "score"],
-    { name: "idx_route_recommendations_request_score" }
+    {
+      name: "idx_route_recommendations_request_score",
+    }
   );
 
   pgm.createIndex(
@@ -481,7 +565,10 @@ export const up = (pgm) => {
   );
 
 
+  // =========================================================
   // route_requests ↔ route_recommendations 순환 FK
+  // =========================================================
+
   pgm.sql(`
     ALTER TABLE service.route_requests
     ADD CONSTRAINT fk_route_requests_selected_recommendation
@@ -512,7 +599,7 @@ export const up = (pgm) => {
     },
 
     title: {
-      type: "varchar",
+      type: "varchar(100)",
     },
 
     point_type: {
@@ -520,12 +607,14 @@ export const up = (pgm) => {
       notNull: true,
     },
 
+    // 단위: meter
     elevation: {
-      type: "numeric",
+      type: "numeric(8,2)",
     },
 
+    // 단위: percent (%)
     slope: {
-      type: "numeric",
+      type: "numeric(7,3)",
     },
 
     point: {
@@ -537,7 +626,9 @@ export const up = (pgm) => {
   pgm.createIndex(
     table(SERVICE, "route_points"),
     "route_recommendations_idx",
-    { name: "idx_route_points_recommendation" }
+    {
+      name: "idx_route_points_recommendation",
+    }
   );
 
   pgm.createIndex(
@@ -585,13 +676,17 @@ export const up = (pgm) => {
   pgm.createIndex(
     table(SERVICE, "route_bookmarks"),
     "users_idx",
-    { name: "idx_route_bookmarks_users" }
+    {
+      name: "idx_route_bookmarks_users",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "route_bookmarks"),
     "route_recommendations_idx",
-    { name: "idx_route_bookmarks_recommendation" }
+    {
+      name: "idx_route_bookmarks_recommendation",
+    }
   );
 
   pgm.createIndex(
@@ -626,36 +721,57 @@ export const up = (pgm) => {
       references: ref(SERVICE, "route_recommendations"),
     },
 
+    status: {
+      type: "service.running_session_status",
+      notNull: true,
+      default: "IN_PROGRESS",
+    },
+
     started_at: {
-      type: "timestamp",
+      type: "timestamptz",
       notNull: true,
     },
 
     finished_at: {
-      type: "timestamp",
+      type: "timestamptz",
     },
 
+    // 실제 GPS trackpoint 집계 거리
+    // 단위: meter
+    // 진행 중에는 NULL 가능
+    distance: {
+      type: "integer",
+    },
+
+    // 단위: sec/km
+    // 예: 5분 23초/km = 323
     average_pace: {
-      type: "numeric",
+      type: "integer",
     },
   });
 
   pgm.createIndex(
     table(SERVICE, "running_sessions"),
     "users_idx",
-    { name: "idx_running_sessions_users" }
+    {
+      name: "idx_running_sessions_users",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "running_sessions"),
     "route_recommendations_idx",
-    { name: "idx_running_sessions_recommendation" }
+    {
+      name: "idx_running_sessions_recommendation",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "running_sessions"),
     "started_at",
-    { name: "idx_running_sessions_started_at" }
+    {
+      name: "idx_running_sessions_started_at",
+    }
   );
 
 
@@ -667,6 +783,14 @@ export const up = (pgm) => {
     idx: {
       type: "serial",
       primaryKey: true,
+    },
+
+    // 클라이언트에서 생성
+    // 재전송 시 중복 저장 방지
+    client_trackpoint_id: {
+      type: "uuid",
+      notNull: true,
+      unique: true,
     },
 
     running_sessions_idx: {
@@ -681,25 +805,41 @@ export const up = (pgm) => {
     },
 
     recorded_at: {
-      type: "timestamp",
+      type: "timestamptz",
       notNull: true,
     },
 
+    // GPS accuracy
+    // 단위: meter
     accuracy: {
-      type: "numeric",
+      type: "numeric(8,2)",
     },
   });
 
   pgm.createIndex(
     table(SERVICE, "running_trackpoints"),
     "running_sessions_idx",
-    { name: "idx_running_trackpoints_session" }
+    {
+      name: "idx_running_trackpoints_session",
+    }
+  );
+
+  // UNIQUE 자체가 B-tree index를 만들지만
+  // 기존 ERD / migration 구조를 유지한다.
+  pgm.createIndex(
+    table(SERVICE, "running_trackpoints"),
+    "client_trackpoint_id",
+    {
+      name: "idx_running_trackpoints_client_trackpoint_id",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "running_trackpoints"),
     ["running_sessions_idx", "recorded_at"],
-    { name: "idx_running_trackpoints_session_time" }
+    {
+      name: "idx_running_trackpoints_session_time",
+    }
   );
 
   pgm.createIndex(
@@ -729,7 +869,7 @@ export const up = (pgm) => {
     },
 
     title: {
-      type: "varchar",
+      type: "varchar(200)",
       notNull: true,
     },
 
@@ -758,51 +898,62 @@ export const up = (pgm) => {
     },
 
     created_at: {
-      type: "timestamp",
+      type: "timestamptz",
       notNull: true,
+      default: pgm.func("now()"),
     },
 
     answered_at: {
-      type: "timestamp",
+      type: "timestamptz",
     },
   });
 
   pgm.createIndex(
     table(SERVICE, "inquiries"),
     "users_idx",
-    { name: "idx_inquiries_users" }
+    {
+      name: "idx_inquiries_users",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "inquiries"),
     "answerer_idx",
-    { name: "idx_inquiries_answerer" }
+    {
+      name: "idx_inquiries_answerer",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "inquiries"),
     "status",
-    { name: "idx_inquiries_status" }
+    {
+      name: "idx_inquiries_status",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "inquiries"),
     ["users_idx", "created_at"],
-    { name: "idx_inquiries_user_created" }
+    {
+      name: "idx_inquiries_user_created",
+    }
   );
 
   pgm.createIndex(
     table(SERVICE, "inquiries"),
     ["status", "created_at"],
-    { name: "idx_inquiries_status_created" }
+    {
+      name: "idx_inquiries_status_created",
+    }
   );
 
 
   // =========================================================
   // datasets
   //
-  // 세부 원본 필드는 raw_data에 보존하고
-  // 알고리즘에서 자주 사용하는 필드만 일반 컬럼으로 분리.
+  // 기존 테이블 / 컬럼 구조는 유지하고
+  // varchar / numeric 범위만 명시한다.
   // =========================================================
 
 
@@ -823,12 +974,12 @@ export const up = (pgm) => {
     },
 
     name: {
-      type: "varchar",
+      type: "varchar(200)",
       notNull: true,
     },
 
     district: {
-      type: "varchar",
+      type: "varchar(50)",
     },
 
     road_address: {
@@ -840,7 +991,7 @@ export const up = (pgm) => {
     },
 
     phone: {
-      type: "varchar",
+      type: "varchar(30)",
     },
 
     point: {
@@ -856,7 +1007,9 @@ export const up = (pgm) => {
   pgm.createIndex(
     table(DATASETS, "convenience_stores"),
     "district",
-    { name: "idx_convenience_stores_district" }
+    {
+      name: "idx_convenience_stores_district",
+    }
   );
 
   pgm.createIndex(
@@ -880,18 +1033,18 @@ export const up = (pgm) => {
     },
 
     source_id: {
-      type: "varchar",
+      type: "varchar(100)",
       notNull: true,
       unique: true,
     },
 
     name: {
-      type: "varchar",
+      type: "varchar(200)",
       notNull: true,
     },
 
     toilet_type: {
-      type: "varchar",
+      type: "varchar(50)",
     },
 
     road_address: {
@@ -903,19 +1056,19 @@ export const up = (pgm) => {
     },
 
     management_agency: {
-      type: "varchar",
+      type: "varchar(200)",
     },
 
     phone: {
-      type: "varchar",
+      type: "varchar(30)",
     },
 
     opening_type: {
-      type: "varchar",
+      type: "varchar(100)",
     },
 
     opening_detail: {
-      type: "varchar",
+      type: "varchar(500)",
     },
 
     emergency_bell: {
@@ -926,7 +1079,7 @@ export const up = (pgm) => {
       type: "boolean",
     },
 
-    // 좌표 누락 행이 존재할 수 있으므로 nullable
+    // 좌표 누락 데이터가 존재할 수 있으므로 nullable
     point: {
       type: "geometry(Point, 4326)",
     },
@@ -948,7 +1101,6 @@ export const up = (pgm) => {
 
   // ---------------------------------------------------------
   // 가로등
-  // 관리번호 중복이 실제 데이터에 존재하므로 UNIQUE 아님.
   // ---------------------------------------------------------
 
   pgm.createTable(table(DATASETS, "streetlights"), {
@@ -957,12 +1109,13 @@ export const up = (pgm) => {
       primaryKey: true,
     },
 
+    // 실제 데이터에 중복 존재
     management_id: {
-      type: "varchar",
+      type: "varchar(100)",
     },
 
     district: {
-      type: "varchar",
+      type: "varchar(50)",
     },
 
     point: {
@@ -978,7 +1131,9 @@ export const up = (pgm) => {
   pgm.createIndex(
     table(DATASETS, "streetlights"),
     "district",
-    { name: "idx_streetlights_district" }
+    {
+      name: "idx_streetlights_district",
+    }
   );
 
   pgm.createIndex(
@@ -1002,7 +1157,7 @@ export const up = (pgm) => {
     },
 
     name: {
-      type: "varchar",
+      type: "varchar(200)",
     },
 
     installation_count: {
@@ -1010,7 +1165,7 @@ export const up = (pgm) => {
     },
 
     district: {
-      type: "varchar",
+      type: "varchar(50)",
     },
 
     road_address: {
@@ -1026,11 +1181,11 @@ export const up = (pgm) => {
     },
 
     installation_type: {
-      type: "varchar",
+      type: "varchar(100)",
     },
 
     management_agency: {
-      type: "varchar",
+      type: "varchar(200)",
     },
 
     point: {
@@ -1046,7 +1201,9 @@ export const up = (pgm) => {
   pgm.createIndex(
     table(DATASETS, "security_lights"),
     "district",
-    { name: "idx_security_lights_district" }
+    {
+      name: "idx_security_lights_district",
+    }
   );
 
   pgm.createIndex(
@@ -1070,13 +1227,13 @@ export const up = (pgm) => {
     },
 
     source_id: {
-      type: "varchar",
+      type: "varchar(100)",
       notNull: true,
       unique: true,
     },
 
     management_agency: {
-      type: "varchar",
+      type: "varchar(200)",
     },
 
     road_address: {
@@ -1088,15 +1245,16 @@ export const up = (pgm) => {
     },
 
     purpose: {
-      type: "varchar",
+      type: "varchar(200)",
     },
 
     camera_count: {
       type: "integer",
     },
 
+    // 최대 999999.99 megapixel 표현 가능
     megapixels: {
-      type: "numeric",
+      type: "numeric(8,2)",
     },
 
     retention_days: {
@@ -1126,9 +1284,7 @@ export const up = (pgm) => {
   // ---------------------------------------------------------
   // 도시공원
   //
-  // 현재 CSV에는 공원 Polygon 경계가 없고 위/경도만 있음.
-  // 따라서 실제 보유 데이터 기준 Point로 저장.
-  // Polygon 자료가 추가되면 별도 migration에서 변경.
+  // 현재 CSV에는 Polygon 경계가 없고 위/경도만 존재
   // ---------------------------------------------------------
 
   pgm.createTable(table(DATASETS, "parks"), {
@@ -1138,16 +1294,16 @@ export const up = (pgm) => {
     },
 
     source_id: {
-      type: "varchar",
+      type: "varchar(100)",
     },
 
     name: {
-      type: "varchar",
+      type: "varchar(200)",
       notNull: true,
     },
 
     park_type: {
-      type: "varchar",
+      type: "varchar(100)",
     },
 
     road_address: {
@@ -1158,8 +1314,9 @@ export const up = (pgm) => {
       type: "text",
     },
 
+    // 공원 면적. 소수 둘째 자리까지 저장
     area: {
-      type: "numeric",
+      type: "numeric(14,2)",
     },
 
     point: {
@@ -1185,8 +1342,8 @@ export const up = (pgm) => {
   // ---------------------------------------------------------
   // 보행자전용도로
   //
-  // CSV가 실제 도로 shape 전체가 아니라 시작/종료점만 제공.
-  // line은 nullable로 두고 import 과정에서 정책을 결정.
+  // 현재 데이터는 실제 전체 도로 shape가 아니라
+  // 시작점 / 종료점을 제공함
   // ---------------------------------------------------------
 
   pgm.createTable(table(DATASETS, "pedestrian_roads"), {
@@ -1196,20 +1353,20 @@ export const up = (pgm) => {
     },
 
     name: {
-      type: "varchar",
+      type: "varchar(200)",
       notNull: true,
     },
 
     district: {
-      type: "varchar",
+      type: "varchar(50)",
     },
 
     neighborhood: {
-      type: "varchar",
+      type: "varchar(100)",
     },
 
     operation_type: {
-      type: "varchar",
+      type: "varchar(100)",
     },
 
     weekday_start_time: {
@@ -1229,11 +1386,12 @@ export const up = (pgm) => {
     },
 
     bicycle_shared_type: {
-      type: "varchar",
+      type: "varchar(100)",
     },
 
+    // 도로 폭. 단위는 원천 데이터 기준 meter
     width: {
-      type: "numeric",
+      type: "numeric(8,2)",
     },
 
     vehicle_pedestrian_separated: {
@@ -1241,7 +1399,7 @@ export const up = (pgm) => {
     },
 
     purpose: {
-      type: "varchar",
+      type: "varchar(200)",
     },
 
     start_point: {
@@ -1266,7 +1424,9 @@ export const up = (pgm) => {
   pgm.createIndex(
     table(DATASETS, "pedestrian_roads"),
     "district",
-    { name: "idx_pedestrian_roads_district" }
+    {
+      name: "idx_pedestrian_roads_district",
+    }
   );
 
   pgm.createIndex(
@@ -1307,49 +1467,128 @@ export const down = (pgm) => {
   // datasets
   // =========================================================
 
-  pgm.dropTable(table(DATASETS, "pedestrian_roads"));
-  pgm.dropTable(table(DATASETS, "parks"));
-  pgm.dropTable(table(DATASETS, "cctvs"));
-  pgm.dropTable(table(DATASETS, "security_lights"));
-  pgm.dropTable(table(DATASETS, "streetlights"));
-  pgm.dropTable(table(DATASETS, "public_toilets"));
-  pgm.dropTable(table(DATASETS, "convenience_stores"));
+  pgm.dropTable(
+    table(DATASETS, "pedestrian_roads")
+  );
+
+  pgm.dropTable(
+    table(DATASETS, "parks")
+  );
+
+  pgm.dropTable(
+    table(DATASETS, "cctvs")
+  );
+
+  pgm.dropTable(
+    table(DATASETS, "security_lights")
+  );
+
+  pgm.dropTable(
+    table(DATASETS, "streetlights")
+  );
+
+  pgm.dropTable(
+    table(DATASETS, "public_toilets")
+  );
+
+  pgm.dropTable(
+    table(DATASETS, "convenience_stores")
+  );
 
 
   // =========================================================
   // service
   // =========================================================
 
-  // 순환 FK 먼저 제거
+  // route_requests ↔ route_recommendations 순환 FK를
+  // 먼저 제거해야 테이블 삭제 가능
   pgm.sql(`
     ALTER TABLE service.route_requests
     DROP CONSTRAINT IF EXISTS fk_route_requests_selected_recommendation;
   `);
 
-  pgm.dropTable(table(SERVICE, "inquiries"));
-  pgm.dropTable(table(SERVICE, "running_trackpoints"));
-  pgm.dropTable(table(SERVICE, "running_sessions"));
-  pgm.dropTable(table(SERVICE, "route_bookmarks"));
-  pgm.dropTable(table(SERVICE, "route_points"));
-  pgm.dropTable(table(SERVICE, "route_request_points"));
-  pgm.dropTable(table(SERVICE, "route_recommendations"));
-  pgm.dropTable(table(SERVICE, "route_requests"));
-  pgm.dropTable(table(SERVICE, "point_bookmarks"));
-  pgm.dropTable(table(SERVICE, "running_goals"));
-  pgm.dropTable(table(SERVICE, "user_profiles"));
-  pgm.dropTable(table(SERVICE, "users"));
+
+  pgm.dropTable(
+    table(SERVICE, "inquiries")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "running_trackpoints")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "running_sessions")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "route_bookmarks")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "route_points")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "route_request_points")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "route_recommendations")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "route_requests")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "point_bookmarks")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "running_goals")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "user_profiles")
+  );
+
+  pgm.dropTable(
+    table(SERVICE, "users")
+  );
 
 
   // =========================================================
   // ENUM
   // =========================================================
 
-  pgm.dropType(table(SERVICE, "inquiry_status"));
-  pgm.dropType(table(SERVICE, "route_point_type"));
-  pgm.dropType(table(SERVICE, "goal_status"));
-  pgm.dropType(table(SERVICE, "goal_type"));
-  pgm.dropType(table(SERVICE, "user_status"));
-  pgm.dropType(table(SERVICE, "user_role"));
+  pgm.dropType(
+    table(SERVICE, "inquiry_status")
+  );
 
-  // PostGIS extension은 DB 공용 기능이라 제거하지 않음.
+  pgm.dropType(
+    table(SERVICE, "running_session_status")
+  );
+
+  pgm.dropType(
+    table(SERVICE, "route_point_type")
+  );
+
+  pgm.dropType(
+    table(SERVICE, "goal_status")
+  );
+
+  pgm.dropType(
+    table(SERVICE, "goal_type")
+  );
+
+  pgm.dropType(
+    table(SERVICE, "user_status")
+  );
+
+  pgm.dropType(
+    table(SERVICE, "user_role")
+  );
+
+
+  // PostGIS extension은 DB 공용 기능이므로 제거하지 않는다.
 };

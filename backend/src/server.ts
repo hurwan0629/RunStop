@@ -1,15 +1,8 @@
-import express from "express"
+import { createApp } from "./app.js";
+import { env } from "./config/env.js";
 
-const app = express()
-const PORT = 3000;
+const app = createApp();
 
-app.get("/health", (req, res) => {
-  res.json({
-    name: "node server",
-    status: "ok"
-  });
+app.listen(env.PORT, () => {
+  console.log(`Server Backend running on http://localhost:${env.PORT}`);
 });
-
-app.listen(PORT, () => {
-  console.log(`Server Backend running on http://loaclhost:${PORT}`)
-})
