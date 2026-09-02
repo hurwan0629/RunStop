@@ -27,8 +27,9 @@ export type UserLookupRow = {
   idx: number;
   loginId: string;
   nickname: string;
+  totalExp: number;
   role: UserRole;
-  phone: string;
+  phone: string | null;
   status: UserStatus;
 };
 
@@ -44,6 +45,22 @@ export type CreatedUserRow = {
   idx: number;
   nickname: string;
   role: UserRole;
+};
+
+export type PasswordResetUserRow = {
+  idx: number;
+  loginId: string;
+  phone: string | null;
+  status: UserStatus;
+};
+
+export type UpdateUserInput = {
+  nickname?: string;
+};
+
+export type WithdrawUserInput = {
+  anonymizedLoginId: string;
+  invalidPasswordHash: string;
 };
 
 function getQueryClient(client?: QueryClient): QueryClient {
@@ -88,14 +105,16 @@ function mapUserLookupRow(row: {
   idx: number;
   login_id: string;
   nickname: string;
+  total_exp: number;
   role: UserRole;
-  phone: string;
+  phone: string | null;
   status: UserStatus;
 }): UserLookupRow {
   return {
     idx: row.idx,
     loginId: row.login_id,
     nickname: row.nickname,
+    totalExp: row.total_exp,
     role: row.role,
     phone: row.phone,
     status: row.status,
@@ -148,6 +167,7 @@ export async function findUserByPhone(phone: string, client?: QueryClient): Prom
     idx: number;
     login_id: string;
     nickname: string;
+    total_exp: number;
     role: UserRole;
     phone: string;
     status: UserStatus;
@@ -157,6 +177,7 @@ export async function findUserByPhone(phone: string, client?: QueryClient): Prom
         idx,
         login_id,
         nickname,
+        total_exp,
         role,
         phone,
         status
@@ -184,6 +205,7 @@ export async function findUserByIdx(idx: number, client?: QueryClient): Promise<
     idx: number;
     login_id: string;
     nickname: string;
+    total_exp: number;
     role: UserRole;
     phone: string;
     status: UserStatus;
@@ -193,6 +215,7 @@ export async function findUserByIdx(idx: number, client?: QueryClient): Promise<
         idx,
         login_id,
         nickname,
+        total_exp,
         role,
         phone,
         status
@@ -210,6 +233,48 @@ export async function findUserByIdx(idx: number, client?: QueryClient): Promise<
   }
 
   return mapUserLookupRow(row);
+}
+
+/**
+ * 로그인 아이디와 전화번호가 모두 일치하는 사용자를 조회합니다.
+ */
+export async function findUserByLoginIdAndPhone(
+  loginId: string,
+  phone: string,
+  client?: QueryClient,
+): Promise<PasswordResetUserRow | null> {
+  const result = await getQueryClient(client).query<{
+    idx: number;
+    login_id: string;
+    phone: string;
+    status: UserStatus;
+  }>(
+    `
+      SELECT
+        idx,
+        login_id,
+        phone,
+        status
+      FROM service.users
+      WHERE login_id = $1
+        AND phone = $2
+      LIMIT 1
+    `,
+    [loginId, phone],
+  );
+
+  const row = result.rows[0];
+
+  if (!row) {
+    return null;
+  }
+
+  return {
+    idx: row.idx,
+    loginId: row.login_id,
+    phone: row.phone,
+    status: row.status,
+  };
 }
 
 /**
@@ -317,13 +382,90 @@ export async function restoreExpiredSuspension(userIdx: number, client?: QueryCl
 }
 
 /**
+ * 사용자의 비밀번호 해시를 변경합니다.
+ */
+export async function updatePasswordHash(userIdx: number, passwordHash: string, client?: QueryClient): Promise<void> {
+  await getQueryClient(client).query(
+    `
+      UPDATE service.users
+      SET
+        password_hash = $2,
+        updated_at = now()
+      WHERE idx = $1
+    `,
+    [userIdx, passwordHash],
+  );
+}
+
+/**
  * 수정 가능한 사용자 계정 필드를 변경합니다.
  */
-export async function updateUser() {
+export async function updateUser(
+  userIdx: number,
+  input: UpdateUserInput,
+  client?: QueryClient,
+): Promise<UserLookupRow | null> {
+  // 업데이트하고 RETURNING 해주기 / 없으면 null 반환해주기
+  const result = await getQueryClient(client).query<{
+    idx: number;
+    login_id: string;
+    nickname: string;
+    total_exp: number;
+    role: UserRole;
+    phone: string | null;
+    status: UserStatus;
+  }>(
+    `
+      UPDATE service.users
+      SET
+        nickname = COALESCE($2, nickname),
+        updated_at = now()
+      WHERE idx = $1
+        AND status <> 'WITHDRAWN'
+      RETURNING
+        idx,
+        login_id,
+        nickname,
+        total_exp,
+        role,
+        phone,
+        status
+    `,
+    [userIdx, input.nickname ?? null],
+  );
+
+  const row = result.rows[0];
+
+  if (!row) {
+    return null;
+  }
+
+  return mapUserLookupRow(row);
 }
 
 /**
  * 사용자를 탈퇴 상태로 변경하고 재사용 가능한 UNIQUE 필드를 익명화합니다.
  */
-export async function withdrawUser() {
+export async function withdrawUser(
+  userIdx: number,
+  input: WithdrawUserInput,
+  client?: QueryClient,
+): Promise<boolean> {
+  const result = await getQueryClient(client).query(
+    `
+      UPDATE service.users
+      SET
+        status = 'WITHDRAWN',
+        withdrawn_at = now(),
+        updated_at = now(),
+        login_id = $2,
+        phone = NULL,
+        password_hash = $3
+      WHERE idx = $1
+        AND status <> 'WITHDRAWN'
+    `,
+    [userIdx, input.anonymizedLoginId, input.invalidPasswordHash],
+  );
+
+  return (result.rowCount ?? 0) > 0;
 }

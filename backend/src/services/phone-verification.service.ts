@@ -99,7 +99,7 @@ function assertVerificationPurpose(record: VerificationRecord, purpose: PhoneVer
 }
 
 function deleteExpiredVerification(verificationId: string, record: VerificationRecord): void {
-  // verification 정보가 만료되었고, 
+  // verification 정보가 만료되었고,    인증 기간이 모두 지났을 때 
   if (isExpired(record.codeExpiresAt) && (!record.verifiedUntil || isExpired(record.verifiedUntil))) {
     verificationStore.delete(verificationId);
   }
@@ -124,11 +124,13 @@ export async function sendPhoneVerification(input: SendPhoneVerificationInput): 
   );
 
   // 전화번호를 사용자 (또는 개발시에는 콘솔)에게 보내주기
+  // adapter/sms.client 에 존재하는 sms모듈을 이용하여 콘솔 또는 api 를 발송하여 줍니다.
   await sendVerificationSms({
     phone: input.phone,
     code,
   });
 
+  // 
   return {
     verificationId,
     expiresInSec: CODE_TTL_MS / 1000,

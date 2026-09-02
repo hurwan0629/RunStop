@@ -3,7 +3,12 @@ import * as jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 import type { AuthResponseDTO } from "../dto/auth/auth-response.dto.js";
 import type { LoginDTO } from "../dto/auth/login.dto.js";
-import type { PhoneVerificationVerifyDTO } from "../dto/auth/phone-verification.dto.js";
+import type {
+  PasswordResetPhoneVerificationSendDTO,
+  PhoneVerificationSendDTO,
+  PhoneVerificationVerifyDTO,
+} from "../dto/auth/phone-verification.dto.js";
+import type { PasswordResetDTO } from "../dto/auth/password-reset.dto.js";
 import type { SignupDTO } from "../dto/auth/signup.dto.js";
 import { withTransaction } from "../infra/db/transaction.js";
 import { ApiError } from "../middleware/error.js";
@@ -14,9 +19,11 @@ import {
 import {
   createUser,
   findAuthUserByIdx,
+  findUserByLoginIdAndPhone,
   findUserByLoginId,
   findUserByPhone,
   restoreExpiredSuspension,
+  updatePasswordHash,
   updateLastLoginAt,
 } from "../repositories/users.repository.js";
 import type { UserRole } from "../types/user-context.js";
@@ -112,9 +119,175 @@ export async function verifySignupPhoneCode(input: PhoneVerificationVerifyDTO): 
 }
 
 /**
+ * 아이디 찾기용 전화번호 인증번호를 발송합니다.
+ */
+export async function sendFindIdPhoneVerification(input: PhoneVerificationSendDTO): Promise<{
+  verificationId: string;
+  expiresInSec: number;
+}> {
+  // 전화번호에 대한 사용자가 존재하는지 확인하고 존재하지 않거나 정지 등의 상태이면 반려해줍니다.
+  const user = await findUserByPhone(input.phone);
+
+  if (!user) {
+    throw new ApiError({
+      status: 404,
+      code: "PHONE_USER_NOT_FOUND",
+      message: "해당 전화번호로 가입된 사용자를 찾을 수 없습니다.",
+    });
+  }
+
+  if (user.status === "WITHDRAWN") {
+    throw new ApiError({
+      status: 410,
+      code: "WITHDRAWN_USER",
+      message: "탈퇴한 사용자입니다.",
+    });
+  }
+
+  // phone-verification.service 에서 Map를 등록해준 뒤 sms 어댑터를 이용하여 발송해줍니다.
+  return sendPhoneVerification({
+    purpose: "FIND_ID",
+    phone: input.phone,
+  });
+}
+
+/**
+ * 아이디 찾기용 인증번호를 검증하고 로그인 아이디를 반환합니다.
+ */
+export async function verifyFindIdPhoneCode(input: PhoneVerificationVerifyDTO): Promise<{ loginId: string }> {
+  // PhoneVerificatoinVerifyDTO 에는 phone와 code가 들어가 있습니다.
+
+  // 해당 verificationId에 대해서 코드가 존재하는지 및 맞는지를 확인하고 잘못되었으면 에러를 터트려줍니다.
+  await verifyPhoneCode({
+    purpose: "FIND_ID",
+    verificationId: input.verificationId,
+    code: input.code,
+  });
+
+  // 해당 verificationStore에서 purpose & verificationId를 이용하여 VerificationRecord를 받아줍니다.
+  const verification = getVerifiedPhoneVerification({
+    purpose: "FIND_ID",
+    verificationId: input.verificationId,
+  });
+
+  // 사용자 전화번호를 이용하여 사용자 정보를 받아옵니다.
+  const user = await findUserByPhone(verification.phone);
+
+  // 유효성검사
+  if (!user || user.status === "WITHDRAWN") {
+    throw new ApiError({
+      status: 404,
+      code: "PHONE_USER_NOT_FOUND",
+      message: "해당 전화번호로 가입된 사용자를 찾을 수 없습니다.",
+    });
+  }
+
+  // 해당 전화번호 인증 식별자를 Map에서 삭제해줍니다.
+  await consumePhoneVerification(input.verificationId);
+
+  // 사용자의 로그인 id를 반환하여 줍니다.
+  return {
+    loginId: user.loginId,
+  };
+}
+
+/**
+ * 비밀번호 재설정용 전화번호 인증번호를 발송합니다.
+ */
+export async function sendPasswordResetPhoneVerification(
+  input: PasswordResetPhoneVerificationSendDTO,
+): Promise<{
+  verificationId: string;
+  expiresInSec: number;
+}> {
+  // 사용자 로그인 아이디와 전화번호를 받아서 아이디를 발송해줍니다.
+  const user = await findUserByLoginIdAndPhone(input.loginId, input.phone);
+
+  if (!user) {
+    throw new ApiError({
+      status: 404,
+      code: "PASSWORD_RESET_USER_NOT_FOUND",
+      message: "로그인 아이디와 전화번호가 일치하는 사용자를 찾을 수 없습니다.",
+    });
+  }
+
+  if (user.status === "WITHDRAWN") {
+    throw new ApiError({
+      status: 410,
+      code: "WITHDRAWN_USER",
+      message: "탈퇴한 사용자입니다.",
+    });
+  }
+
+  // 사용자의 전화번호로 인증코드를 발송해줍니다. + codeExpiresAt를 설정해줍니다.
+  return sendPhoneVerification({
+    purpose: "RESET_PASSWORD",
+    loginId: input.loginId,
+    phone: input.phone,
+  });
+}
+
+/**
+ * 비밀번호 재설정용 전화번호 인증번호를 검증합니다.
+ */
+export async function verifyPasswordResetPhoneCode(input: PhoneVerificationVerifyDTO): Promise<{ verified: true }> {
+  // code + purpose +  verification을 이용하여 전화번호를 인증해주게 됩니다.
+  return verifyPhoneCode({
+    purpose: "RESET_PASSWORD",
+    verificationId: input.verificationId,
+    code: input.code,
+  });
+}
+
+/**
+ * 전화번호 인증 완료 정보를 사용해서 비밀번호를 재설정합니다.
+ */
+export async function resetUserPassword(input: PasswordResetDTO): Promise<{ reset: true }> {
+  // 사용자의 입력으로는 newPassword와 verificationId가 존재합니다.
+
+  // purpose + verificationId가 유효한지 검사하며 괜찮으면 VerificationRecord를 가져오게 됩니다.
+  const verification = getVerifiedPhoneVerification({
+    purpose: "RESET_PASSWORD",
+    verificationId: input.verificationId,
+  });
+
+
+  if (!verification.loginId) {
+    throw new ApiError({
+      status: 400,
+      code: "PASSWORD_RESET_VERIFICATION_INVALID",
+      message: "비밀번호 재설정 인증 정보가 올바르지 않습니다.",
+    });
+  }
+
+  // 로그인 아이디와 전화번호를 이용해서 사용자 정보를 가져옵니다.
+  const user = await findUserByLoginIdAndPhone(verification.loginId, verification.phone);
+
+  if (!user || user.status === "WITHDRAWN") {
+    throw new ApiError({
+      status: 404,
+      code: "PASSWORD_RESET_USER_NOT_FOUND",
+      message: "비밀번호를 재설정할 사용자를 찾을 수 없습니다.",
+    });
+  }
+
+  // 
+  const passwordHash = await hashPassword(input.newPassword);
+
+  await updatePasswordHash(user.idx, passwordHash);
+  await consumePhoneVerification(input.verificationId);
+
+  return {
+    reset: true,
+  };
+}
+
+
+/**
  * 전화번호 인증 완료 정보를 사용해서 사용자 계정을 생성합니다.
  */
 export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO> {
+  // verificationStore에 존재하는 VerificationRecord를 유효한 경우에 가져와서 회원가입을 시켜주게 됩니다.
   const verification = getVerifiedPhoneVerification({
     purpose: "SIGNUP",
     verificationId: signupDto.verificationId,
@@ -128,6 +301,7 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
     });
   }
 
+  // 사용자 로그인 아이디로 
   const [loginIdUser, phoneUser] = await Promise.all([
     findUserByLoginId(signupDto.loginId),
     findUserByPhone(signupDto.phone),
@@ -272,14 +446,12 @@ export async function loginUser(loginDto: LoginDTO): Promise<AuthResponseDTO> {
 /**
  * 전화번호 인증 후 사용자의 로그인 아이디를 찾습니다.
  */
-export async function findLoginIdByVerifiedPhone() {
-}
+// 아이디 찾기 구현은 verifyFindIdPhoneCode에서 처리합니다.
 
 /**
  * 전화번호 인증 후 사용자의 비밀번호를 재설정합니다.
  */
-export async function resetUserPassword() {
-}
+// 비밀번호 재설정 구현은 resetUserPassword에서 처리합니다.
 
 /**
  * JWT 검증 이후 DB의 최신 사용자 상태와 권한을 확인합니다.

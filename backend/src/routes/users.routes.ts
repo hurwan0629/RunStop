@@ -12,7 +12,13 @@ import { authenticate } from "../middleware/auth.js";
  * - DELETE /api/users/me
  */
 export function registerUsersRoutes(router: Router): void {
+
+  // 2026-09-02 12:43:53 검수 [x]
   router.get("/api/users/me/mypage", authenticate, asyncHandler(getMyPage));
+  
+  // 2026-09-02 14:02:50 검수 (runningSettings json은 파이썬 설계 후 마지막에 채우기)
   router.patch("/api/users/me", authenticate, asyncHandler(updateMe));
+  
+  // 2026-09-02 14:04:12 검수 [x]
   router.delete("/api/users/me", authenticate, asyncHandler(withdrawMe));
 }

@@ -3,16 +3,23 @@ import { authResponseSchema } from "../dto/auth/auth-response.dto.js";
 import { loginIdCheckSchema } from "../dto/auth/login-id-check.dto.js";
 import { loginSchema } from "../dto/auth/login.dto.js";
 import {
+  passwordResetPhoneVerificationSendSchema,
   phoneVerificationSendSchema,
   phoneVerificationVerifySchema,
 } from "../dto/auth/phone-verification.dto.js";
+import { passwordResetSchema } from "../dto/auth/password-reset.dto.js";
 import { signupSchema } from "../dto/auth/signup.dto.js";
 import { ApiError } from "../middleware/error.js";
 import {
   checkLoginIdAvailability,
   loginUser,
+  resetUserPassword,
+  sendFindIdPhoneVerification as sendFindIdPhoneVerificationService,
+  sendPasswordResetPhoneVerification as sendPasswordResetPhoneVerificationService,
   sendSignupPhoneVerification as sendSignupPhoneVerificationService,
   signupUser,
+  verifyFindIdPhoneCode as verifyFindIdPhoneCodeService,
+  verifyPasswordResetPhoneCode as verifyPasswordResetPhoneCodeService,
   verifySignupPhoneCode as verifySignupPhoneCodeService,
 } from "../services/auth.service.js";
 
@@ -140,13 +147,47 @@ export async function signup(req: Request, res: Response, next: NextFunction): P
 /**
  * 아이디 찾기용 전화번호 인증번호를 발송합니다.
  */
-export function sendFindIdPhoneVerification(req: Request, res: Response, next: NextFunction): void {
+export async function sendFindIdPhoneVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const parseResult = phoneVerificationSendSchema.safeParse(req.body);
+
+  if (!parseResult.success) {
+    throw new ApiError({
+      status: 400,
+      code: "INVALID_FIND_ID_PHONE_VERIFICATION_SEND_REQUEST",
+      message: "아이디 찾기 전화번호 인증번호 발송 요청 값이 올바르지 않습니다.",
+      details: parseResult.error.flatten(),
+    });
+  }
+
+  const result = await sendFindIdPhoneVerificationService(parseResult.data);
+
+  res.json({
+    success: true,
+    data: result,
+  });
 }
 
 /**
  * 아이디 찾기용 인증번호를 검증하고 일치하는 로그인 아이디를 반환합니다.
  */
-export function verifyFindIdPhoneCode(req: Request, res: Response, next: NextFunction): void {
+export async function verifyFindIdPhoneCode(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const parseResult = phoneVerificationVerifySchema.safeParse(req.body);
+
+  if (!parseResult.success) {
+    throw new ApiError({
+      status: 400,
+      code: "INVALID_FIND_ID_PHONE_VERIFICATION_VERIFY_REQUEST",
+      message: "아이디 찾기 전화번호 인증번호 검증 요청 값이 올바르지 않습니다.",
+      details: parseResult.error.flatten(),
+    });
+  }
+
+  const result = await verifyFindIdPhoneCodeService(parseResult.data);
+
+  res.json({
+    success: true,
+    data: result,
+  });
 }
 
 // // // // // // // // // // // [비밀번호 찾기] // // // // // // // // // // //
@@ -154,17 +195,68 @@ export function verifyFindIdPhoneCode(req: Request, res: Response, next: NextFun
 /**
  * 비밀번호 재설정용 전화번호 인증번호를 발송합니다.
  */
-export function sendPasswordResetPhoneVerification(req: Request, res: Response, next: NextFunction): void {
+export async function sendPasswordResetPhoneVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const parseResult = passwordResetPhoneVerificationSendSchema.safeParse(req.body);
+
+  if (!parseResult.success) {
+    throw new ApiError({
+      status: 400,
+      code: "INVALID_PASSWORD_RESET_PHONE_VERIFICATION_SEND_REQUEST",
+      message: "비밀번호 재설정 전화번호 인증번호 발송 요청 값이 올바르지 않습니다.",
+      details: parseResult.error.flatten(),
+    });
+  }
+
+  const result = await sendPasswordResetPhoneVerificationService(parseResult.data);
+
+  res.json({
+    success: true,
+    data: result,
+  });
 }
 
 /**
  * 비밀번호 재설정용 전화번호 인증번호를 검증합니다.
  */
-export function verifyPasswordResetPhoneCode(req: Request, res: Response, next: NextFunction): void {
+export async function verifyPasswordResetPhoneCode(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const parseResult = phoneVerificationVerifySchema.safeParse(req.body);
+
+  if (!parseResult.success) {
+    throw new ApiError({
+      status: 400,
+      code: "INVALID_PASSWORD_RESET_PHONE_VERIFICATION_VERIFY_REQUEST",
+      message: "비밀번호 재설정 전화번호 인증번호 검증 요청 값이 올바르지 않습니다.",
+      details: parseResult.error.flatten(),
+    });
+  }
+
+  const result = await verifyPasswordResetPhoneCodeService(parseResult.data);
+
+  res.json({
+    success: true,
+    data: result,
+  });
 }
 
 /**
  * 전화번호 인증 후 사용자의 비밀번호를 재설정합니다.
  */
-export function resetPassword(req: Request, res: Response, next: NextFunction): void {
+export async function resetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const parseResult = passwordResetSchema.safeParse(req.body);
+
+  if (!parseResult.success) {
+    throw new ApiError({
+      status: 400,
+      code: "INVALID_PASSWORD_RESET_REQUEST",
+      message: "비밀번호 재설정 요청 값이 올바르지 않습니다.",
+      details: parseResult.error.flatten(),
+    });
+  }
+
+  const result = await resetUserPassword(parseResult.data);
+
+  res.json({
+    success: true,
+    data: result,
+  });
 }
