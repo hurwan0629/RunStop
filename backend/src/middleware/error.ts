@@ -1,4 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
+import { logger } from "../logging/logger.js";
+
+type RequestWithLogger = Request & {
+  log?: typeof logger;
+};
 
 type ApiErrorOptions = {
   status: number;
@@ -44,6 +49,22 @@ export function errorHandler(error: unknown, req: Request, res: Response, next: 
 
   // 에러의 타입이 ApiError이라면 그대로 사용해주기
   if (error instanceof ApiError) {
+    const requestLogger = (req as RequestWithLogger).log ?? logger;
+    const logPayload = {
+      err: error,
+      code: error.code,
+      status: error.status,
+      method: req.method,
+      url: req.originalUrl,
+      userIdx: req.user?.idx,
+    };
+
+    if (error.status >= 500) {
+      requestLogger.error(logPayload, "request:error");
+    } else {
+      requestLogger.warn(logPayload, "request:error");
+    }
+
     res.status(error.status).json({
       success: false,
       error: {
@@ -54,6 +75,14 @@ export function errorHandler(error: unknown, req: Request, res: Response, next: 
     });
     return;
   }
+
+  ((req as RequestWithLogger).log ?? logger).error({
+    err: error,
+    status: 500,
+    method: req.method,
+    url: req.originalUrl,
+    userIdx: req.user?.idx,
+  }, "request:error");
 
   // ApiError 하위 타입이 아니며 서버 내부에 정의되어있지 않은 값이라면 그대로 고정된 에러 응답으로 보내주기
   res.status(500).json({

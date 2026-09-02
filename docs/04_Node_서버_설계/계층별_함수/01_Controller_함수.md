@@ -138,9 +138,7 @@ Controller는 HTTP 요청을 검증하고 Service를 호출한 뒤 `success/data
   - `withdrawCurrentUser(req.user.idx)`를 호출한다.
   - 탈퇴 처리 결과를 `success/data`로 반환한다.
 
-## 기타 도메인 Controller Skeleton
-
-아래 함수들은 라우터와 컨트롤러 연결은 되어 있으나, 실제 도메인 로직 구현 전 skeleton 상태다.
+## 추가 구현 Controller
 
 - `running.controller.ts`: `listRunningSessions`, `startRunningSession`, `saveRunningTrackpoints`, `finishRunningSession`, `getRunningPace`
 - `routes.controller.ts`: `recommendRoutes`, `selectRouteRecommendation`, `getRouteDetail`

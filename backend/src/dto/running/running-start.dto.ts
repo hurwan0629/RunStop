@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 export const runningStartSchema = z.object({
-  recommendationId: z.number().int().positive(),
+  routeRecommendationIdx: z.number().int().positive(),
+
+  startedAt: z.string().datetime(),
 });
 
 export type RunningStartDTO =

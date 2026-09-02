@@ -1,20 +1,27 @@
 import { z } from "zod";
 
 export const runningHistoryItemSchema = z.object({
-  sessionId: z.number().int(),
+  idx: z.number().int(),
 
-  routeId: z.number().int(),
+  status: z.enum(["COMPLETED", "STOPPED", "FAILED"]),
 
   startedAt: z.string(),
 
-  distanceM: z.number(),
+  finishedAt: z.string().nullable(),
 
-  durationSec: z.number(),
+  distance: z.number().nullable(),
 
-  averagePaceSecPerKm: z.number().nullable(),
+  averagePace: z.number().nullable(),
+});
 
-  totalAscentM: z.number().nullable(),
+export const runningHistoryResponseSchema = z.object({
+  items: z.array(runningHistoryItemSchema),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
 });
 
 export type RunningHistoryItemDTO =
   z.infer<typeof runningHistoryItemSchema>;
+
+export type RunningHistoryResponseDTO =
+  z.infer<typeof runningHistoryResponseSchema>;

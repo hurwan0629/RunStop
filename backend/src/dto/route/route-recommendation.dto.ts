@@ -1,29 +1,21 @@
 import { z } from "zod";
-import { coordinateSchema } from "../common/coordinate.dto.js";
 
 export const routeRecommendationSchema = z.object({
-  idx: z.number().int(),
-
-  score: z.number(),
-
-  totalDistanceM: z.number(),
-
-  totalAscentM: z.number(),
-
+  idx: z.number().int().positive(),
+  name: z.string(),
+  score: z.number().nullable(),
+  totalDistance: z.number().int().nullable(),
+  totalAscent: z.number().nullable(),
   slopeStd: z.number().nullable(),
+});
 
-  featureValues: z.record(
-    z.string(),
-    z.number()
-  ),
-
-  featureScores: z.record(
-    z.string(),
-    z.number()
-  ),
-
-  path: z.array(coordinateSchema),
+export const routeRecommendResponseSchema = z.object({
+  requestIdx: z.number().int().positive(),
+  recommendations: z.array(routeRecommendationSchema),
 });
 
 export type RouteRecommendationDTO =
   z.infer<typeof routeRecommendationSchema>;
+
+export type RouteRecommendResponseDTO =
+  z.infer<typeof routeRecommendResponseSchema>;

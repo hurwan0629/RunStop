@@ -5,11 +5,7 @@ import type { UserUpdateResponseDTO } from "../dto/users/user-update-response.dt
 import { withTransaction } from "../infra/db/transaction.js";
 import { ApiError } from "../middleware/error.js";
 import { countRouteBookmarksByUserIdx } from "../repositories/bookmarks.repository.js";
-import { findActiveGoalByUserIdx } from "../repositories/running-goals.repository.js";
-import {
-  sumRunningDistanceByUserIdxAndPeriod,
-  summarizeRunningSessionsByUserIdx,
-} from "../repositories/running-sessions.repository.js";
+import { summarizeRunningSessionsByUserIdx } from "../repositories/running-sessions.repository.js";
 import {
   findProfileByUserIdx,
   updateUserProfile,
@@ -22,16 +18,17 @@ import {
   type UpdateUserInput,
 } from "../repositories/users.repository.js";
 import { hashPassword } from "./auth.service.js";
+import { getCurrentRunningGoal } from "./goals.service.js";
 
 /**
  * 프로필, 목표, 러닝, 즐겨찾기 데이터를 조합해 현재 사용자의 마이페이지 요약을 만듭니다.
  */
 export async function getMyPageSummary(userIdx: number): Promise<MyPageResponseDTO> {
   // 
-  const [user, profile, currentGoal, runningSummary, routeBookmarkCount] = await Promise.all([
+  const [user, profile, currentGoalResult, runningSummary, routeBookmarkCount] = await Promise.all([
     findUserByIdx(userIdx),             // users 테이블에서 가져오기
     findProfileByUserIdx(userIdx),      // user_profiles 테이블
-    findActiveGoalByUserIdx(userIdx),   // running_goals 테이블 (현재 진행중인 목표 상태)
+    getCurrentRunningGoal(userIdx),     // running_goals 테이블 (현재 진행중인 목표 상태)
     summarizeRunningSessionsByUserIdx(userIdx), // <> IN_PROGRESS인 running_sessions의 모든 total_distance를 가져와주기
     countRouteBookmarksByUserIdx(userIdx),      // 북마크된 개수 가져와주기
   ]);
@@ -45,13 +42,8 @@ export async function getMyPageSummary(userIdx: number): Promise<MyPageResponseD
   }
 
   // currentGoal이 있으면 현재 목표에 대해 범위가 맞는 거리 가져오기
-  const progressDistance = currentGoal
-    ? await sumRunningDistanceByUserIdxAndPeriod(
-      userIdx,
-      currentGoal.startDate,
-      new Date().toISOString().slice(0, 10),
-    )
-    : null;
+  const currentGoal = currentGoalResult.goal;
+  const progressDistance = currentGoal ? currentGoalResult.progress.distance : null;
   
     // 응답해주기 (data만 주면 users.controller.ts 의 getMyPage에서 응답)
   return {

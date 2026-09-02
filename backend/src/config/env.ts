@@ -16,6 +16,10 @@ const envSchema = z.object({
     .positive()
     .default(3000),
 
+  LOG_LEVEL: z
+    .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
+    .default("info"),
+
   JWT_SECRET: z
     .string()
     .min(32),
@@ -40,6 +44,10 @@ const envSchema = z.object({
   WORKER_URL: z
     .string()
     .url(),
+
+  WORKER_MODE: z
+    .enum(["mock", "http"])
+    .default("mock"),
 });
 
 /**

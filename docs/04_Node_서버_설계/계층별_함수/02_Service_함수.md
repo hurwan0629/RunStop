@@ -191,13 +191,50 @@ Service는 비즈니스 흐름을 조립하고 Repository, Adapter, Transaction 
   - `withdraw_${idx}_${random}` 형태의 익명 로그인 아이디를 만든다.
   - `withdrawUser`로 soft delete를 처리한다.
 
-## 기타 도메인 Service Skeleton
+## GoalsService
 
-아래 함수들은 아직 실제 도메인 로직 구현 전 skeleton 상태다.
+### `getCurrentRunningGoal(userIdx: number): Promise<CurrentGoalResponseDTO>`
+
+- 인자 DTO: 사용자 idx
+- 반환값 DTO: `CurrentGoalResponseDTO`
+- 작업 내용:
+  - `refreshExpiredGoals(userIdx)`를 먼저 실행한다.
+  - 현재 `ACTIVE` 목표를 조회한다.
+  - 목표가 없으면 `goal: null`, 진행률 0을 반환한다.
+  - 목표가 있으면 DB `CURRENT_DATE` 기준으로 목표 시작일부터 오늘까지의 러닝 거리를 집계한다.
+
+### `createRunningGoal(userIdx: number, dto: GoalCreateDTO): Promise<GoalDTO>`
+
+- 인자 DTO: 사용자 idx, `GoalCreateDTO`
+- 반환값 DTO: `GoalDTO`
+- 작업 내용:
+  - 시작일이 종료일보다 늦으면 거부한다.
+  - 만료된 기존 목표를 먼저 갱신한다.
+  - 사용자에게 `ACTIVE` 목표가 남아 있으면 생성을 거부한다.
+  - 새 목표를 `ACTIVE` 상태로 생성한다.
+
+### `stopRunningGoal(userIdx: number, goalIdx: number): Promise<StopGoalResponseDTO>`
+
+- 인자 DTO: 사용자 idx, 목표 idx
+- 반환값 DTO: `StopGoalResponseDTO`
+- 작업 내용:
+  - 만료된 기존 목표를 먼저 갱신한다.
+  - 사용자가 소유한 목표인지 확인한다.
+  - `ACTIVE` 상태인 목표만 `STOPPED`로 변경한다.
+
+### `refreshExpiredGoals(userIdx: number, client?: QueryClient): Promise<GoalDTO[]>`
+
+- 인자 DTO: 사용자 idx, 선택적 DB client
+- 반환값 DTO: `GoalDTO[]`
+- 작업 내용:
+  - `end_date < CURRENT_DATE`인 `ACTIVE` 목표만 갱신한다.
+  - 종료일 당일 목표는 진행 가능한 상태로 유지한다.
+  - 목표 기간 내 러닝 거리 합계가 목표 거리 이상이면 `SUCCESS`, 아니면 `FAILED`로 변경한다.
+
+## 추가 구현 Service
 
 - `running.service.ts`: `listRunningHistory`, `startRunningSession`, `saveRunningTrackpoints`, `finishRunningSession`
 - `route-recommendation.service.ts`: `recommendRoutes`, `selectRouteRecommendation`, `getRouteDetail`
-- `goals.service.ts`: `getCurrentRunningGoal`, `createRunningGoal`, `stopRunningGoal`, `refreshExpiredGoals`
 - `bookmarks.service.ts`: `listPointBookmarks`, `createPointBookmark`, `deletePointBookmark`, `listRouteBookmarks`, `createRouteBookmark`, `deleteRouteBookmark`
 - `inquiries.service.ts`: `listInquiries`, `createInquiry`, `getInquiryDetail`, `updateInquiryStatus`, `answerInquiry`
 - `pace-analysis.service.ts`: `analyzeSessionPace`

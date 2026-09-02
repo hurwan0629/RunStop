@@ -133,6 +133,73 @@ DTO는 Controller 요청 검증과 Service 인자 타입의 기준입니다.
 }
 ```
 
+## Routes 추천 요청 DTO
+
+### `routeRequestSchema`
+
+- 타입: `RouteRequestDTO`
+- 사용 함수:
+  - `recommendRoutes`
+  - `requestRouteRecommendations`
+- 스키마:
+
+```json
+{
+  "prompt": "한강 근처 5km 러닝 코스",
+  "startPoint": {
+    "lat": 37.5665,
+    "lng": 126.978
+  },
+  "waypoints": [
+    {
+      "lat": 37.5651,
+      "lng": 126.981
+    }
+  ],
+  "endPoint": {
+    "lat": 37.57,
+    "lng": 126.982
+  },
+  "elementConditions": {
+    "targetDistance": 5000,
+    "maxSlope": 8,
+    "facilityCount": 2
+  }
+}
+```
+
+- `waypoints`는 0개 이상입니다.
+- `endPoint`가 없으면 Node에서 `startPoint`를 도착지로 보정하고 왕복형 요청으로 처리합니다.
+
+### `workerRouteRequestSchema`
+
+- 타입: `WorkerRouteRequestDTO`
+- 사용 함수:
+  - `requestRouteRecommendations`
+  - `MockRouteWorkerClient.requestRouteRecommendations`
+  - `HttpRouteWorkerClient.requestRouteRecommendations`
+- 스키마:
+
+```json
+{
+  "startPoint": {
+    "lat": 37.5665,
+    "lng": 126.978
+  },
+  "waypoints": [],
+  "endPoint": {
+    "lat": 37.5665,
+    "lng": 126.978
+  },
+  "isRoundTrip": true,
+  "prompt": "한강 근처 5km 러닝 코스",
+  "elementConditions": {
+    "targetDistance": 5000
+  },
+  "maxCandidates": 3
+}
+```
+
 ## 기타 DTO
 
 아래 DTO는 skeleton 도메인 구현 시 Controller와 Service 인자 타입으로 사용합니다.

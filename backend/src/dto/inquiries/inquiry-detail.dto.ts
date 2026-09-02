@@ -3,6 +3,7 @@
 // status, title, content, answered_at, answerer_idx, 
 // memo, answer
 import { z } from "zod";
+import { inquiryStatusSchema } from "./inquiry-list.dto.js";
 
 export const inquiryDetailSchema = z.object({
   idx: z.number().int(),
@@ -10,11 +11,7 @@ export const inquiryDetailSchema = z.object({
   title: z.string(),
   content: z.string(),
 
-  status: z.enum([
-    "PENDING",
-    "IN_PROGRESS",
-    "ANSWERED",
-  ]),
+  status: inquiryStatusSchema,
 
   answer: z.string().nullable(),
 

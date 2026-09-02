@@ -203,6 +203,37 @@ Repository는 DB 접근과 row 매핑을 담당한다. 구현된 함수는 실�
 - 작업 내용:
   - 현재 `ACTIVE` 상태의 목표를 최신 생성순으로 1개 조회한다.
 
+### `findRunningGoalByIdxAndUserIdx(goalIdx: number, userIdx: number, client?: QueryClient): Promise<ActiveGoalRow | null>`
+
+- 인자 DTO: 목표 idx, 사용자 idx
+- 반환값 DTO: `ActiveGoalRow | null`
+- 작업 내용:
+  - 사용자가 소유한 목표를 조회한다.
+
+### `createRunningGoal(input: CreateRunningGoalInput, client?: QueryClient): Promise<ActiveGoalRow>`
+
+- 인자 DTO: `CreateRunningGoalInput`
+- 반환값 DTO: `ActiveGoalRow`
+- 작업 내용:
+  - 사용자 목표를 `ACTIVE` 상태로 생성한다.
+
+### `stopRunningGoal(goalIdx: number, userIdx: number, client?: QueryClient): Promise<ActiveGoalRow | null>`
+
+- 인자 DTO: 목표 idx, 사용자 idx
+- 반환값 DTO: `ActiveGoalRow | null`
+- 작업 내용:
+  - 사용자가 소유한 `ACTIVE` 목표를 `STOPPED`로 변경한다.
+  - `finished_at`을 현재 시각으로 기록한다.
+
+### `updateExpiredGoals(userIdx: number, client?: QueryClient): Promise<ActiveGoalRow[]>`
+
+- 인자 DTO: 사용자 idx
+- 반환값 DTO: `ActiveGoalRow[]`
+- 작업 내용:
+  - `end_date < CURRENT_DATE`인 `ACTIVE` 목표만 갱신한다.
+  - 목표 종료일 당일에는 갱신하지 않는다.
+  - 목표 기간 내 러닝 거리 합계가 목표 이상이면 `SUCCESS`, 아니면 `FAILED`로 변경한다.
+
 ## RunningSessionsRepository
 
 ### `summarizeRunningSessionsByUserIdx(userIdx: number, client?: QueryClient): Promise<RunningSummaryRow>`
@@ -229,7 +260,19 @@ Repository는 DB 접근과 row 매핑을 담당한다. 구현된 함수는 실�
   - `[running_sessions.distance]`
 - 작업 내용:
   - `IN_PROGRESS` 상태를 제외한다.
-  - 목표 시작일부터 오늘까지의 러닝 거리 합계를 계산한다.
+  - 목표 시작일부터 종료일까지의 러닝 거리 합계를 계산한다.
+
+### `sumRunningDistanceByUserIdxAndGoalPeriodUntilToday(userIdx: number, startDate: string, endDate: string, client?: QueryClient): Promise<number>`
+
+- 인자 DTO: 사용자 idx, 시작일, 종료일
+- 반환값: 거리 합계 m
+- 조회 컬럼:
+  - `[running_sessions.status]`
+  - `[running_sessions.started_at]`
+  - `[running_sessions.distance]`
+- 작업 내용:
+  - `IN_PROGRESS` 상태를 제외한다.
+  - DB `CURRENT_DATE` 기준으로 목표 시작일부터 오늘까지의 러닝 거리 합계를 계산한다.
 
 ## BookmarksRepository
 
@@ -249,7 +292,6 @@ Repository는 DB 접근과 row 매핑을 담당한다. 구현된 함수는 실�
 
 - `running-sessions.repository.ts`: `findRunningSessionsByUserIdx`, `findLatestCompletedSessionByUserIdx`, `createRunningSession`, `findRunningSessionByIdxAndUserIdx`, `updateRunningSessionResult`
 - `running-trackpoints.repository.ts`: `createRunningTrackpoints`, `findTrackpointsBySessionIdx`
-- `running-goals.repository.ts`: `createRunningGoal`, `stopRunningGoal`, `updateExpiredGoals`
 - `route-requests.repository.ts`: `createRouteRequest`, `createRouteRequestPoints`, `selectRecommendationForRequest`, `findRouteRequestByIdxAndUserIdx`
 - `route-recommendations.repository.ts`: `createRouteRecommendations`, `findRouteRecommendationByIdx`, `findRouteRecommendationsByRequestIdx`, `findRouteDetailByIdx`
 - `route-points.repository.ts`: `createRoutePoints`, `findRoutePointsByRecommendationIdx`

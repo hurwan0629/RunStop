@@ -1,9 +1,7 @@
 import { z } from "zod";
 
 export const runningFinishSchema = z.object({
-  sessionId: z.number().int().positive(),
-
-  finishedAt: z.string(),
+  finishedAt: z.string().datetime(),
 });
 
 export type RunningFinishDTO =

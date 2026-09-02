@@ -1,22 +1,26 @@
 import { z } from "zod";
-import { coordinateSchema } from "../common/coordinate.dto.js";
 
 export const runningTrackpointSchema = z.object({
-  point: coordinateSchema,
+  clientTrackpointId: z.string().uuid(),
 
-  recordedAt: z.string(),
+  lat: z.number().min(-90).max(90),
 
-  accuracyM: z.number().nonnegative().optional(),
+  lng: z.number().min(-180).max(180),
+
+  recordedAt: z.string().datetime(),
+
+  accuracy: z.number().nonnegative().optional(),
 });
 
 
 export const runningTrackpointsSchema = z.object({
-  sessionId: z.number().int().positive(),
-  
-  points: z.array(
+  trackpoints: z.array(
     runningTrackpointSchema
   ).min(1),
 });
 
 export type RunningTrackpointDTO =
   z.infer<typeof runningTrackpointSchema>;
+
+export type RunningTrackpointsDTO =
+  z.infer<typeof runningTrackpointsSchema>;

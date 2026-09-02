@@ -7,6 +7,7 @@ import { registerInquiriesRoutes } from "./routes/inquiries.routes.js";
 import { registerRouteRecommendationRoutes } from "./routes/routes.routes.js";
 import { registerRunningRoutes } from "./routes/running.routes.js";
 import { registerUsersRoutes } from "./routes/users.routes.js";
+import { createRequestLogger } from "./logging/logger.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 
 /**
@@ -22,6 +23,8 @@ export function createApp() {
 
   // 헬멧을 통해서 XSS, 스니핑 등 방지
   app.use(helmet());
+  // 요청별 requestId, 응답 상태, 처리 시간을 로그로 남기기
+  app.use(createRequestLogger());
   // json 타입 요청 받아주기
   app.use(express.json());
 

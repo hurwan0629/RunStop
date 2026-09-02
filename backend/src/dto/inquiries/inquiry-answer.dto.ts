@@ -6,5 +6,15 @@ export const inquiryAnswerSchema = z.object({
   memo: z.string().optional(),
 });
 
+export const inquiryAnswerResponseSchema = z.object({
+  idx: z.number().int(),
+  status: z.literal("ANSWERED"),
+  answererIdx: z.number().int(),
+  answeredAt: z.string(),
+});
+
 export type InquiryAnswerDTO =
   z.infer<typeof inquiryAnswerSchema>;
+
+export type InquiryAnswerResponseDTO =
+  z.infer<typeof inquiryAnswerResponseSchema>;
