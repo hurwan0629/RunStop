@@ -11,6 +11,7 @@ import type {
 import type { PasswordResetDTO } from "../dto/auth/password-reset.dto.js";
 import type { SignupDTO } from "../dto/auth/signup.dto.js";
 import { withTransaction } from "../infra/db/transaction.js";
+import { logger } from "../logging/logger.js";
 import { ApiError } from "../middleware/error.js";
 import {
   createUserProfile,
@@ -78,9 +79,12 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function checkLoginIdAvailability(loginId: string): Promise<{ available: boolean }> {
   const user = await findUserByLoginId(loginId);
+  const available = !user;
+
+  logger.info({ serviceName: "auth", action: "checkLoginIdAvailability", available }, "service:success");
 
   return {
-    available: !user,
+    available,
   };
 }
 
@@ -91,9 +95,13 @@ export async function sendSignupPhoneVerification(phone: string): Promise<{
   verificationId: string;
   expiresInSec: number;
 }> {
+  logger.info({ serviceName: "auth", action: "sendSignupPhoneVerification" }, "service:start");
+
   const user = await findUserByPhone(phone);
 
   if (user) {
+    logger.warn({ serviceName: "auth", action: "sendSignupPhoneVerification" }, "service:phone_already_exists");
+
     throw new ApiError({
       status: 409,
       code: "PHONE_ALREADY_EXISTS",
@@ -101,21 +109,34 @@ export async function sendSignupPhoneVerification(phone: string): Promise<{
     });
   }
 
-  return sendPhoneVerification({
+  const result = await sendPhoneVerification({
     purpose: "SIGNUP",
     phone,
   });
+
+  logger.info({
+    serviceName: "auth",
+    action: "sendSignupPhoneVerification",
+    verificationId: result.verificationId,
+    expiresInSec: result.expiresInSec,
+  }, "service:success");
+
+  return result;
 }
 
 /**
  * 회원가입용 전화번호 인증번호를 검증합니다.
  */
 export async function verifySignupPhoneCode(input: PhoneVerificationVerifyDTO): Promise<{ verified: true }> {
-  return verifyPhoneCode({
+  const result = await verifyPhoneCode({
     purpose: "SIGNUP",
     verificationId: input.verificationId,
     code: input.code,
   });
+
+  logger.info({ serviceName: "auth", action: "verifySignupPhoneCode", verificationId: input.verificationId }, "service:success");
+
+  return result;
 }
 
 /**
@@ -125,10 +146,14 @@ export async function sendFindIdPhoneVerification(input: PhoneVerificationSendDT
   verificationId: string;
   expiresInSec: number;
 }> {
+  logger.info({ serviceName: "auth", action: "sendFindIdPhoneVerification" }, "service:start");
+
   // 전화번호에 대한 사용자가 존재하는지 확인하고 존재하지 않거나 정지 등의 상태이면 반려해줍니다.
   const user = await findUserByPhone(input.phone);
 
   if (!user) {
+    logger.warn({ serviceName: "auth", action: "sendFindIdPhoneVerification" }, "service:phone_user_not_found");
+
     throw new ApiError({
       status: 404,
       code: "PHONE_USER_NOT_FOUND",
@@ -137,6 +162,8 @@ export async function sendFindIdPhoneVerification(input: PhoneVerificationSendDT
   }
 
   if (user.status === "WITHDRAWN") {
+    logger.warn({ serviceName: "auth", action: "sendFindIdPhoneVerification", userIdx: user.idx }, "service:withdrawn_user");
+
     throw new ApiError({
       status: 410,
       code: "WITHDRAWN_USER",
@@ -145,16 +172,27 @@ export async function sendFindIdPhoneVerification(input: PhoneVerificationSendDT
   }
 
   // phone-verification.service 에서 Map를 등록해준 뒤 sms 어댑터를 이용하여 발송해줍니다.
-  return sendPhoneVerification({
+  const result = await sendPhoneVerification({
     purpose: "FIND_ID",
     phone: input.phone,
   });
+
+  logger.info({
+    serviceName: "auth",
+    action: "sendFindIdPhoneVerification",
+    userIdx: user.idx,
+    verificationId: result.verificationId,
+  }, "service:success");
+
+  return result;
 }
 
 /**
  * 아이디 찾기용 인증번호를 검증하고 로그인 아이디를 반환합니다.
  */
 export async function verifyFindIdPhoneCode(input: PhoneVerificationVerifyDTO): Promise<{ loginId: string }> {
+  logger.info({ serviceName: "auth", action: "verifyFindIdPhoneCode", verificationId: input.verificationId }, "service:start");
+
   // PhoneVerificatoinVerifyDTO 에는 phone와 code가 들어가 있습니다.
 
   // 해당 verificationId에 대해서 코드가 존재하는지 및 맞는지를 확인하고 잘못되었으면 에러를 터트려줍니다.
@@ -175,6 +213,8 @@ export async function verifyFindIdPhoneCode(input: PhoneVerificationVerifyDTO): 
 
   // 유효성검사
   if (!user || user.status === "WITHDRAWN") {
+    logger.warn({ serviceName: "auth", action: "verifyFindIdPhoneCode", verificationId: input.verificationId }, "service:phone_user_not_found");
+
     throw new ApiError({
       status: 404,
       code: "PHONE_USER_NOT_FOUND",
@@ -184,6 +224,8 @@ export async function verifyFindIdPhoneCode(input: PhoneVerificationVerifyDTO): 
 
   // 해당 전화번호 인증 식별자를 Map에서 삭제해줍니다.
   await consumePhoneVerification(input.verificationId);
+
+  logger.info({ serviceName: "auth", action: "verifyFindIdPhoneCode", userIdx: user.idx }, "service:success");
 
   // 사용자의 로그인 id를 반환하여 줍니다.
   return {
@@ -200,10 +242,14 @@ export async function sendPasswordResetPhoneVerification(
   verificationId: string;
   expiresInSec: number;
 }> {
+  logger.info({ serviceName: "auth", action: "sendPasswordResetPhoneVerification" }, "service:start");
+
   // 사용자 로그인 아이디와 전화번호를 받아서 아이디를 발송해줍니다.
   const user = await findUserByLoginIdAndPhone(input.loginId, input.phone);
 
   if (!user) {
+    logger.warn({ serviceName: "auth", action: "sendPasswordResetPhoneVerification" }, "service:password_reset_user_not_found");
+
     throw new ApiError({
       status: 404,
       code: "PASSWORD_RESET_USER_NOT_FOUND",
@@ -212,6 +258,8 @@ export async function sendPasswordResetPhoneVerification(
   }
 
   if (user.status === "WITHDRAWN") {
+    logger.warn({ serviceName: "auth", action: "sendPasswordResetPhoneVerification", userIdx: user.idx }, "service:withdrawn_user");
+
     throw new ApiError({
       status: 410,
       code: "WITHDRAWN_USER",
@@ -220,29 +268,46 @@ export async function sendPasswordResetPhoneVerification(
   }
 
   // 사용자의 전화번호로 인증코드를 발송해줍니다. + codeExpiresAt를 설정해줍니다.
-  return sendPhoneVerification({
+  const result = await sendPhoneVerification({
     purpose: "RESET_PASSWORD",
     loginId: input.loginId,
     phone: input.phone,
   });
+
+  logger.info({
+    serviceName: "auth",
+    action: "sendPasswordResetPhoneVerification",
+    userIdx: user.idx,
+    verificationId: result.verificationId,
+  }, "service:success");
+
+  return result;
 }
 
 /**
  * 비밀번호 재설정용 전화번호 인증번호를 검증합니다.
  */
 export async function verifyPasswordResetPhoneCode(input: PhoneVerificationVerifyDTO): Promise<{ verified: true }> {
+  logger.info({ serviceName: "auth", action: "verifyPasswordResetPhoneCode", verificationId: input.verificationId }, "service:start");
+
   // code + purpose +  verification을 이용하여 전화번호를 인증해주게 됩니다.
-  return verifyPhoneCode({
+  const result = await verifyPhoneCode({
     purpose: "RESET_PASSWORD",
     verificationId: input.verificationId,
     code: input.code,
   });
+
+  logger.info({ serviceName: "auth", action: "verifyPasswordResetPhoneCode", verificationId: input.verificationId }, "service:success");
+
+  return result;
 }
 
 /**
  * 전화번호 인증 완료 정보를 사용해서 비밀번호를 재설정합니다.
  */
 export async function resetUserPassword(input: PasswordResetDTO): Promise<{ reset: true }> {
+  logger.info({ serviceName: "auth", action: "resetUserPassword", verificationId: input.verificationId }, "service:start");
+
   // 사용자의 입력으로는 newPassword와 verificationId가 존재합니다.
 
   // purpose + verificationId가 유효한지 검사하며 괜찮으면 VerificationRecord를 가져오게 됩니다.
@@ -253,6 +318,8 @@ export async function resetUserPassword(input: PasswordResetDTO): Promise<{ rese
 
 
   if (!verification.loginId) {
+    logger.warn({ serviceName: "auth", action: "resetUserPassword", verificationId: input.verificationId }, "service:verification_invalid");
+
     throw new ApiError({
       status: 400,
       code: "PASSWORD_RESET_VERIFICATION_INVALID",
@@ -264,6 +331,8 @@ export async function resetUserPassword(input: PasswordResetDTO): Promise<{ rese
   const user = await findUserByLoginIdAndPhone(verification.loginId, verification.phone);
 
   if (!user || user.status === "WITHDRAWN") {
+    logger.warn({ serviceName: "auth", action: "resetUserPassword", verificationId: input.verificationId }, "service:password_reset_user_not_found");
+
     throw new ApiError({
       status: 404,
       code: "PASSWORD_RESET_USER_NOT_FOUND",
@@ -277,6 +346,8 @@ export async function resetUserPassword(input: PasswordResetDTO): Promise<{ rese
   await updatePasswordHash(user.idx, passwordHash);
   await consumePhoneVerification(input.verificationId);
 
+  logger.info({ serviceName: "auth", action: "resetUserPassword", userIdx: user.idx }, "service:success");
+
   return {
     reset: true,
   };
@@ -287,6 +358,8 @@ export async function resetUserPassword(input: PasswordResetDTO): Promise<{ rese
  * 전화번호 인증 완료 정보를 사용해서 사용자 계정을 생성합니다.
  */
 export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO> {
+  logger.info({ serviceName: "auth", action: "signupUser", verificationId: signupDto.verificationId }, "service:start");
+
   // verificationStore에 존재하는 VerificationRecord를 유효한 경우에 가져와서 회원가입을 시켜주게 됩니다.
   const verification = getVerifiedPhoneVerification({
     purpose: "SIGNUP",
@@ -294,6 +367,8 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
   });
 
   if (verification.phone !== signupDto.phone) {
+    logger.warn({ serviceName: "auth", action: "signupUser", verificationId: signupDto.verificationId }, "service:phone_verification_mismatch");
+
     throw new ApiError({
       status: 400,
       code: "PHONE_VERIFICATION_MISMATCH",
@@ -308,6 +383,8 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
   ]);
 
   if (loginIdUser) {
+    logger.warn({ serviceName: "auth", action: "signupUser" }, "service:login_id_already_exists");
+
     throw new ApiError({
       status: 409,
       code: "LOGIN_ID_ALREADY_EXISTS",
@@ -316,6 +393,8 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
   }
 
   if (phoneUser) {
+    logger.warn({ serviceName: "auth", action: "signupUser" }, "service:phone_already_exists");
+
     throw new ApiError({
       status: 409,
       code: "PHONE_ALREADY_EXISTS",
@@ -356,6 +435,8 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
 
   await consumePhoneVerification(signupDto.verificationId);
 
+  logger.info({ serviceName: "auth", action: "signupUser", userIdx: createdUser.idx }, "service:success");
+
   return {
     accessToken: createAccessToken({
       idx: createdUser.idx,
@@ -373,9 +454,13 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
  * 로그인 정보를 검증하고 액세스 토큰을 생성합니다.
  */
 export async function loginUser(loginDto: LoginDTO): Promise<AuthResponseDTO> {
+  logger.info({ serviceName: "auth", action: "loginUser" }, "service:start");
+
   const user = await findUserByLoginId(loginDto.loginId);
 
   if (!user) {
+    logger.warn({ serviceName: "auth", action: "loginUser" }, "service:invalid_credentials");
+
     throw new ApiError({
       status: 401,
       code: "INVALID_CREDENTIALS",
@@ -386,6 +471,8 @@ export async function loginUser(loginDto: LoginDTO): Promise<AuthResponseDTO> {
   const passwordMatched = await bcrypt.compare(loginDto.password, user.passwordHash);
 
   if (!passwordMatched) {
+    logger.warn({ serviceName: "auth", action: "loginUser", userIdx: user.idx }, "service:invalid_credentials");
+
     throw new ApiError({
       status: 401,
       code: "INVALID_CREDENTIALS",
@@ -394,6 +481,8 @@ export async function loginUser(loginDto: LoginDTO): Promise<AuthResponseDTO> {
   }
 
   if (user.status === "WITHDRAWN") {
+    logger.warn({ serviceName: "auth", action: "loginUser", userIdx: user.idx }, "service:withdrawn_user");
+
     throw new ApiError({
       status: 410,
       code: "WITHDRAWN_USER",
@@ -402,6 +491,8 @@ export async function loginUser(loginDto: LoginDTO): Promise<AuthResponseDTO> {
   }
 
   if (user.status === "SUSPENDED" && user.suspendedUntil === null) {
+    logger.warn({ serviceName: "auth", action: "loginUser", userIdx: user.idx }, "service:permanently_suspended_user");
+
     throw new ApiError({
       status: 423,
       code: "PERMANENTLY_SUSPENDED_USER",
@@ -413,9 +504,12 @@ export async function loginUser(loginDto: LoginDTO): Promise<AuthResponseDTO> {
     await restoreExpiredSuspension(user.idx);
     user.status = "ENABLED";
     user.suspendedUntil = null;
+    logger.info({ serviceName: "auth", action: "loginUser", userIdx: user.idx }, "service:suspension_restored");
   }
 
   if (user.status === "SUSPENDED" && isSuspendedUntilActive(user.suspendedUntil)) {
+    logger.warn({ serviceName: "auth", action: "loginUser", userIdx: user.idx }, "service:suspended_user");
+
     throw new ApiError({
       status: 423,
       code: "SUSPENDED_USER",
@@ -432,6 +526,8 @@ export async function loginUser(loginDto: LoginDTO): Promise<AuthResponseDTO> {
     idx: user.idx,
     role: user.role,
   };
+
+  logger.info({ serviceName: "auth", action: "loginUser", userIdx: user.idx, role: user.role }, "service:success");
 
   return {
     accessToken: createAccessToken(authenticatedUser),

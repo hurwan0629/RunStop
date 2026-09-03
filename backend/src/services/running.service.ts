@@ -10,6 +10,7 @@ import type {
 } from "../dto/running/running-response.dto.js";
 import type { RunningStartDTO } from "../dto/running/running-start.dto.js";
 import type { RunningTrackpointsDTO } from "../dto/running/running-trackpoint.dto.js";
+import { logger } from "../logging/logger.js";
 import { ApiError } from "../middleware/error.js";
 import { findRouteRecommendationByIdx } from "../repositories/route-recommendations.repository.js";
 import {
@@ -150,8 +151,12 @@ export async function listRunningHistory(
   userIdx: number,
   query: RunningListQueryDTO,
 ): Promise<RunningHistoryResponseDTO> {
+  logger.info({ serviceName: "running", action: "listRunningHistory", userIdx, page: query.page, limit: query.limit }, "service:start");
+
   // 요청 유효성 검사
   if (query.from && query.to && query.from > query.to) {
+    logger.warn({ serviceName: "running", action: "listRunningHistory", userIdx }, "service:invalid_period");
+
     throw new ApiError({
       status: 400,
       code: "INVALID_RUNNING_HISTORY_PERIOD",
@@ -163,6 +168,13 @@ export async function listRunningHistory(
   // [idx, users_idx, route_recommendations_idx, status, started_at, finished_at, distance, average_pace]
   // 가져오기
   const sessions = await findRunningSessionsByUserIdx(userIdx, query);
+
+  logger.info({
+    serviceName: "running",
+    action: "listRunningHistory",
+    userIdx,
+    itemCount: sessions.length,
+  }, "service:success");
 
   return {
     items: sessions.map((session) => ({
@@ -185,10 +197,24 @@ export async function startRunningSession(
   userIdx: number,
   dto: RunningStartDTO,
 ): Promise<RunningStartResponseDTO> {
+  logger.info({
+    serviceName: "running",
+    action: "startRunningSession",
+    userIdx,
+    routeRecommendationIdx: dto.routeRecommendationIdx,
+  }, "service:start");
+
   // routeRecommendationIdx가 실제 추천 코스인지 확인합니다.
   const recommendation = await findRouteRecommendationByIdx(dto.routeRecommendationIdx);
 
   if (!recommendation) {
+    logger.warn({
+      serviceName: "running",
+      action: "startRunningSession",
+      userIdx,
+      routeRecommendationIdx: dto.routeRecommendationIdx,
+    }, "service:route_recommendation_not_found");
+
     throw new ApiError({
       status: 404,
       code: "ROUTE_RECOMMENDATION_NOT_FOUND",
@@ -200,6 +226,13 @@ export async function startRunningSession(
   const inProgressSession = await findInProgressSessionByUserIdx(userIdx);
 
   if (inProgressSession) {
+    logger.warn({
+      serviceName: "running",
+      action: "startRunningSession",
+      userIdx,
+      sessionIdx: inProgressSession.idx,
+    }, "service:session_already_in_progress");
+
     throw new ApiError({
       status: 409,
       code: "RUNNING_SESSION_ALREADY_IN_PROGRESS",
@@ -216,6 +249,13 @@ export async function startRunningSession(
     startedAt: dto.startedAt,
   });
 
+  logger.info({
+    serviceName: "running",
+    action: "startRunningSession",
+    userIdx,
+    sessionIdx: session.idx,
+  }, "service:success");
+
   return {
     sessionIdx: session.idx,
     status: "IN_PROGRESS",
@@ -230,10 +270,20 @@ export async function saveRunningTrackpoints(
   sessionIdx: number,
   dto: RunningTrackpointsDTO,
 ): Promise<RunningTrackpointsResponseDTO> {
+  logger.info({
+    serviceName: "running",
+    action: "saveRunningTrackpoints",
+    userIdx,
+    sessionIdx,
+    requestedCount: dto.trackpoints.length,
+  }, "service:start");
+
   // 세션 소유자와 현재 진행 상태를 확인합니다.
   const session = await findRunningSessionByIdxAndUserIdx(sessionIdx, userIdx);
 
   if (!session) {
+    logger.warn({ serviceName: "running", action: "saveRunningTrackpoints", userIdx, sessionIdx }, "service:session_not_found");
+
     throw new ApiError({
       status: 404,
       code: "RUNNING_SESSION_NOT_FOUND",
@@ -242,6 +292,14 @@ export async function saveRunningTrackpoints(
   }
 
   if (session.status !== "IN_PROGRESS") {
+    logger.warn({
+      serviceName: "running",
+      action: "saveRunningTrackpoints",
+      userIdx,
+      sessionIdx,
+      status: session.status,
+    }, "service:session_not_in_progress");
+
     throw new ApiError({
       status: 409,
       code: "RUNNING_SESSION_NOT_IN_PROGRESS",
@@ -251,6 +309,15 @@ export async function saveRunningTrackpoints(
 
   // clientTrackpointId UNIQUE 제약으로 재전송 중복을 DB에서 무시합니다.
   const savedCount = await createRunningTrackpoints(sessionIdx, dto.trackpoints);
+
+  logger.info({
+    serviceName: "running",
+    action: "saveRunningTrackpoints",
+    userIdx,
+    sessionIdx,
+    requestedCount: dto.trackpoints.length,
+    savedCount,
+  }, "service:success");
 
   return {
     savedCount,
@@ -265,10 +332,14 @@ export async function finishRunningSession(
   sessionIdx: number,
   dto: RunningFinishDTO,
 ): Promise<RunningFinishResponseDTO> {
+  logger.info({ serviceName: "running", action: "finishRunningSession", userIdx, sessionIdx }, "service:start");
+
   // 세션 소유자와 종료 가능한 상태인지 확인합니다.
   const session = await findRunningSessionByIdxAndUserIdx(sessionIdx, userIdx);
 
   if (!session) {
+    logger.warn({ serviceName: "running", action: "finishRunningSession", userIdx, sessionIdx }, "service:session_not_found");
+
     throw new ApiError({
       status: 404,
       code: "RUNNING_SESSION_NOT_FOUND",
@@ -277,6 +348,14 @@ export async function finishRunningSession(
   }
 
   if (session.status !== "IN_PROGRESS") {
+    logger.warn({
+      serviceName: "running",
+      action: "finishRunningSession",
+      userIdx,
+      sessionIdx,
+      status: session.status,
+    }, "service:session_not_in_progress");
+
     throw new ApiError({
       status: 409,
       code: "RUNNING_SESSION_NOT_IN_PROGRESS",
@@ -287,6 +366,8 @@ export async function finishRunningSession(
   const finishedAt = new Date(dto.finishedAt);
 
   if (finishedAt.getTime() <= session.startedAt.getTime()) {
+    logger.warn({ serviceName: "running", action: "finishRunningSession", userIdx, sessionIdx }, "service:invalid_finish_time");
+
     throw new ApiError({
       status: 400,
       code: "INVALID_RUNNING_FINISH_TIME",
@@ -298,6 +379,14 @@ export async function finishRunningSession(
   const trackpointStats = await calculateRunningTrackpointStats(sessionIdx);
 
   if (trackpointStats.trackpointCount < 2) {
+    logger.warn({
+      serviceName: "running",
+      action: "finishRunningSession",
+      userIdx,
+      sessionIdx,
+      trackpointCount: trackpointStats.trackpointCount,
+    }, "service:not_enough_trackpoints");
+
     throw new ApiError({
       status: 409,
       code: "NOT_ENOUGH_RUNNING_TRACKPOINTS",
@@ -309,6 +398,15 @@ export async function finishRunningSession(
   const averagePace = calculateAveragePaceSecPerKm(session.startedAt, finishedAt, distance);
 
   if (distance <= 0 || averagePace === null) {
+    logger.warn({
+      serviceName: "running",
+      action: "finishRunningSession",
+      userIdx,
+      sessionIdx,
+      distance,
+      averagePace,
+    }, "service:invalid_distance");
+
     throw new ApiError({
       status: 409,
       code: "INVALID_RUNNING_DISTANCE",
@@ -325,12 +423,23 @@ export async function finishRunningSession(
   });
 
   if (!updatedSession) {
+    logger.error({ serviceName: "running", action: "finishRunningSession", userIdx, sessionIdx }, "service:failed");
+
     throw new ApiError({
       status: 409,
       code: "RUNNING_SESSION_FINISH_FAILED",
       message: "러닝 세션 종료 처리에 실패했습니다.",
     });
   }
+
+  logger.info({
+    serviceName: "running",
+    action: "finishRunningSession",
+    userIdx,
+    sessionIdx: updatedSession.idx,
+    distance,
+    averagePace,
+  }, "service:success");
 
   return {
     sessionIdx: updatedSession.idx,
@@ -347,9 +456,13 @@ export async function getRunningPace(
   userIdx: number,
   sessionIdx: number,
 ): Promise<RunningPaceResponseDTO> {
+  logger.info({ serviceName: "running", action: "getRunningPace", userIdx, sessionIdx }, "service:start");
+
   const session = await findRunningSessionByIdxAndUserIdx(sessionIdx, userIdx);
 
   if (!session) {
+    logger.warn({ serviceName: "running", action: "getRunningPace", userIdx, sessionIdx }, "service:session_not_found");
+
     throw new ApiError({
       status: 404,
       code: "RUNNING_SESSION_NOT_FOUND",
@@ -361,6 +474,14 @@ export async function getRunningPace(
   const trackpoints = await findProjectedTrackpointsBySessionIdx(sessionIdx);
 
   if (trackpoints.length < 2) {
+    logger.warn({
+      serviceName: "running",
+      action: "getRunningPace",
+      userIdx,
+      sessionIdx,
+      trackpointCount: trackpoints.length,
+    }, "service:not_enough_trackpoints");
+
     throw new ApiError({
       status: 409,
       code: "NOT_ENOUGH_RUNNING_TRACKPOINTS",
@@ -373,12 +494,22 @@ export async function getRunningPace(
   const segments = calculatePaceSegments(trackpoints);
 
   if (segments.length === 0) {
+    logger.warn({ serviceName: "running", action: "getRunningPace", userIdx, sessionIdx }, "service:invalid_segments");
+
     throw new ApiError({
       status: 409,
       code: "INVALID_RUNNING_PACE_SEGMENTS",
       message: "페이스 구간을 계산할 수 없습니다.",
     });
   }
+
+  logger.info({
+    serviceName: "running",
+    action: "getRunningPace",
+    userIdx,
+    sessionIdx,
+    segmentCount: segments.length,
+  }, "service:success");
 
   return {
     sessionIdx,

@@ -6,6 +6,7 @@ import type {
   PointBookmarkListResponseDTO,
   PointBookmarkResponseDTO,
 } from "../dto/route/route-bookmark.dto.js";
+import { logger } from "../logging/logger.js";
 import { ApiError } from "../middleware/error.js";
 import {
   createPointBookmark as createPointBookmarkRepository,
@@ -24,7 +25,11 @@ export async function listPointBookmarks(
   userIdx: number,
   query: BookmarkListQueryDTO,
 ): Promise<PointBookmarkListResponseDTO> {
+  logger.info({ serviceName: "bookmarks", action: "listPointBookmarks", userIdx, page: query.page, limit: query.limit }, "service:start");
+
   const items = await findPointBookmarksByUserIdx(userIdx, query);
+
+  logger.info({ serviceName: "bookmarks", action: "listPointBookmarks", userIdx, itemCount: items.length }, "service:success");
 
   return {
     items,
@@ -40,11 +45,22 @@ export async function createPointBookmark(
   userIdx: number,
   dto: PointBookmarkDTO,
 ): Promise<PointBookmarkResponseDTO> {
-  return createPointBookmarkRepository({
+  logger.info({ serviceName: "bookmarks", action: "createPointBookmark", userIdx }, "service:start");
+
+  const bookmark = await createPointBookmarkRepository({
     userIdx,
     name: dto.name,
     point: dto.point,
   });
+
+  logger.info({
+    serviceName: "bookmarks",
+    action: "createPointBookmark",
+    userIdx,
+    bookmarkIdx: bookmark.bookmarkIdx,
+  }, "service:success");
+
+  return bookmark;
 }
 
 /**
@@ -54,15 +70,21 @@ export async function deletePointBookmark(
   userIdx: number,
   bookmarkIdx: number,
 ): Promise<DeleteBookmarkResponseDTO> {
+  logger.info({ serviceName: "bookmarks", action: "deletePointBookmark", userIdx, bookmarkIdx }, "service:start");
+
   const deleted = await deletePointBookmarkByIdxAndUserIdx(bookmarkIdx, userIdx);
 
   if (!deleted) {
+    logger.warn({ serviceName: "bookmarks", action: "deletePointBookmark", userIdx, bookmarkIdx }, "service:bookmark_not_found");
+
     throw new ApiError({
       status: 404,
       code: "POINT_BOOKMARK_NOT_FOUND",
       message: "장소 즐겨찾기를 찾을 수 없습니다.",
     });
   }
+
+  logger.info({ serviceName: "bookmarks", action: "deletePointBookmark", userIdx, bookmarkIdx }, "service:success");
 
   return {
     deleted: true,
@@ -76,7 +98,11 @@ export async function listRouteBookmarks(
   userIdx: number,
   query: BookmarkListQueryDTO,
 ) {
+  logger.info({ serviceName: "bookmarks", action: "listRouteBookmarks", userIdx, page: query.page, limit: query.limit }, "service:start");
+
   const items = await findRouteBookmarksByUserIdx(userIdx, query);
+
+  logger.info({ serviceName: "bookmarks", action: "listRouteBookmarks", userIdx, itemCount: items.length }, "service:success");
 
   return {
     items,
@@ -92,9 +118,23 @@ export async function createRouteBookmark(
   userIdx: number,
   dto: RouteBookmarkDTO,
 ) {
+  logger.info({
+    serviceName: "bookmarks",
+    action: "createRouteBookmark",
+    userIdx,
+    recommendationId: dto.recommendationId,
+  }, "service:start");
+
   const recommendation = await findRouteRecommendationByIdx(dto.recommendationId);
 
   if (!recommendation) {
+    logger.warn({
+      serviceName: "bookmarks",
+      action: "createRouteBookmark",
+      userIdx,
+      recommendationId: dto.recommendationId,
+    }, "service:route_recommendation_not_found");
+
     throw new ApiError({
       status: 404,
       code: "ROUTE_RECOMMENDATION_NOT_FOUND",
@@ -103,7 +143,17 @@ export async function createRouteBookmark(
   }
 
   try {
-    return await createRouteBookmarkRepository(userIdx, dto.recommendationId);
+    const bookmark = await createRouteBookmarkRepository(userIdx, dto.recommendationId);
+
+    logger.info({
+      serviceName: "bookmarks",
+      action: "createRouteBookmark",
+      userIdx,
+      bookmarkIdx: bookmark.bookmarkIdx,
+      routeRecommendationIdx: bookmark.routeRecommendationIdx,
+    }, "service:success");
+
+    return bookmark;
   } catch (error) {
     if (
       typeof error === "object"
@@ -111,6 +161,13 @@ export async function createRouteBookmark(
       && "code" in error
       && error.code === "23505"
     ) {
+      logger.warn({
+        serviceName: "bookmarks",
+        action: "createRouteBookmark",
+        userIdx,
+        recommendationId: dto.recommendationId,
+      }, "service:route_bookmark_already_exists");
+
       throw new ApiError({
         status: 409,
         code: "ROUTE_BOOKMARK_ALREADY_EXISTS",
@@ -129,15 +186,21 @@ export async function deleteRouteBookmark(
   userIdx: number,
   bookmarkIdx: number,
 ): Promise<DeleteBookmarkResponseDTO> {
+  logger.info({ serviceName: "bookmarks", action: "deleteRouteBookmark", userIdx, bookmarkIdx }, "service:start");
+
   const deleted = await deleteRouteBookmarkByIdxAndUserIdx(bookmarkIdx, userIdx);
 
   if (!deleted) {
+    logger.warn({ serviceName: "bookmarks", action: "deleteRouteBookmark", userIdx, bookmarkIdx }, "service:bookmark_not_found");
+
     throw new ApiError({
       status: 404,
       code: "ROUTE_BOOKMARK_NOT_FOUND",
       message: "코스 즐겨찾기를 찾을 수 없습니다.",
     });
   }
+
+  logger.info({ serviceName: "bookmarks", action: "deleteRouteBookmark", userIdx, bookmarkIdx }, "service:success");
 
   return {
     deleted: true,
