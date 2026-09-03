@@ -1,6 +1,7 @@
 import { createHash, randomInt, randomUUID } from "node:crypto";
 import { ApiError } from "../middleware/error.js";
 import { sendVerificationSms } from "../adapters/sms/sms.client.js";
+import { logger } from "../logging/logger.js";
 
 export type PhoneVerificationPurpose = "SIGNUP" | "FIND_ID" | "RESET_PASSWORD";
 
@@ -112,6 +113,8 @@ export async function sendPhoneVerification(input: SendPhoneVerificationInput): 
   verificationId: string;
   expiresInSec: number;
 }> {
+  logger.info({ serviceName: "phoneVerification", action: "sendPhoneVerification", purpose: input.purpose }, "service:start");
+
   // 클라이언트에게 줄 랜덤 Id 만들기
   const verificationId = randomUUID();
   // 6자리 인증코드 만들기
@@ -130,6 +133,14 @@ export async function sendPhoneVerification(input: SendPhoneVerificationInput): 
     code,
   });
 
+  logger.info({
+    serviceName: "phoneVerification",
+    action: "sendPhoneVerification",
+    purpose: input.purpose,
+    verificationId,
+    expiresInSec: CODE_TTL_MS / 1000,
+  }, "service:success");
+
   // 
   return {
     verificationId,
@@ -143,6 +154,13 @@ export async function sendPhoneVerification(input: SendPhoneVerificationInput): 
 export async function verifyPhoneCode(input: VerifyPhoneCodeInput): Promise<{
   verified: true;
 }> {
+  logger.info({
+    serviceName: "phoneVerification",
+    action: "verifyPhoneCode",
+    purpose: input.purpose,
+    verificationId: input.verificationId,
+  }, "service:start");
+
   // 사용자가 요청한 verificationId + purpose + code를 이용하여 인증번호가 맞는지를 인증
   const record = getVerificationRecord(input.verificationId);
 
@@ -151,6 +169,13 @@ export async function verifyPhoneCode(input: VerifyPhoneCodeInput): Promise<{
   deleteExpiredVerification(input.verificationId, record);
 
   if (isExpired(record.codeExpiresAt)) {
+    logger.warn({
+      serviceName: "phoneVerification",
+      action: "verifyPhoneCode",
+      purpose: input.purpose,
+      verificationId: input.verificationId,
+    }, "service:verification_expired");
+
     throw new ApiError({
       status: 410,
       code: "VERIFICATION_EXPIRED",
@@ -161,6 +186,13 @@ export async function verifyPhoneCode(input: VerifyPhoneCodeInput): Promise<{
   // 5회 이상 틀려있담녀 취소시켜주기
   if (record.attemptCount >= MAX_ATTEMPT_COUNT) {
     verificationStore.delete(input.verificationId);
+    logger.warn({
+      serviceName: "phoneVerification",
+      action: "verifyPhoneCode",
+      purpose: input.purpose,
+      verificationId: input.verificationId,
+      attemptCount: record.attemptCount,
+    }, "service:verification_attempt_exceeded");
 
     throw new ApiError({
       status: 429,
@@ -173,6 +205,14 @@ export async function verifyPhoneCode(input: VerifyPhoneCodeInput): Promise<{
   record.attemptCount += 1;
 
   if (record.codeHash !== hashVerificationCode(input.code)) {
+    logger.warn({
+      serviceName: "phoneVerification",
+      action: "verifyPhoneCode",
+      purpose: input.purpose,
+      verificationId: input.verificationId,
+      attemptCount: record.attemptCount,
+    }, "service:verification_code_mismatch");
+
     throw new ApiError({
       status: 400,
       code: "VERIFICATION_CODE_MISMATCH",
@@ -184,6 +224,14 @@ export async function verifyPhoneCode(input: VerifyPhoneCodeInput): Promise<{
   record.verified = true;
   record.verifiedUntil = new Date(Date.now() + VERIFIED_TTL_MS);
 
+  logger.info({
+    serviceName: "phoneVerification",
+    action: "verifyPhoneCode",
+    purpose: input.purpose,
+    verificationId: input.verificationId,
+    attemptCount: record.attemptCount,
+  }, "service:success");
+
   return {
     verified: true,
   };
@@ -194,6 +242,7 @@ export async function verifyPhoneCode(input: VerifyPhoneCodeInput): Promise<{
  */
 export async function consumePhoneVerification(verificationId: string): Promise<void> {
   verificationStore.delete(verificationId);
+  logger.debug({ serviceName: "phoneVerification", action: "consumePhoneVerification", verificationId }, "service:success");
 }
 
 /**

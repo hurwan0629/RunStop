@@ -1,4 +1,4 @@
-import type { Pool, PoolClient } from "pg";
+﻿import type { Pool, PoolClient } from "pg";
 import type {
   CurrentGoalResponseDTO,
   GoalCreateDTO,
@@ -44,14 +44,14 @@ function calculateProgressRate(distance: number, targetDistance: number): number
  * 현재 사용자의 활성 러닝 목표와 진행률을 반환합니다.
  */
 export async function getCurrentRunningGoal(userIdx: number): Promise<CurrentGoalResponseDTO> {
-  logger.info({ service: "goals", action: "getCurrentRunningGoal", userIdx }, "service:start");
+  logger.info({ serviceName: "goals", action: "getCurrentRunningGoal", userIdx }, "service:start");
 
   await refreshExpiredGoals(userIdx);
 
   const goal = await findActiveGoalByUserIdx(userIdx);
 
   if (!goal) {
-    logger.info({ service: "goals", action: "getCurrentRunningGoal", userIdx, hasGoal: false }, "service:success");
+    logger.info({ serviceName: "goals", action: "getCurrentRunningGoal", userIdx, hasGoal: false }, "service:success");
 
     return {
       goal: null,
@@ -70,7 +70,7 @@ export async function getCurrentRunningGoal(userIdx: number): Promise<CurrentGoa
   const rate = calculateProgressRate(distance, goal.targetDistance);
 
   logger.info({
-    service: "goals",
+    serviceName: "goals",
     action: "getCurrentRunningGoal",
     userIdx,
     goalIdx: goal.idx,
@@ -95,7 +95,7 @@ export async function createRunningGoal(
   dto: GoalCreateDTO,
 ): Promise<GoalDTO> {
   logger.info({
-    service: "goals",
+    serviceName: "goals",
     action: "createRunningGoal",
     userIdx,
     goalType: dto.goalType,
@@ -103,7 +103,7 @@ export async function createRunningGoal(
   }, "service:start");
 
   if (dto.startDate > dto.endDate) {
-    logger.warn({ service: "goals", action: "createRunningGoal", userIdx }, "service:invalid_period");
+    logger.warn({ serviceName: "goals", action: "createRunningGoal", userIdx }, "service:invalid_period");
 
     throw new ApiError({
       status: 400,
@@ -119,7 +119,7 @@ export async function createRunningGoal(
 
     if (activeGoal) {
       logger.warn({
-        service: "goals",
+        serviceName: "goals",
         action: "createRunningGoal",
         userIdx,
         activeGoalIdx: activeGoal.idx,
@@ -142,7 +142,7 @@ export async function createRunningGoal(
   });
 
   logger.info({
-    service: "goals",
+    serviceName: "goals",
     action: "createRunningGoal",
     userIdx,
     goalIdx: goal.idx,
@@ -158,14 +158,14 @@ export async function stopRunningGoal(
   userIdx: number,
   goalIdx: number,
 ): Promise<StopGoalResponseDTO> {
-  logger.info({ service: "goals", action: "stopRunningGoal", userIdx, goalIdx }, "service:start");
+  logger.info({ serviceName: "goals", action: "stopRunningGoal", userIdx, goalIdx }, "service:start");
 
   await refreshExpiredGoals(userIdx);
 
   const goal = await findRunningGoalByIdxAndUserIdx(goalIdx, userIdx);
 
   if (!goal) {
-    logger.warn({ service: "goals", action: "stopRunningGoal", userIdx, goalIdx }, "service:goal_not_found");
+    logger.warn({ serviceName: "goals", action: "stopRunningGoal", userIdx, goalIdx }, "service:goal_not_found");
 
     throw new ApiError({
       status: 404,
@@ -176,7 +176,7 @@ export async function stopRunningGoal(
 
   if (goal.status !== "ACTIVE") {
     logger.warn({
-      service: "goals",
+      serviceName: "goals",
       action: "stopRunningGoal",
       userIdx,
       goalIdx,
@@ -193,7 +193,7 @@ export async function stopRunningGoal(
   const stopped = await stopRunningGoalRepository(goalIdx, userIdx);
 
   if (!stopped || !stopped.finishedAt) {
-    logger.error({ service: "goals", action: "stopRunningGoal", userIdx, goalIdx }, "service:failed");
+    logger.error({ serviceName: "goals", action: "stopRunningGoal", userIdx, goalIdx }, "service:failed");
 
     throw new ApiError({
       status: 409,
@@ -202,7 +202,7 @@ export async function stopRunningGoal(
     });
   }
 
-  logger.info({ service: "goals", action: "stopRunningGoal", userIdx, goalIdx }, "service:success");
+  logger.info({ serviceName: "goals", action: "stopRunningGoal", userIdx, goalIdx }, "service:success");
 
   return {
     idx: stopped.idx,
@@ -218,13 +218,13 @@ export async function refreshExpiredGoals(
   userIdx: number,
   client?: QueryClient,
 ): Promise<GoalDTO[]> {
-  logger.debug({ service: "goals", action: "refreshExpiredGoals", userIdx }, "service:start");
+  logger.debug({ serviceName: "goals", action: "refreshExpiredGoals", userIdx }, "service:start");
 
   const updatedGoals = await updateExpiredGoals(userIdx, client);
 
   if (updatedGoals.length > 0) {
     logger.info({
-      service: "goals",
+      serviceName: "goals",
       action: "refreshExpiredGoals",
       userIdx,
       updatedCount: updatedGoals.length,

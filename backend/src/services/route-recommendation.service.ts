@@ -1,4 +1,4 @@
-import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
+﻿import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
 import type { RouteDetailDTO } from "../dto/route/route-detail.dto.js";
 import type {
   RouteRecommendResponseDTO,
@@ -109,7 +109,7 @@ export async function recommendRoutes(
   dto: RouteRequestDTO,
 ): Promise<RouteRecommendResponseDTO> {
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "recommendRoutes",
     userIdx,
     waypointCount: dto.waypoints.length,
@@ -122,7 +122,7 @@ export async function recommendRoutes(
   let workerResponse;
 
   try {
-    logger.info({ service: "routes", action: "recommendRoutes", userIdx }, "service:worker_request:start");
+    logger.info({ serviceName: "routes", action: "recommendRoutes", userIdx }, "service:worker_request:start");
 
     workerResponse = await requestRouteRecommendations({
       startPoint: dto.startPoint,
@@ -135,13 +135,13 @@ export async function recommendRoutes(
     });
 
     logger.info({
-      service: "routes",
+      serviceName: "routes",
       action: "recommendRoutes",
       userIdx,
       candidateCount: workerResponse.candidates.length,
     }, "service:worker_request:success");
   } catch (error) {
-    logger.error({ service: "routes", action: "recommendRoutes", userIdx, err: error }, "service:worker_request:error");
+    logger.error({ serviceName: "routes", action: "recommendRoutes", userIdx, err: error }, "service:worker_request:error");
     throw error;
   }
 
@@ -183,7 +183,7 @@ export async function recommendRoutes(
   });
 
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "recommendRoutes",
     userIdx,
     routeRequestIdx: saved.routeRequest.idx,
@@ -205,7 +205,7 @@ export async function selectRouteRecommendation(
   dto: RouteSelectDTO,
 ): Promise<RouteSelectResponseDTO> {
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "selectRouteRecommendation",
     userIdx,
     routeRequestIdx,
@@ -216,7 +216,7 @@ export async function selectRouteRecommendation(
   const routeRequest = await findRouteRequestByIdxAndUserIdx(routeRequestIdx, userIdx);
 
   if (!routeRequest) {
-    logger.warn({ service: "routes", action: "selectRouteRecommendation", userIdx, routeRequestIdx }, "service:route_request_not_found");
+    logger.warn({ serviceName: "routes", action: "selectRouteRecommendation", userIdx, routeRequestIdx }, "service:route_request_not_found");
 
     throw new ApiError({
       status: 404,
@@ -227,7 +227,7 @@ export async function selectRouteRecommendation(
 
   if (routeRequest.selectedRecommendationIdx !== null) {
     logger.warn({
-      service: "routes",
+      serviceName: "routes",
       action: "selectRouteRecommendation",
       userIdx,
       routeRequestIdx,
@@ -249,7 +249,7 @@ export async function selectRouteRecommendation(
 
   if (!recommendation) {
     logger.warn({
-      service: "routes",
+      serviceName: "routes",
       action: "selectRouteRecommendation",
       userIdx,
       routeRequestIdx,
@@ -268,7 +268,7 @@ export async function selectRouteRecommendation(
 
   if (!updated) {
     logger.error({
-      service: "routes",
+      serviceName: "routes",
       action: "selectRouteRecommendation",
       userIdx,
       routeRequestIdx,
@@ -283,7 +283,7 @@ export async function selectRouteRecommendation(
   }
 
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "selectRouteRecommendation",
     userIdx,
     routeRequestIdx,
@@ -303,7 +303,7 @@ export async function getRouteDetail(
   userIdx: number,
   routeRecommendationIdx: number,
 ): Promise<RouteDetailDTO> {
-  logger.info({ service: "routes", action: "getRouteDetail", userIdx, routeRecommendationIdx }, "service:start");
+  logger.info({ serviceName: "routes", action: "getRouteDetail", userIdx, routeRecommendationIdx }, "service:start");
 
   // 선택한 추천 코스에 대한 상세 데이터를 전달해줍니다.
   // 경로에대한 
@@ -318,7 +318,7 @@ export async function getRouteDetail(
   ]);
 
   if (!route) {
-    logger.warn({ service: "routes", action: "getRouteDetail", userIdx, routeRecommendationIdx }, "service:route_not_found");
+    logger.warn({ serviceName: "routes", action: "getRouteDetail", userIdx, routeRecommendationIdx }, "service:route_not_found");
 
     throw new ApiError({
       status: 404,
@@ -328,7 +328,7 @@ export async function getRouteDetail(
   }
 
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "getRouteDetail",
     userIdx,
     routeRecommendationIdx,

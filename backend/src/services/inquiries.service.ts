@@ -9,6 +9,7 @@ import type {
   InquiryStatusUpdateDTO,
   InquiryStatusUpdateResponseDTO,
 } from "../dto/inquiries/inquiry-status-update.dto.js";
+import { logger } from "../logging/logger.js";
 import { ApiError } from "../middleware/error.js";
 import {
   answerInquiry as answerInquiryRepository,
@@ -44,12 +45,30 @@ export async function listInquiries(
   role: UserRole,
   query: InquiryListQueryDTO,
 ): Promise<InquiryListResponseDTO> {
+  logger.info({
+    serviceName: "inquiries",
+    action: "listInquiries",
+    userIdx,
+    role,
+    page: query.page,
+    limit: query.limit,
+    status: query.status,
+  }, "service:start");
+
   const items = await findInquiries({
     userIdx: role === "ADMIN" ? undefined : userIdx,
     status: query.status,
     page: query.page,
     limit: query.limit,
   });
+
+  logger.info({
+    serviceName: "inquiries",
+    action: "listInquiries",
+    userIdx,
+    role,
+    itemCount: items.length,
+  }, "service:success");
 
   return {
     items: items.map((item) => ({
@@ -70,11 +89,15 @@ export async function createInquiry(
   userIdx: number,
   dto: InquiryCreateDTO,
 ): Promise<InquiryDetailDTO> {
+  logger.info({ serviceName: "inquiries", action: "createInquiry", userIdx }, "service:start");
+
   const inquiry = await createInquiryRepository({
     userIdx,
     title: dto.title,
     content: dto.content,
   });
+
+  logger.info({ serviceName: "inquiries", action: "createInquiry", userIdx, inquiryIdx: inquiry.idx }, "service:success");
 
   return toInquiryDetailDTO(inquiry);
 }
@@ -87,9 +110,13 @@ export async function getInquiryDetail(
   role: UserRole,
   inquiryIdx: number,
 ): Promise<InquiryDetailDTO> {
+  logger.info({ serviceName: "inquiries", action: "getInquiryDetail", userIdx, role, inquiryIdx }, "service:start");
+
   const inquiry = await findInquiryByIdx(inquiryIdx);
 
   if (!inquiry) {
+    logger.warn({ serviceName: "inquiries", action: "getInquiryDetail", userIdx, role, inquiryIdx }, "service:inquiry_not_found");
+
     throw new ApiError({
       status: 404,
       code: "INQUIRY_NOT_FOUND",
@@ -98,12 +125,16 @@ export async function getInquiryDetail(
   }
 
   if (!canReadInquiry(inquiry, userIdx, role)) {
+    logger.warn({ serviceName: "inquiries", action: "getInquiryDetail", userIdx, role, inquiryIdx }, "service:access_denied");
+
     throw new ApiError({
       status: 403,
       code: "INQUIRY_ACCESS_DENIED",
       message: "문의 조회 권한이 없습니다.",
     });
   }
+
+  logger.info({ serviceName: "inquiries", action: "getInquiryDetail", userIdx, role, inquiryIdx }, "service:success");
 
   return toInquiryDetailDTO(inquiry);
 }
@@ -115,9 +146,18 @@ export async function updateInquiryStatus(
   inquiryIdx: number,
   dto: InquiryStatusUpdateDTO,
 ): Promise<InquiryStatusUpdateResponseDTO> {
+  logger.info({
+    serviceName: "inquiries",
+    action: "updateInquiryStatus",
+    inquiryIdx,
+    status: dto.status,
+  }, "service:start");
+
   const inquiry = await findInquiryByIdx(inquiryIdx);
 
   if (!inquiry) {
+    logger.warn({ serviceName: "inquiries", action: "updateInquiryStatus", inquiryIdx }, "service:inquiry_not_found");
+
     throw new ApiError({
       status: 404,
       code: "INQUIRY_NOT_FOUND",
@@ -128,12 +168,26 @@ export async function updateInquiryStatus(
   const updated = await updateInquiryStatusRepository(inquiryIdx, dto.status);
 
   if (!updated) {
+    logger.error({
+      serviceName: "inquiries",
+      action: "updateInquiryStatus",
+      inquiryIdx,
+      status: dto.status,
+    }, "service:failed");
+
     throw new ApiError({
       status: 409,
       code: "INQUIRY_STATUS_UPDATE_FAILED",
       message: "문의 상태 변경에 실패했습니다.",
     });
   }
+
+  logger.info({
+    serviceName: "inquiries",
+    action: "updateInquiryStatus",
+    inquiryIdx,
+    status: updated.status,
+  }, "service:success");
 
   return {
     idx: updated.idx,
@@ -149,9 +203,13 @@ export async function answerInquiry(
   adminUserIdx: number,
   dto: InquiryAnswerDTO,
 ): Promise<InquiryAnswerResponseDTO> {
+  logger.info({ serviceName: "inquiries", action: "answerInquiry", adminUserIdx, inquiryIdx }, "service:start");
+
   const inquiry = await findInquiryByIdx(inquiryIdx);
 
   if (!inquiry) {
+    logger.warn({ serviceName: "inquiries", action: "answerInquiry", adminUserIdx, inquiryIdx }, "service:inquiry_not_found");
+
     throw new ApiError({
       status: 404,
       code: "INQUIRY_NOT_FOUND",
@@ -160,6 +218,8 @@ export async function answerInquiry(
   }
 
   if (inquiry.answer !== null) {
+    logger.warn({ serviceName: "inquiries", action: "answerInquiry", adminUserIdx, inquiryIdx }, "service:already_answered");
+
     throw new ApiError({
       status: 409,
       code: "INQUIRY_ALREADY_ANSWERED",
@@ -175,12 +235,22 @@ export async function answerInquiry(
   );
 
   if (!answered || !answered.answererIdx || !answered.answeredAt) {
+    logger.error({ serviceName: "inquiries", action: "answerInquiry", adminUserIdx, inquiryIdx }, "service:failed");
+
     throw new ApiError({
       status: 409,
       code: "INQUIRY_ANSWER_FAILED",
       message: "문의 답변 저장에 실패했습니다.",
     });
   }
+
+  logger.info({
+    serviceName: "inquiries",
+    action: "answerInquiry",
+    adminUserIdx,
+    inquiryIdx,
+    status: answered.status,
+  }, "service:success");
 
   return {
     idx: answered.idx,

@@ -3,6 +3,7 @@ import type { MyPageResponseDTO } from "../dto/users/my-page.dto.js";
 import type { UserProfileUpdateDTO } from "../dto/users/user-profile-update.dto.js";
 import type { UserUpdateResponseDTO } from "../dto/users/user-update-response.dto.js";
 import { withTransaction } from "../infra/db/transaction.js";
+import { logger } from "../logging/logger.js";
 import { ApiError } from "../middleware/error.js";
 import { countRouteBookmarksByUserIdx } from "../repositories/bookmarks.repository.js";
 import { summarizeRunningSessionsByUserIdx } from "../repositories/running-sessions.repository.js";
@@ -24,6 +25,8 @@ import { getCurrentRunningGoal } from "./goals.service.js";
  * 프로필, 목표, 러닝, 즐겨찾기 데이터를 조합해 현재 사용자의 마이페이지 요약을 만듭니다.
  */
 export async function getMyPageSummary(userIdx: number): Promise<MyPageResponseDTO> {
+  logger.info({ serviceName: "users", action: "getMyPageSummary", userIdx }, "service:start");
+
   // 
   const [user, profile, currentGoalResult, runningSummary, routeBookmarkCount] = await Promise.all([
     findUserByIdx(userIdx),             // users 테이블에서 가져오기
@@ -34,6 +37,8 @@ export async function getMyPageSummary(userIdx: number): Promise<MyPageResponseD
   ]);
 
   if (!user) {
+    logger.warn({ serviceName: "users", action: "getMyPageSummary", userIdx }, "service:user_not_found");
+
     throw new ApiError({
       status: 404,
       code: "USER_NOT_FOUND",
@@ -44,6 +49,14 @@ export async function getMyPageSummary(userIdx: number): Promise<MyPageResponseD
   // currentGoal이 있으면 현재 목표에 대해 범위가 맞는 거리 가져오기
   const currentGoal = currentGoalResult.goal;
   const progressDistance = currentGoal ? currentGoalResult.progress.distance : null;
+
+  logger.info({
+    serviceName: "users",
+    action: "getMyPageSummary",
+    userIdx,
+    hasCurrentGoal: currentGoal !== null,
+    routeBookmarkCount,
+  }, "service:success");
   
     // 응답해주기 (data만 주면 users.controller.ts 의 getMyPage에서 응답)
   return {
@@ -79,6 +92,16 @@ export async function updateCurrentUser(
   userIdx: number,
   updateDto: UserProfileUpdateDTO,
 ): Promise<UserUpdateResponseDTO> {
+  logger.info({
+    serviceName: "users",
+    action: "updateCurrentUser",
+    userIdx,
+    hasNicknameUpdate: updateDto.nickname !== undefined,
+    hasProfileUpdate: updateDto.weightKg !== undefined
+      || updateDto.heightCm !== undefined
+      || updateDto.runningSettings !== undefined,
+  }, "service:start");
+
   // 변경 시도 데이터 4개에 대해서 값이 들어왔는지 확인하기
   const hasUserUpdate = updateDto.nickname !== undefined;
   const hasProfileUpdate = updateDto.weightKg !== undefined
@@ -87,6 +110,8 @@ export async function updateCurrentUser(
 
   // 수정할게 없으면 취소시켜주기
   if (!hasUserUpdate && !hasProfileUpdate) {
+    logger.warn({ serviceName: "users", action: "updateCurrentUser", userIdx }, "service:empty_update_request");
+
     throw new ApiError({
       status: 400,
       code: "EMPTY_USER_UPDATE_REQUEST",
@@ -97,6 +122,8 @@ export async function updateCurrentUser(
   const existingUser = await findUserByIdx(userIdx);
 
   if (!existingUser) {
+    logger.warn({ serviceName: "users", action: "updateCurrentUser", userIdx }, "service:user_not_found");
+
     throw new ApiError({
       status: 404,
       code: "USER_NOT_FOUND",
@@ -143,6 +170,8 @@ export async function updateCurrentUser(
     
     // updated User이 실패하였다면 없다고 반환해주기
     if (!updatedUser) {
+      logger.warn({ serviceName: "users", action: "updateCurrentUser", userIdx }, "service:user_not_found");
+
       throw new ApiError({
         status: 404,
         code: "USER_NOT_FOUND",
@@ -152,6 +181,8 @@ export async function updateCurrentUser(
 
     // 수정의 경우에도 없으면 404 보내주기
     if (!updatedProfile) {
+      logger.warn({ serviceName: "users", action: "updateCurrentUser", userIdx }, "service:user_profile_not_found");
+
       throw new ApiError({
         status: 404,
         code: "USER_PROFILE_NOT_FOUND",
@@ -164,6 +195,14 @@ export async function updateCurrentUser(
       profile: updatedProfile,
     };
   });
+
+  logger.info({
+    serviceName: "users",
+    action: "updateCurrentUser",
+    userIdx,
+    hasUserUpdate,
+    hasProfileUpdate,
+  }, "service:success");
 
   return {
     user: {
@@ -178,10 +217,14 @@ export async function updateCurrentUser(
  * 오래 연결된 기록을 보존하면서 현재 사용자를 탈퇴 상태로 변경합니다.
  */
 export async function withdrawCurrentUser(userIdx: number): Promise<{ withdrawn: true }> {
+  logger.info({ serviceName: "users", action: "withdrawCurrentUser", userIdx }, "service:start");
+
   // 사용자 존재하는지 확인해주기
   const user = await findUserByIdx(userIdx);
 
   if (!user) {
+    logger.warn({ serviceName: "users", action: "withdrawCurrentUser", userIdx }, "service:user_not_found");
+
     throw new ApiError({
       status: 404,
       code: "USER_NOT_FOUND",
@@ -191,6 +234,8 @@ export async function withdrawCurrentUser(userIdx: number): Promise<{ withdrawn:
 
   // 사용자 상태 재확인
   if (user.status === "WITHDRAWN") {
+    logger.warn({ serviceName: "users", action: "withdrawCurrentUser", userIdx }, "service:already_withdrawn");
+
     throw new ApiError({
       status: 410,
       code: "WITHDRAWN_USER",
@@ -209,12 +254,16 @@ export async function withdrawCurrentUser(userIdx: number): Promise<{ withdrawn:
   });
   
   if (!withdrawn) {
+    logger.error({ serviceName: "users", action: "withdrawCurrentUser", userIdx }, "service:failed");
+
     throw new ApiError({
       status: 409,
       code: "USER_WITHDRAW_FAILED",
       message: "회원탈퇴 처리에 실패했습니다.",
     });
   }
+
+  logger.info({ serviceName: "users", action: "withdrawCurrentUser", userIdx }, "service:success");
 
   return {
     withdrawn: true,
