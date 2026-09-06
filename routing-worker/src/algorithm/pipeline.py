@@ -122,8 +122,7 @@ if __name__ == "__main__":
     start = (37.4979, 127.0276)   # 강남역
     end = (37.5045, 127.0400)     # 역삼 방향, 직선 약 1.3km (ONE_WAY 용, 목표 3km 보다 짧아야 함)
 
-    weights = {"distance": 5, "elevation": 4, "toilet": 5,
-               "store": 2, "park": 3, "night": 5}
+    weights = {"distance": 5, "elevation": 4, "toilet": 5,"store": 2, "park": 3, "night": 5}
     requirements = {"toilet": True, "no_stairs": True}
 
     cases = [

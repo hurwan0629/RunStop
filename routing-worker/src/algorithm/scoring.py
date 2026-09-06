@@ -7,10 +7,10 @@ data/배포/서울_시설데이터_통합.csv (유형/명칭/위도/경도/...) 
 import numpy as np
 import pandas as pd
 from shapely import LineString, contains_xy, distance, points as sh_points
-
+from pathlib import Path
 from .geo import to_5179
 
-FACIL_CSV = "C:/LANG_CHAIN_2026/MidProject/test/05_HeoWan/2026_09_04_윤재빈_알고리즘_리뷰/code/data/서울_시설데이터_통합.csv"   # 환경에 맞게 수정
+FACIL_CSV = Path(__file__).parent / "data" / "서울_시설데이터_통합.csv"   # 환경에 맞게 수정
 
 # 유형(한글, CSV) -> 결과 키(영문)
 KINDS = {"화장실": "toilet", "편의점": "store", "도시공원": "park",

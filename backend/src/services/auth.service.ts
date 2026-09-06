@@ -573,7 +573,10 @@ export async function validateAccessTokenUser(userIdx: number): Promise<Authenti
     });
   }
 
-  if (user.status === "SUSPENDED" && isSuspendedUntilActive(user.suspendedUntil)) {
+  if (
+    user.status === "SUSPENDED" &&
+    (user.suspendedUntil === null || isSuspendedUntilActive(user.suspendedUntil))
+  ) {
     throw new ApiError({
       status: 423,
       code: "SUSPENDED_USER",

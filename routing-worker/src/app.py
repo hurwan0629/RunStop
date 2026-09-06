@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from .dto.recommend import RouteRecommendRequestDTO
-from .dto.parser import parse_node_request_to_python_recommendation
+from .dto.parser import parse_node_request_to_python_recommendation, parse_python_recommendation_to_node_require
 from .algorithm.pipeline import recommend
 from .algorithm.graph import load_graph, grid_graph, NodeIndex
 from pathlib import Path
@@ -45,7 +45,7 @@ def route_recommend(request: RouteRecommendRequestDTO):
         end=recommend_args.get("end", None), 
         vias=recommend_args.get("vias", None),
         weights=recommend_args.get("weights", None), 
-        requirements=recommend_args.get("weights", None), 
+        requirements=recommend_args.get("requirements", None), 
         # 후보군을 만들 방위각 개수 (360 / n_directions)
         n_directions=12,
         # 뽑을 후보군 개수
@@ -54,4 +54,6 @@ def route_recommend(request: RouteRecommendRequestDTO):
 
     print("\ncands:", cands)
 
-    return { "candidates": cands}
+    response = parse_python_recommendation_to_node_require(cands)
+
+    return { "candidates": response}
