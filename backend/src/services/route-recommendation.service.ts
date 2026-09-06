@@ -106,7 +106,7 @@ function ensureCandidatePoints(candidate: WorkerRouteCandidateDTO) {
  */
 export async function recommendRoutes(
   userIdx: number,
-  dto: RouteRequestDTO,
+  dto: RouteRequestDTO, // /api/routes/recommend에 대한 body DTO를 그대로 받음
 ): Promise<RouteRecommendResponseDTO> {
   logger.info({
     serviceName: "routes",

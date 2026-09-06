@@ -135,7 +135,7 @@ if __name__ == "__main__":
 
     # rt = MODE, km = 거리, kw = 가중치들  > (경유지 및 거리 관련 함수)
     for rt, km, kw in cases:
-        # 경유지가 있는경우와 없는 경우에 대해서 설정해주기
+        # 경유지가 있는 경우와 없는 경우에 대해서 설정해주기
         label = rt + (f" +경유지{len(kw['vias'])}" if kw.get("vias") else "")
         print(f"\n== {label} {km}km ==")
         # 전체 노드와 인덱스, route_type, 시작 위치, 거리, 가중치, 요구사항, kw를 
