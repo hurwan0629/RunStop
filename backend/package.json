@@ -23,6 +23,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
+    "db:migrate:init": "node-pg-migrate down 9999 -m ../infra/db/migrations && node-pg-migrate up -m ../infra/db/migrations",
     "db:migrate": "node-pg-migrate up -m ../infra/db/migrations",
     "db:migrate:down": "node-pg-migrate down -m ../infra/db/migrations",
     "db:migration:create": "node-pg-migrate create -m ../infra/db/migrations"

@@ -54,6 +54,7 @@ export async function recommendRoutes(req: Request, res: Response, next: NextFun
   }
 
   // 경로 요청 데이터와 함께 이를 userIdx와 함께 묶어서 생성 후 DB에 저장하는 서비스 계층 route-recommendation.service
+  // 여기에서 routeRequestSchema가 파이썬에 보내질 WorkerRouteRequestDTO 형태로 재구성되어서 보내짐.
   const result = await recommendRoutesService(userIdx, parseResult.data);
 
   res.json({

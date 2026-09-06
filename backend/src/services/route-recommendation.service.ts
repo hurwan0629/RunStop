@@ -117,6 +117,7 @@ export async function recommendRoutes(
   }, "service:start");
 
   // 워커([2026-09-02 20:12:24] 기준 파이썬 fastapi)에 시작 공간, 프롬프트, 추출된 데이터, 출력해야할 총 경로 개수를 출력합니다.
+  // 엔드포인트가 존재하지 않으면 바꿔주는 형태
   const endPoint = dto.endPoint ?? dto.startPoint;
 
   let workerResponse;
@@ -124,11 +125,13 @@ export async function recommendRoutes(
   try {
     logger.info({ serviceName: "routes", action: "recommendRoutes", userIdx }, "service:worker_request:start");
 
+    // input = dto/route/worker-route-request.dto.ts WorkerRouteRequestDTO
+    // output = dto/route/worker-route-response.dto.ts WorkerRouterResponseDTO
     workerResponse = await requestRouteRecommendations({
       startPoint: dto.startPoint,
       waypoints: dto.waypoints,
       endPoint,
-      isRoundTrip: dto.endPoint === undefined,
+      routeType: dto.routeType,
       prompt: dto.prompt,
       elementConditions: dto.elementConditions,
       maxCandidates: 3,
@@ -159,11 +162,12 @@ export async function recommendRoutes(
 
     // 
     await createRouteRequestPoints(routeRequest.idx, buildRouteRequestPoints(dto), client);
-
+    
+    // 추천 경로를 저장해주기
     const recommendations = await createRouteRecommendations(
-      routeRequest.idx,
-      workerResponse.candidates,
-      client,
+      routeRequest.idx, // 사용자 요청 idx
+      workerResponse.candidates, // 워커에서 응답한 후보들 데이터
+      client, // 트랜잭션 세션 객체
     );
 
     for (const [index, recommendation] of recommendations.entries()) {
