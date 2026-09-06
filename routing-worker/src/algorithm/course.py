@@ -29,12 +29,14 @@ def _overlap_ratio(nodes):
 
 
 def _build(G, idx, mode, start, end, scale, bearing):
+    # 가장 가까운 nodeIdx를 가져오는 방식
     s = idx.snap(*start)
 
     # 왕복의 경우에는 시작점을 기준으로 target_distance_m/2 를 반지름으로 하는 원에서맨 첫번쨰를 선택하여 
     # 경로를 만들어 반환해줍니다.
     if mode == "out_and_back":
         w = circle_waypoints(*start, radius_m=scale, n=1, start_bearing=bearing)[0]
+
         wn = idx.snap(*w)
         out, out_len = shortest_path(G, s, wn)
         return out + out[-2::-1], out_len * 2
@@ -43,6 +45,7 @@ def _build(G, idx, mode, start, end, scale, bearing):
     # 
     if mode == "loop":
         w = circle_waypoints(*start, radius_m=scale, n=1, start_bearing=bearing)[0]
+
         wn = idx.snap(*w)
         out, out_len = shortest_path(G, s, wn)
         back, back_len = shortest_path(G, wn, s, penalty_edges=edge_set(out), factor=5.0)
@@ -81,11 +84,14 @@ def generate_course(G, idx, mode, start, target_distance_m, end=None,
         if dist <= 0:
             scale *= 2
             continue
+        # 거리 오차율
         err = abs(dist - target_distance_m) / target_distance_m
         if best is None or err < best[0]:
             best = (err, nodes, dist, scale)
+        # 오차율 범위 확인
         if err <= tol:
             break
+        # 스케일 조정
         scale *= target_distance_m / dist       # 스케일 피드백 보정
 
     if best is None:
@@ -133,7 +139,8 @@ def _route_chain(G, node_chain, penalty=3.0):
         # list[node_id]와 그 거리의 합을 반환받음.
         seg, seg_len = shortest_path(G, a, b, penalty_edges=used, factor=penalty)
         used |= edge_set(seg) # 모든 edge를 frozenset((u, v)) 형태로 만들어서 집합에 합쳐주기
-        # 
+
+        # 리스트 이어주기
         full = seg if not full else full + seg[1:]
         total += seg_len
     return full, total
