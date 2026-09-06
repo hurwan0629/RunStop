@@ -18,7 +18,7 @@ import networkx as nx
 import numpy as np
 from scipy.spatial import cKDTree
 
-from geo import point_at_bearing, to_5179
+from .geo import point_at_bearing, to_5179
 
 
 def load_graphml(path):

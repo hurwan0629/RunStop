@@ -7,8 +7,8 @@ generate_course 를 여러 방향(bearing)으로 돌려 후보 풀(pool)을 만�
 """
 
 import networkx as nx
-from course import generate_course
-from routing import edge_set
+from .course import generate_course
+from .routing import edge_set
 
 
 def _too_similar(a_nodes, b_nodes, threshold=0.6):
@@ -53,7 +53,7 @@ def generate_candidates(G, idx, mode, start, target_distance_m, end=None,
 
 
 if __name__ == "__main__":
-    from graph import grid_graph, NodeIndex
+    from .graph import grid_graph, NodeIndex
 
     G = grid_graph(60, 60, 100)
     idx = NodeIndex(G)

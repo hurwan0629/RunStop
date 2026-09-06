@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from shapely import LineString, contains_xy, distance, points as sh_points
 
-from geo import to_5179
+from .geo import to_5179
 
 FACIL_CSV = "C:/LANG_CHAIN_2026/MidProject/test/05_HeoWan/2026_09_04_윤재빈_알고리즘_리뷰/code/data/서울_시설데이터_통합.csv"   # 환경에 맞게 수정
 

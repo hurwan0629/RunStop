@@ -8,7 +8,7 @@ ellipse_waypoints: 편도용. 출발·도착을 초점으로, 두 초점까지 �
 """
 
 import math
-from geo import point_at_bearing, to_5179, to_4326
+from .geo import point_at_bearing, to_5179, to_4326
 
 
 def circle_waypoints(lat, lon, radius_m, n=1, start_bearing=0.0):
@@ -67,7 +67,7 @@ def ellipse_waypoints(start, end, target_sum_m, n=8):
 
 
 if __name__ == "__main__":
-    from geo import haversine_m
+    from .geo import haversine_m
 
     s = (37.4979, 127.0276)   # 강남역
     e = (37.5045, 127.0350)   # 북동쪽, 직선거리 약 982m
