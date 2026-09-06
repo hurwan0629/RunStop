@@ -4,16 +4,14 @@
 (기존 step8_slope_profile.py 포팅 + None 방어)
 """
 
-import sys
 from pathlib import Path
 
 # query_elevation.py + 서울_DEM_10m.npy + _meta.json 이 있는 폴더로 맞추세요
 DEM_DIR = Path(__file__).parent / "data"
 print(DEM_DIR)
-sys.path.insert(0, str(DEM_DIR))
-from data.query_elevation import get_elevation                  # noqa: E402
+from .data.query_elevation import get_elevation                  # noqa: E402
 
-from geo import haversine_m
+from .geo import haversine_m
 
 
 def sample_every(coords, interval_m=30.0):

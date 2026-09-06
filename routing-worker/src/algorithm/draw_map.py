@@ -1,10 +1,10 @@
 """
 추천 코스를 HTML 지도로 그린다 (folium).
 
-    python draw_map.py LOOP 3
-    python draw_map.py ONE_WAY 3 --end 37.5045 127.0400
-    python draw_map.py ROUND_TRIP 5 --start 37.5563 126.9723
-    python draw_map.py LOOP 5 --via 37.5045 127.0490            # 경유지 (여러 번 가능)
+    python -m src.algorithm.draw_map LOOP 3
+    python -m src.algorithm.draw_map ONE_WAY 3 --end 37.5045 127.0400
+    python -m src.algorithm.draw_map ROUND_TRIP 5 --start 37.5563 126.9723
+    python -m src.algorithm.draw_map LOOP 5 --via 37.5045 127.0490            # 경유지 (여러 번 가능)
 
 결과: routes_map.html  (브라우저로 열기)
 """
@@ -16,8 +16,8 @@ from pathlib import Path
 
 import folium
 
-from graph import NodeIndex
-from pipeline import recommend
+from .graph import NodeIndex
+from .pipeline import recommend
 
 HERE = Path(__file__).resolve().parent
 GRAPHML = HERE / "data" / "서울_보행네트워크.graphml"
@@ -26,10 +26,10 @@ COLORS = ["#1f77b4", "#2ca02c", "#9467bd", "#ff7f0e", "#d62728"]
 
 def _load_graph():
     if GRAPHML.exists():
-        from graph import load_graph
+        from .graph import load_graph
         print(f"[그래프] {GRAPHML.name} 로드 중...")
         return load_graph(str(GRAPHML))
-    from graph import grid_graph
+    from .graph import grid_graph
     print("[그래프] graphml 없음 -> 격자")
     return grid_graph(90, 90, 100, origin=(37.475, 126.985))
 

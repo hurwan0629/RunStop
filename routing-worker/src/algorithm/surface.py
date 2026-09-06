@@ -113,8 +113,8 @@ def profile(G, nodes):
 
 
 if __name__ == "__main__":
-    from graph import load_graph, NodeIndex
-    from course import generate_course
+    from .graph import load_graph, NodeIndex
+    from .course import generate_course
 
     G = load_graph("data/서울_보행네트워크.graphml")
     idx = NodeIndex(G)

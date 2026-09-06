@@ -12,7 +12,7 @@ from pathlib import Path
 import geopandas as gpd
 from shapely import LineString
 
-from geo import to_5179
+from .geo import to_5179
 
 OUT = Path(__file__).resolve().parent / "data" / "osm" / "out"
 SOURCES = {
@@ -79,8 +79,8 @@ def adjacency_ratios(coords, buffer_m=100):
 
 
 if __name__ == "__main__":
-    from graph import load_graph, NodeIndex
-    from course import generate_course
+    from .graph import load_graph, NodeIndex
+    from .course import generate_course
 
     G = load_graph("data/서울_보행네트워크.graphml")
     idx = NodeIndex(G)

@@ -8,12 +8,12 @@ OpenStreetMap 보행 도로망을 내려받아 graphml 파일로 저장한다.
 osmnx 는 numpy 1.x/2.x 충돌 때문에 anaconda base 가 아니라 깨끗한 venv 에서:
     python -m venv .venv && source .venv/bin/activate
     pip install "osmnx>=2.0" networkx scipy pyproj pandas shapely
-    python build_graph.py --near 37.4979 127.0276 --dist 4000   # 개발용 (강남 반경 4km)
-    python build_graph.py                                        # 서울 전역 (수 분, 수백 MB)
+    python -m src.algorithm.build_graph --near 37.4979 127.0276 --dist 4000   # 개발용 (강남 반경 4km)
+    python -m src.algorithm.build_graph                                        # 서울 전역 (수 분, 수백 MB)
 
 빌드 후 pipeline.py 에서:
     # G = grid_graph(...)
-    from graph import load_graphml
+    from .graph import load_graphml
     G = load_graphml("data/서울_보행네트워크.graphml")
 """
 
@@ -38,7 +38,7 @@ def _import_osmnx():
             "osmnx 가 없습니다. 깨끗한 venv 에서:\n"
             "  python -m venv .venv && source .venv/bin/activate\n"
             '  pip install "osmnx>=2.0" networkx scipy pyproj pandas shapely\n'
-            "  python build_graph.py ..."
+            "  python -m src.algorithm.build_graph ..."
         )
     return ox
 
@@ -76,8 +76,7 @@ def build(place, near, dist_m, out_path, largest_scc):
     print(f"[저장] {out_path}  ({out_path.stat().st_size / 1e6:.1f} MB)")
 
     # 우리 로더로 되읽어 스키마 확인
-    sys.path.insert(0, str(HERE))
-    from graph import load_graph, NodeIndex  # noqa: E402
+    from .graph import load_graph, NodeIndex  # noqa: E402
 
     G2 = load_graph(str(out_path))          # pkl 캐시도 여기서 미리 만들어둠
     n0 = next(iter(G2.nodes))

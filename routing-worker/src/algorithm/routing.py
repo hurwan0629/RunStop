@@ -54,7 +54,7 @@ def shortest_path(G, src, dst, penalty_edges=None, factor=5.0):
 
 
 if __name__ == "__main__":
-    from graph import grid_graph
+    from .graph import grid_graph
 
     G = grid_graph(10, 10, 100)
     nodes, dist = shortest_path(G, (0, 0), (0, 4))

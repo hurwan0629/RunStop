@@ -6,7 +6,10 @@ export const routeElementConditionsSchema = z.object({
   targetDistance: z.number().positive(),
   maxSlope: z.number().nonnegative().optional(),
   facilityCount: z.number().int().nonnegative().optional(),
+  weights: z.record(z.string(), z.number().min(1).max(5)).default({}),
+  requirements: z.record(z.string(), z.boolean()).default({})
 }).catchall(z.unknown());
+
 
 export const routeRequestSchema = z.object({
   // 사용자 프롬프트

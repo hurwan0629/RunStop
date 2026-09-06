@@ -17,6 +17,7 @@ export class HttpRouteWorkerClient implements RouteWorkerClient {
     };
   }
 
+  // 데이터 포스트로 넣기
   async requestRouteRecommendations(input: WorkerRouteRequestDTO): Promise<WorkerRouteResponseDTO> {
     const response = await fetch(new URL("/routes/recommend", env.WORKER_URL), {
       method: "POST",

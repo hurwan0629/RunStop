@@ -10,7 +10,7 @@
   "추천 3개 중 사용자가 무엇을 골랐나 / 완주했나" 로그를
   같은 feature 스키마로 넣으면 된다.
 
-    python ranker.py              # 합성 데이터로 학습 + NDCG 비교, ranker.txt 저장
+    python -m src.algorithm.ranker              # 합성 데이터로 학습 + NDCG 비교, ranker.txt 저장
 """
 
 from pathlib import Path

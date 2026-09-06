@@ -10,9 +10,9 @@
 (오차 5% 이내 또는 6회).
 """
 
-from geo import haversine_m
-from routing import shortest_path, edge_set
-from waypoints import circle_waypoints, ellipse_waypoints
+from .geo import haversine_m
+from .routing import shortest_path, edge_set
+from .waypoints import circle_waypoints, ellipse_waypoints
 
 
 def _overlap_ratio(nodes):
@@ -217,7 +217,7 @@ def generate_course_via(G, idx, start, vias, target_distance_m, end=None,
 
 
 if __name__ == "__main__":
-    from graph import grid_graph, NodeIndex
+    from .graph import grid_graph, NodeIndex
 
     G = grid_graph(60, 60, 100)
     idx = NodeIndex(G)

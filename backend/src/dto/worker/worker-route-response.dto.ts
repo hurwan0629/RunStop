@@ -39,7 +39,7 @@ export const workerRouteCandidateSchema = z.object({
 
 // 워커에서 여러 후보들을 응답하는 형태
 export const workerRouteResponseSchema = z.object({
-  candidates: z.array(workerRouteCandidateSchema).min(1),
+  candidates: z.array(workerRouteCandidateSchema).min(0),
 });
 
 export type WorkerRoutePointDTO =

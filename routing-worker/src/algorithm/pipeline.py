@@ -11,13 +11,13 @@ API 서버는 다음 단계 (이 recommend() 를 HTTP 로 감싸면 됨).
 
 import networkx as nx
 
-from candidates import generate_candidates, dedup
-from course import generate_course_via
-from elevation import slope_profile
-from scoring import score_route
-from nature import adjacency_ratios
-from surface import profile as surface_profile
-from weighting import score_candidate
+from .candidates import generate_candidates, dedup
+from .course import generate_course_via
+from .elevation import slope_profile
+from .scoring import score_route
+from .nature import adjacency_ratios
+from .surface import profile as surface_profile
+from .weighting import score_candidate
 
 _MODE = {
     "LOOP": "loop",
@@ -98,19 +98,19 @@ def recommend(G, idx, route_type, start, target_km, end=None, vias=None,
 
 if __name__ == "__main__":
     from pathlib import Path
-    from graph import NodeIndex
+    from .graph import NodeIndex
 
     graphml = Path(__file__).parent / "data" / "서울_보행네트워크.graphml"
     # 그래프 파일이 존재하면 
     if graphml.exists():
-        from graph import load_graph
+        from .graph import load_graph
         # 그래프 도로망 데이터를 불러와주기
         print(f"[그래프] 실제 서울 도로망: {graphml.name}")
         # 그래프 객체를 만든다음에 `기존 이름.pkl` 형태로 변환해서 저장해주기
         G = load_graph(str(graphml))
     else:
         # 그래프 파일이 없다면 
-        from graph import grid_graph
+        from .graph import grid_graph
         print("[그래프] 격자 (build_graph.py 로 실제 그래프 빌드 가능)")
         G = grid_graph(90, 90, 100, origin=(37.475, 126.985))
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         ("LOOP", 5.0, {"vias": [(37.5045, 127.0490)]}),   # 선릉역 경유 순환 5km
     ]
 
-    # rt = MODE, km = 거리, kw = 가중치들  > (경유지 및 거리 관련 함수)
+    # rt = MODE, km = 거리, kw = 나머지  > (경유지 및 거리 관련 함수)
     for rt, km, kw in cases:
         # 경유지가 있는 경우와 없는 경우에 대해서 설정해주기
         label = rt + (f" +경유지{len(kw['vias'])}" if kw.get("vias") else "")
