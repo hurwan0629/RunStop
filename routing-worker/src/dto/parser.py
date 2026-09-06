@@ -10,21 +10,6 @@ def parse_node_request_to_python_recommendation(
     """
 
     result = dict()
-    # 임시 요청값 설정해주기
-    start = (37.4979, 127.0276)   # 강남역
-    end = (37.5045, 127.0400)     # 역삼 방향, 직선 약 1.3km (ONE_WAY 용, 목표 3km 보다 짧아야 함)
-
-    weights = {"distance": 5, "elevation": 4, "toilet": 5,
-               "store": 2, "park": 3, "night": 5}
-    requirements = {"toilet": True, "no_stairs": True}
-
-    cases = [
-        ("LOOP", 3.0, {}),
-        ("ONE_WAY", 3.0, {"end": end}),
-        ("ROUND_TRIP", 3.0, {}),
-        ("LOOP", 5.0, {"vias": [(37.5045, 127.0490)]}),   # 선릉역 경유 순환 5km
-    ]
-
     result["top_k"] = node_req.maxCandidates
     result["route_type"] = node_req.routeType
 
@@ -32,9 +17,34 @@ def parse_node_request_to_python_recommendation(
     result["vias"] = [(p.lat, p.lng) for p in node_req.waypoints]
     result["end"] = (node_req.endPoint.lat, node_req.endPoint.lng) if result["route_type"] == "ONE_WAY" else None
 
-    result["target_km"] = node_req.elementConditions.targetDistance
+    result["target_km"] = node_req.elementConditions.targetDistance / 1000.0
 
     result["weights"] = node_req.elementConditions.weights
     result["requirements"] = node_req.elementConditions.requirements
 
     return result
+
+def parse_python_recommendation_to_node_require(results):
+    return [{
+            "name": "임시 코스 명 (파이썬 parser.py 하드코딩)",
+            "score": result["condition_score"],
+            "path": [{ "lat": coord[0], "lng": coord[1]} for coord in result["coords"]],
+            "featureScores": result["sub_scores"],
+            "featureValues": result["facilities"],
+            "totalDistance": result["actual_distance_m"],
+            "totalAscent": result["slope"]["elevation_gain_m"],
+            "slopeStd": 999,
+            "points": [{
+                "sequence": 999,
+                "pointType": "END",
+                "lat": 90,
+                "lng": 180,
+                # "title": "END",
+                # "elevation": 9999,
+                # "slope": 9999,
+            }]
+            # for num,  waypoint in enumerate(result.waypoint)]
+        }
+        for result in results]
+
+    

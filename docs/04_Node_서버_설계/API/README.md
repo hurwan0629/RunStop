@@ -4,6 +4,8 @@ API 문서는 **도메인별 폴더로 나누고, API 1개를 파일 1개로 관
 
 ## 도메인
 
+- [admin](./admin/README.md)
+
 - [auth](./auth/README.md)
     
 - [users](./users/README.md)

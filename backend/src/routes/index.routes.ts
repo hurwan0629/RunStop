@@ -1,4 +1,5 @@
 import type { Router } from "express";
+import { registerAdminRoutes } from "./admin.routes.js";
 
 import { registerAuthRoutes } from "./auth.routes.js";
 import { registerBookmarksRoutes } from "./bookmarks.routes.js";
@@ -10,6 +11,8 @@ import { registerUsersRoutes } from "./users.routes.js";
 
 
 export function registerRouters(router: Router): void {
+  // 0. 관리자
+  registerAdminRoutes(router);
   
   // 1. 인증 인가
   registerAuthRoutes(router);
