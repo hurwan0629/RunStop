@@ -1,5 +1,5 @@
-import * as bcrypt from "bcrypt";
-import * as jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 import type { AuthResponseDTO } from "../dto/auth/auth-response.dto.js";
 import type { LoginDTO } from "../dto/auth/login.dto.js";
@@ -376,7 +376,7 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
     });
   }
 
-  // 사용자 로그인 아이디로 
+  // 사용자 로그인 아이디로 탐색해보기
   const [loginIdUser, phoneUser] = await Promise.all([
     findUserByLoginId(signupDto.loginId),
     findUserByPhone(signupDto.phone),
@@ -402,8 +402,10 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
     });
   }
 
+
   const passwordHash = await hashPassword(signupDto.password);
 
+  // 사용자 추가하기
   const createdUser = await withTransaction(async (client) => {
     const user = await createUser(
       {

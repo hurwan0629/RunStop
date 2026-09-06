@@ -3,6 +3,8 @@ import helmet from "helmet";
 import { registerRouters } from "./routes/index.routes.js";
 import { createRequestLogger } from "./logging/logger.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
+import { getRouteWorkerClient } from "./adapters/worker/routing-worker.client.js";
+import { asyncHandler } from "./middleware/async-handler.js"
 
 /**
  * 익스프레스 애플리케이션 인스턴스를 생성하고 기본 설정을 구성합니다.
@@ -29,12 +31,18 @@ export function createApp() {
   registerRouters(router)
 
 
-  app.get("/health", (req, res) => {
-    res.json({
-      name: "node server",
-      status: "ok",
-    });
-  });
+  app.get("/health", asyncHandler(async (req, res) => {
+    res.json([
+      {
+        name: "node server",
+        status: "ok",
+      },
+      {
+        name: "fastapi server",
+        status: await getRouteWorkerClient().checkHealth()
+      }
+    ]);
+  }));
 
   app.use(router);
 

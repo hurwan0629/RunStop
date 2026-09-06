@@ -53,7 +53,7 @@ export async function createRouteRequest(
   client?: QueryClient,
 ): Promise<RouteRequestRow> {
   const result = await getQueryClient(client).query<{
-    idx: number;
+    idx: number;           // 요청 
     users_idx: number;
     prompt: string | null;
     element_conditions: RouteElementConditionsDTO | null;
@@ -98,14 +98,25 @@ export async function createRouteRequestPoints(
   }
 
   const values: unknown[] = [];
+  // sequence, pointType, point(routeCoordinateSchema)
   const placeholders = points.map((point, index) => {
     const base = index * 5;
 
-    values.push(routeRequestIdx, point.sequence, point.pointType, point.point.lng, point.point.lat);
+    values.push(
+      routeRequestIdx, // 해당 route_request_points가 존재하는 요청의 idx
+      point.sequence, 
+      point.pointType, 
+      point.point.lng, // postgis는 경도, 위도 순서
+      point.point.lat
+    );
 
-    return `($${base + 1}, $${base + 2}, $${base + 3}::service.route_point_type, ST_SetSRID(ST_MakePoint($${base + 4}, $${base + 5}), 4326))`;
+    return `
+    ($${base + 1}, $${base + 2}, $${base + 3}::service.route_point_type, 
+    ST_SetSRID(ST_MakePoint($${base + 4}, $${base + 5}), 4326))`;
   });
 
+
+  // 쌓아서 (...), (...), ... 방식으로 insert 하기
   await getQueryClient(client).query(
     `
       INSERT INTO service.route_request_points (
