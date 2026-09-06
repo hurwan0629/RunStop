@@ -1,12 +1,6 @@
 import express from "express";
 import helmet from "helmet";
-import { registerAuthRoutes } from "./routes/auth.routes.js";
-import { registerBookmarksRoutes } from "./routes/bookmarks.routes.js";
-import { registerGoalsRoutes } from "./routes/goals.routes.js";
-import { registerInquiriesRoutes } from "./routes/inquiries.routes.js";
-import { registerRouteRecommendationRoutes } from "./routes/routes.routes.js";
-import { registerRunningRoutes } from "./routes/running.routes.js";
-import { registerUsersRoutes } from "./routes/users.routes.js";
+import { registerRouters } from "./routes/index.routes.js";
 import { createRequestLogger } from "./logging/logger.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 
@@ -32,13 +26,8 @@ export function createApp() {
   const router = express.Router();
 
   // 각 도메인 7개에 대해서 라우터 등록해주기
-  registerAuthRoutes(router);
-  registerUsersRoutes(router);
-  registerRunningRoutes(router);
-  registerGoalsRoutes(router);
-  registerRouteRecommendationRoutes(router);
-  registerBookmarksRoutes(router);
-  registerInquiriesRoutes(router);
+  registerRouters(router)
+
 
   app.get("/health", (req, res) => {
     res.json({
