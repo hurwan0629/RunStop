@@ -44,8 +44,12 @@ def _build(G, idx, mode, start, end, scale, bearing):
     if mode == "loop":
         w = circle_waypoints(*start, radius_m=scale, n=1, start_bearing=bearing)[0]
         wn = idx.snap(*w)
+        # s(=start)부터 wn(=임의로 scale만큼 거리를 찍은 값)까지 거리 하나 구하고
         out, out_len = shortest_path(G, s, wn)
+        # wn부터 s까지 돌아오는 거리를 주기
         back, back_len = shortest_path(G, wn, s, penalty_edges=edge_set(out), factor=5.0)
+        # 첫번재 지나간 노드들을 반환
+        # 두번째 인자로 거리합을 반환하게 됨
         return out + back[1:], out_len + back_len
 
     # 지점간 연결의 경우에는 끝 지점을 잡아서 타원 공식을 이용하여 길을 생성해줍니다.
@@ -60,6 +64,8 @@ def _build(G, idx, mode, start, end, scale, bearing):
         a, a_len = shortest_path(G, s, wn)
         # FP_2
         b, b_len = shortest_path(G, wn, e, penalty_edges=edge_set(a), factor=2.0)
+
+        # 첫번ㅇ째 인자로
         return a + b[1:], a_len + b_len
 
     raise ValueError(f"unknown mode: {mode}")
@@ -77,6 +83,7 @@ def generate_course(G, idx, mode, start, target_distance_m, end=None,
     best = None
     for _ in range(max_iter):
         # mode에는 총 loop, out_and_back, point_to_point가 존재합니다.
+        # 여기에서 nodes는 지나가는 IndexNode의 idx 들.
         nodes, dist = _build(G, idx, mode, start, end, scale, bearing)
         if dist <= 0:
             scale *= 2
@@ -119,7 +126,7 @@ def _pack(mode, nodes, dist, target_m, G, scale_m):
         "nodes": nodes,
     }
 
-
+# generate_course_via에서만 호출되는 함수
 def _route_chain(G, node_chain, penalty=3.0):
     """연속한 노드쌍을 최단경로로 잇되, 앞 구간에서 쓴 엣지엔 벌점 (왕복 억제).
     반환: (전체 노드열, 총 길이 m)."""

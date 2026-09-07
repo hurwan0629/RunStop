@@ -11,6 +11,10 @@ import networkx as nx
 
 def _edge_len(data):
     """엣지 길이(m). MultiDiGraph면 data={key: 속성}, 단순 그래프면 속성 dict 자체."""
+    # 위의 설명 + edge의 형태는
+    # node_A: { node_B: { 0: data_0, 1: data_1, ... } } 방식이 있어서
+    # 아래와 같이 data.values로 뽑아주는 방식을 사용한다고 볼 수 있음.
+    # data는 nx의 shortest_path의 weight콜백 3번째 인자로 자도응로 들어옴.
     if data is None:
         return float("inf")
     if "length" in data:
@@ -38,7 +42,7 @@ def shortest_path(G, src, dst, penalty_edges=None, factor=5.0):
 
     # 양 노드와 그 두 노드를 잇는 edge에 대해서 벌점을 주는 함수
     def weight(u, v, data):
-        # data에서 점수 뽑아서 주기
+        # data에서 경로 비용 뽑아주기
         base = _edge_len(data)
         # 이미 사용된 edge라면 factor만큼 배율하여 비용을 주고, 사용되지 않았다면 기본 거리만큼 cost를 주기.
         return base * factor if frozenset((u, v)) in used else base

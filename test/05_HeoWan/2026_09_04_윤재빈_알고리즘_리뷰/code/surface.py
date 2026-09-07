@@ -23,8 +23,13 @@ _BIGROAD = {"primary", "secondary", "tertiary", "trunk", "motorway",
 
 def _hw_tags(raw):
     """highway 원형(문자열 'steps' 또는 "['steps','footway']") -> 태그 집합."""
+    # 여기에서 raw 데이터의 겨웅에는
+    # u와 v를 잇는 가장 짧은 edge 중에서 highway: {} 을 꺼낸 값임.
+
+    # 만약에 highway가 존재하지 않는다면 그냥 아무것도 없는 집합을 반환해주기
     if raw is None:
         return set()
+    # raw가 set로 변형 가능한 형태이라면 그대로 변환해서 반환해주기
     if isinstance(raw, (list, set, tuple)):
         return set(raw)
     s = str(raw)
@@ -53,13 +58,19 @@ def profile(G, nodes):
     hw_seen = False
 
     for u, v in zip(nodes[:-1], nodes[1:]):
-        # nx.
+        # MultiDiGraph 객체에서 u, v 노드를 잇는 edge를 찾고, 그게 존재하지 않으면 그대로 None 반환
+        # 존재하면 그 값에서 length를 반환. 최대 거리는 10^18 까지 제한해두었음.
+        # 반환 값은 존재하는 모든 edge들 중에서 내부 속성으로 length를 가장 짧게 가지고 있는 객체.
         e = _pick_edge(G, u, v)
         if not e:
             continue
-        # 현재 edge 길이
+        # 꺼낸 거리가 음수이면 막아주고, 양수이면 받아서 float로 변경해주기.
+        # 실제로 load_graphml을 할 때 float로 저장해서 바꿔주지만
+        # 방어적인 성격의 코드인 것으로 보임.
         L = float(e.get("length", 0.0))
+        # e에서 꺼낸 length값을 누적시켜주기
         total += L
+        # e 에서 highway 속성 있으면 가져와주기
         raw = e.get("highway")
         if raw is None:
             continue
@@ -67,6 +78,8 @@ def profile(G, nodes):
         # highway 발견했으니 플래그 켜주기
         hw_seen = True
         tags = _hw_tags(raw)
+
+        #
         if "steps" in tags:
             stairs += 1
 
