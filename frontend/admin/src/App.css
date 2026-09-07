@@ -1,0 +1,137 @@
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.inquiry-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(660px, 100%);
+  height: 100%;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: -12px 0 30px rgba(15, 23, 42, 0.15);
+}
+
+.drawer-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.drawer-header h2 {
+  margin: 0;
+  color: #08086b;
+}
+
+.drawer-close-button {
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 36px;
+  cursor: pointer;
+}
+
+.drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 30px 32px;
+}
+
+.inquiry-info-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 24px;
+  border-radius: 18px;
+  background: #f6f7fb;
+}
+
+.inquiry-info-card div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inquiry-info-card span {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.inquiry-info-card strong {
+  color: #08086b;
+  font-size: 18px;
+}
+
+.inquiry-title-area {
+  grid-column: 1 / -1;
+}
+
+.inquiry-content-box {
+  padding: 20px;
+  border: 1px solid #dfe3eb;
+  border-radius: 12px;
+  background: #f8f9fc;
+  line-height: 1.7;
+}
+
+.status-button-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.status-button-group button {
+  padding: 15px;
+  border: 1px solid #dfe3eb;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.status-button-group button.active {
+  border-color: #08086b;
+  background: #08086b;
+  color: #fff;
+}
+
+.drawer-content textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #dfe3eb;
+  border-radius: 12px;
+  resize: vertical;
+  font: inherit;
+}
+
+.drawer-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 30px;
+}
+
+.drawer-footer button {
+  padding: 14px 28px;
+  border: 0;
+  border-radius: 10px;
+  background: #b7ff32;
+  color: #08086b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.drawer-footer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
