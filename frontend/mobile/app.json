@@ -11,6 +11,7 @@
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.runstop.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -25,6 +26,28 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "@mj-studio/react-native-naver-map",
+        {
+          "client_id": "t7zuqqzhhi"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "https://repository.map.naver.com/archive/maven"
+            ]
+          }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "현재 위치를 확인하고 러닝 경로를 기록하기 위해 위치 권한이 필요합니다."
+        }
+      ],
       [
         "expo-splash-screen",
         {
