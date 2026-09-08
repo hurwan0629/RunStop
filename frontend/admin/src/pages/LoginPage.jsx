@@ -27,36 +27,7 @@ function LoginPage(){
     return
   }
 
-  // 백엔드 수정 전까지 사용하는 임시 관리자 로그인 -> import jwt 파트 
-  // if (import.meta.env.DEV) {
-  //   if (
-  //     loginId === 'admin' &&
-  //     password === 'admin0000'
-  //   ) {
-  //     localStorage.setItem(
-  //       'adminAccessToken',
-  //       'mock-admin-token',
-  //     )
-
-  //     localStorage.setItem(
-  //       'adminUser',
-  //       JSON.stringify({
-  //         loginId: 'admin',
-  //         nickname: '관리자',
-  //         role: 'ADMIN',
-  //       }),
-  //     )
-
-  //     navigate('/')
-  //     return
-  //   }
-
-  //   setErrorMessage(
-  //     '아이디 또는 비밀번호가 일치하지 않습니다.',
-  //   )
-  //   return
-  // }
-
+ 
 
   try {
     setIsLoading(true)
@@ -87,7 +58,7 @@ function LoginPage(){
       JSON.stringify(loginData.user),
     )
 
-    navigate('/')
+    navigate('/dashboard')
   } catch (error) {
     setErrorMessage(
       error.response?.data?.message ??
