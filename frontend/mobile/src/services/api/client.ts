@@ -7,8 +7,12 @@ import type {
 
 import { ApiRequestError } from './errors';
 
+// http 메서드 타입 정의
 type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
+// 요청 옵션 정의
+// `2026-09-08 17:32:10`
+// 현재 기준 프로젝트 auth가 accessToken을 이용하기 때문에 accessToken을 사용
 interface ApiRequestOptions {
   method?: HttpMethod;
   body?: unknown;
