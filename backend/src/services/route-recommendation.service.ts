@@ -1,4 +1,4 @@
-import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
+﻿import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
 import type { RouteDetailDTO } from "../dto/route/route-detail.dto.js";
 import type {
   RouteRecommendResponseDTO,
@@ -106,10 +106,10 @@ function ensureCandidatePoints(candidate: WorkerRouteCandidateDTO) {
  */
 export async function recommendRoutes(
   userIdx: number,
-  dto: RouteRequestDTO,
+  dto: RouteRequestDTO, // /api/routes/recommend에 대한 body DTO를 그대로 받음
 ): Promise<RouteRecommendResponseDTO> {
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "recommendRoutes",
     userIdx,
     waypointCount: dto.waypoints.length,
@@ -117,34 +117,41 @@ export async function recommendRoutes(
   }, "service:start");
 
   // 워커([2026-09-02 20:12:24] 기준 파이썬 fastapi)에 시작 공간, 프롬프트, 추출된 데이터, 출력해야할 총 경로 개수를 출력합니다.
+  // 엔드포인트가 존재하지 않으면 바꿔주는 형태
   const endPoint = dto.endPoint ?? dto.startPoint;
 
   let workerResponse;
 
   try {
-    logger.info({ service: "routes", action: "recommendRoutes", userIdx }, "service:worker_request:start");
+    logger.info({ serviceName: "routes", action: "recommendRoutes", userIdx }, "service:worker_request:start");
 
+    // input = dto/route/worker-route-request.dto.ts WorkerRouteRequestDTO
+    // output = dto/route/worker-route-response.dto.ts WorkerRouterResponseDTO
     workerResponse = await requestRouteRecommendations({
       startPoint: dto.startPoint,
       waypoints: dto.waypoints,
       endPoint,
-      isRoundTrip: dto.endPoint === undefined,
+      routeType: dto.routeType,
       prompt: dto.prompt,
       elementConditions: dto.elementConditions,
       maxCandidates: 3,
     });
 
     logger.info({
-      service: "routes",
+      serviceName: "routes",
       action: "recommendRoutes",
       userIdx,
       candidateCount: workerResponse.candidates.length,
     }, "service:worker_request:success");
   } catch (error) {
-    logger.error({ service: "routes", action: "recommendRoutes", userIdx, err: error }, "service:worker_request:error");
+    logger.error({ serviceName: "routes", action: "recommendRoutes", userIdx, err: error }, "service:worker_request:error");
     throw error;
   }
 
+
+  // // // // // // // // // // // // // // // // // // // // // // // // // // 
+  // //               [Database] 사용자 요청부터 응답 결과까지 저장            // //
+  // // // // // // // // // // // // // // // // // // // // // // // // // // 
   // 워커로부터 응답이 문제 없이 받아졋다면 그대로 다음 3각지 요소를 저장합니다.
   // 1. 사용자 요청
   // 2. 사용자 요청에 포함된 주요 route_points
@@ -159,11 +166,12 @@ export async function recommendRoutes(
 
     // 
     await createRouteRequestPoints(routeRequest.idx, buildRouteRequestPoints(dto), client);
-
+    
+    // 추천 경로를 저장해주기
     const recommendations = await createRouteRecommendations(
-      routeRequest.idx,
-      workerResponse.candidates,
-      client,
+      routeRequest.idx, // 사용자 요청 idx
+      workerResponse.candidates, // 워커에서 응답한 후보들 데이터
+      client, // 트랜잭션 세션 객체
     );
 
     for (const [index, recommendation] of recommendations.entries()) {
@@ -183,7 +191,7 @@ export async function recommendRoutes(
   });
 
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "recommendRoutes",
     userIdx,
     routeRequestIdx: saved.routeRequest.idx,
@@ -205,7 +213,7 @@ export async function selectRouteRecommendation(
   dto: RouteSelectDTO,
 ): Promise<RouteSelectResponseDTO> {
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "selectRouteRecommendation",
     userIdx,
     routeRequestIdx,
@@ -216,7 +224,7 @@ export async function selectRouteRecommendation(
   const routeRequest = await findRouteRequestByIdxAndUserIdx(routeRequestIdx, userIdx);
 
   if (!routeRequest) {
-    logger.warn({ service: "routes", action: "selectRouteRecommendation", userIdx, routeRequestIdx }, "service:route_request_not_found");
+    logger.warn({ serviceName: "routes", action: "selectRouteRecommendation", userIdx, routeRequestIdx }, "service:route_request_not_found");
 
     throw new ApiError({
       status: 404,
@@ -227,7 +235,7 @@ export async function selectRouteRecommendation(
 
   if (routeRequest.selectedRecommendationIdx !== null) {
     logger.warn({
-      service: "routes",
+      serviceName: "routes",
       action: "selectRouteRecommendation",
       userIdx,
       routeRequestIdx,
@@ -249,7 +257,7 @@ export async function selectRouteRecommendation(
 
   if (!recommendation) {
     logger.warn({
-      service: "routes",
+      serviceName: "routes",
       action: "selectRouteRecommendation",
       userIdx,
       routeRequestIdx,
@@ -268,7 +276,7 @@ export async function selectRouteRecommendation(
 
   if (!updated) {
     logger.error({
-      service: "routes",
+      serviceName: "routes",
       action: "selectRouteRecommendation",
       userIdx,
       routeRequestIdx,
@@ -283,7 +291,7 @@ export async function selectRouteRecommendation(
   }
 
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "selectRouteRecommendation",
     userIdx,
     routeRequestIdx,
@@ -303,7 +311,7 @@ export async function getRouteDetail(
   userIdx: number,
   routeRecommendationIdx: number,
 ): Promise<RouteDetailDTO> {
-  logger.info({ service: "routes", action: "getRouteDetail", userIdx, routeRecommendationIdx }, "service:start");
+  logger.info({ serviceName: "routes", action: "getRouteDetail", userIdx, routeRecommendationIdx }, "service:start");
 
   // 선택한 추천 코스에 대한 상세 데이터를 전달해줍니다.
   // 경로에대한 
@@ -318,7 +326,7 @@ export async function getRouteDetail(
   ]);
 
   if (!route) {
-    logger.warn({ service: "routes", action: "getRouteDetail", userIdx, routeRecommendationIdx }, "service:route_not_found");
+    logger.warn({ serviceName: "routes", action: "getRouteDetail", userIdx, routeRecommendationIdx }, "service:route_not_found");
 
     throw new ApiError({
       status: 404,
@@ -328,7 +336,7 @@ export async function getRouteDetail(
   }
 
   logger.info({
-    service: "routes",
+    serviceName: "routes",
     action: "getRouteDetail",
     userIdx,
     routeRecommendationIdx,

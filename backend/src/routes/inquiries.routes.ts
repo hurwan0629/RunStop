@@ -20,9 +20,15 @@ import { authenticate, requireAdmin } from "../middleware/auth.js";
  * - POST /api/inquiries/:inquiryIdx/answer
  */
 export function registerInquiriesRoutes(router: Router): void {
+
+  
   router.get("/api/inquiries", authenticate, asyncHandler(listInquiries));
+  
   router.post("/api/inquiries", authenticate, asyncHandler(createInquiry));
+  
   router.get("/api/inquiries/:inquiryIdx", authenticate, asyncHandler(getInquiryDetail));
+  
   router.patch("/api/inquiries/:inquiryIdx/status", authenticate, requireAdmin, asyncHandler(updateInquiryStatus));
+  
   router.post("/api/inquiries/:inquiryIdx/answer", authenticate, requireAdmin, asyncHandler(answerInquiry));
 }

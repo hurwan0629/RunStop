@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import { env } from "../config/env.js";
 import { validateAccessTokenUser } from "../services/auth.service.js";
