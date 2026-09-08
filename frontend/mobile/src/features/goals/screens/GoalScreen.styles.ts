@@ -1,0 +1,243 @@
+import { StyleSheet } from 'react-native';
+
+/** 최종 디자인 적용 전, 러닝 목표 화면의 배치와 상태를 확인하기 위한 기본 스타일입니다. */
+export const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    width: 32,
+    color: '#0A145A',
+    fontSize: 38,
+    lineHeight: 40,
+  },
+  screenTitle: {
+    color: '#0A145A',
+    fontSize: 23,
+    fontWeight: '800',
+    marginLeft: 8,
+  },
+  content: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 48,
+  },
+  loader: {
+    marginTop: 40,
+  },
+  sectionLabel: {
+    color: '#252B3B',
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  typeRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  typeButton: {
+    flex: 1,
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#D9DCE5',
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  typeButtonActive: {
+    borderColor: '#100078',
+    backgroundColor: '#F1F0FF',
+  },
+  typeButtonText: {
+    color: '#777F8F',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  typeButtonTextActive: {
+    color: '#100078',
+  },
+  distanceLabel: {
+    color: '#252B3B',
+    fontSize: 15,
+    fontWeight: '700',
+    marginTop: 36,
+    marginBottom: 12,
+  },
+  distanceInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: '#100078',
+    paddingBottom: 8,
+  },
+  distanceInput: {
+    flex: 1,
+    color: '#0A145A',
+    fontSize: 40,
+    fontWeight: '800',
+    paddingHorizontal: 0,
+    paddingVertical: 6,
+  },
+  distanceUnit: {
+    color: '#0A145A',
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  quickLabel: {
+    color: '#777F8F',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 26,
+    marginBottom: 12,
+  },
+  quickRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  quickButton: {
+    flex: 1,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E3EA',
+    borderRadius: 22,
+    backgroundColor: '#F7F8FB',
+  },
+  quickButtonActive: {
+    borderColor: '#A7EF2A',
+    backgroundColor: '#EDFFD1',
+  },
+  quickButtonText: {
+    color: '#606879',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  quickButtonTextActive: {
+    color: '#0A145A',
+  },
+  periodHelp: {
+    color: '#9299A8',
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 22,
+  },
+  formError: {
+    color: '#FF3B30',
+    fontSize: 13,
+    marginTop: 18,
+    textAlign: 'center',
+  },
+  noticeText: {
+    color: '#218653',
+    fontSize: 13,
+    marginTop: 18,
+    textAlign: 'center',
+  },
+  primaryButton: {
+    minHeight: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: '#100078',
+    marginTop: 34,
+  },
+  primaryButtonText: {
+    color: '#C8FF30',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  pressed: {
+    opacity: 0.68,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  errorCard: {
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFD1CD',
+    borderRadius: 12,
+    backgroundColor: '#FFF7F6',
+    padding: 18,
+    marginBottom: 18,
+  },
+  errorText: {
+    color: '#D33D34',
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+  retryText: {
+    color: '#100078',
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 12,
+  },
+  currentCard: {
+    borderWidth: 1,
+    borderColor: '#E1E4ED',
+    borderRadius: 18,
+    backgroundColor: '#F8F9FD',
+    padding: 22,
+  },
+  currentEyebrow: {
+    color: '#777F8F',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  currentTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 15,
+  },
+  currentTitle: {
+    color: '#0A145A',
+    fontSize: 23,
+    fontWeight: '800',
+  },
+  currentRate: {
+    color: '#0A145A',
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  currentDistance: {
+    color: '#596275',
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 15,
+  },
+  progressTrack: {
+    height: 10,
+    overflow: 'hidden',
+    borderRadius: 5,
+    backgroundColor: '#E4E7ED',
+    marginTop: 12,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 5,
+    backgroundColor: '#A7EF2A',
+  },
+  currentHelp: {
+    color: '#777F8F',
+    fontSize: 13,
+    marginTop: 14,
+  },
+  currentFootnote: {
+    color: '#9299A8',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 28,
+  },
+});
