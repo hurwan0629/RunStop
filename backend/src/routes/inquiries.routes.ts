@@ -5,6 +5,7 @@ import {
   getInquiryDetail,
   listInquiries,
   updateInquiryStatus,
+  getInquirySummary,
 } from "../controllers/inquiries.controller.js";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
@@ -31,4 +32,6 @@ export function registerInquiriesRoutes(router: Router): void {
   router.patch("/api/inquiries/:inquiryIdx/status", authenticate, requireAdmin, asyncHandler(updateInquiryStatus));
   
   router.post("/api/inquiries/:inquiryIdx/answer", authenticate, requireAdmin, asyncHandler(answerInquiry));
+  
+  router.get("/api/admin/inquiries/summary", authenticate, requireAdmin, asyncHandler(getInquirySummary));
 }

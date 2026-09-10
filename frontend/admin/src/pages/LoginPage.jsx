@@ -2,6 +2,10 @@ import {useState} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loginAdmin } from '../api/authApi'
 
+import {
+  saveAdminSession,
+} from '../utils/adminSession'
+import './LoginPage.css'
 
 function LoginPage(){
   const navigate = useNavigate()
@@ -48,20 +52,17 @@ function LoginPage(){
       return
     }
 
-    localStorage.setItem(
-      'adminAccessToken',
-      loginData.accessToken,
-    )
+    saveAdminSession({
+      accessToken: loginData.accessToken,
+      user: loginData.user,
+    })
 
-    localStorage.setItem(
-      'adminUser',
-      JSON.stringify(loginData.user),
-    )
-
-    navigate('/dashboard')
+    navigate('/dashboard',{
+      replace: true,
+    })
   } catch (error) {
     setErrorMessage(
-      error.response?.data?.message ??
+      error.response?.data?.error?.message ??
         '로그인 중 오류가 발생했습니다.',
     )
   } finally {
@@ -69,80 +70,81 @@ function LoginPage(){
   }
 }
 
-  return(
-    <main className="login-page">
-      {/* 로그인 페이지 사이드 */}
-      <section className='login-brand-section'>
-        <div className='login-brand'>
-          <div className="login-logo">R</div>
+  return (
+  <div className="login-page">
+    {/* 왼쪽 영역 */}
 
-          <h1>RunStop</h1>
-          <strong>ADMIN</strong>
+    <section className="login-brand-section">
+      <svg
+    className="login-route-lines"
+    viewBox="0 0 1200 800"
+    preserveAspectRatio="none"
+    aria-hidden="true"
+  >
+ <path d="M -80 390 C 140 205, 360 195, 540 335 S 850 575, 1220 330" />
 
-          <p>러닝 코스 추천 서비스
-              <br />
-              RunStop 관리자 전용 페이지입니다
-          </p>
-        
-        </div>
-      </section>
-      {/* 로그인  섹션 */}
-      <section className='login-form-section'>
-        <div className="login-form-container">
-          <h2>관리자 로그인</h2>
-          <p>RunStop 서비스 운영을 위한 관리자 전용 페이지입니다.</p>
+<path
+  d="M -80 390 C 140 205, 360 195, 540 335 S 850 575, 1220 330"
+  transform="translate(0 58)"
+/>
 
-          <form onSubmit={handleLogin}>
-            <div className="form-field">
-              <label htmlFor="loginId">아이디 또는 이메일</label>
+<path
+  d="M -80 390 C 140 205, 360 195, 540 335 S 850 575, 1220 330"
+  transform="translate(0 116)"
+/>
+  </svg>
+      <div className="login-brand">
+        <h1>RunStop</h1>
+        <p>ADMIN</p>
+        <span>러닝 코스 추천 서비스</span>
+      </div>
+    </section>
 
-              <input
-                id="loginId"
-                type="text"
-                value={loginId}
-                onChange={(event) => setLoginId(event.target.value)}
-                placeholder="아이디 또는 이메일을 입력하세요"
-                autoComplete="username"
-              />
-            </div>
+    {/* 오른쪽 로그인 영역 */}
+    <section className="login-form-section">
+      <div className="login-form-container">
+        <h2>관리자 로그인</h2>
+        <p className="login-description">
+          RunStop 관리자 페이지입니다.
+        </p>
 
-            <div className="form-field">
-              <label htmlFor="password">비밀번호</label>
+        <form onSubmit={handleLogin}>
+          <div className="login-field">
+            <label>아이디</label>
+            <input
+              type="text"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              placeholder="아이디를 입력해주세요"
+            />
+          </div>
 
-              <div className="password-field">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="비밀번호를 입력하세요"
-                  autoComplete="current-password"
-                />
+          <div className="login-field">
+            <label>비밀번호</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호를 입력해주세요"
+            />
+          </div>
 
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label="비밀번호 표시 전환"
-                >
-                  {showPassword ? '숨기기' : '보기'}
-                </button>
-              </div>
-            </div>
+          {errorMessage && (
+            <p className="login-error">{errorMessage}</p>
+          )}
 
-            {errorMessage && (
-              <p role="alert">{errorMessage}</p>
-            )}
-
-           <button type="submit" disabled={isLoading}>
-          {isLoading ? '로그인 중...' : '로그인'}
-            </button>
-          </form>
-
-          <p>관리자 계정 문의: admin@runstop.com</p>
-        </div>
-        </section>
-    </main>
-  )
+          <button
+            type="submit"
+            className="login-button"
+            disabled={isLoading}
+          >
+            {isLoading ? '로그인 중...' : '로그인'}
+          </button>
+        </form>
+      </div>
+    </section>
+  </div>
+)
 
 }
 export default LoginPage; 

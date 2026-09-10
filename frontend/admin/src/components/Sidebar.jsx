@@ -1,61 +1,74 @@
-// 관리자 페이지 사이드 바
+import { NavLink } from 'react-router-dom'
 
-import {
-  NavLink,
-  useNavigate,
-} from 'react-router-dom'
+import LogoutIcon from './LogoutIcon'
+import SidebarMenuIcon from './SidebarMenuIcon'
+import './Sidebar.css'
 
-function Sidebar() {
-  const navigate = useNavigate()
-
-  const adminUser = JSON.parse(
-    localStorage.getItem('adminUser') ?? 'null',
-  )
-
-  const handleLogout = () => {
-    localStorage.removeItem('adminAccessToken')
-    localStorage.removeItem('adminUser')
-
-    navigate('/login', { replace: true })
-  }
-
+function Sidebar({ onLogout }) {
   return (
     <aside className="admin-sidebar">
-      <div className="sidebar-logo">
-        <strong>RunStop</strong>
-        <span>ADMIN</span>
+      <div className="sidebar-main">
+        <div className="sidebar-logo">
+          <strong>RunStop</strong>
+          <span>ADMIN</span>
+        </div>
+
+        <nav className="sidebar-menu">
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <span className="sidebar-icon">
+              <SidebarMenuIcon type="dashboard" />
+            </span>
+
+            <span>대시보드</span>
+          </NavLink>
+
+          <NavLink
+            to="/users"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <span className="sidebar-icon">
+              <SidebarMenuIcon type="users" />
+            </span>
+
+            <span>회원 관리</span>
+          </NavLink>
+
+          <NavLink
+            to="/inquiries"
+            className={({ isActive }) =>
+              `sidebar-link ${isActive ? 'active' : ''}`
+            }
+          >
+            <span className="sidebar-icon">
+              <SidebarMenuIcon type="inquiries" />
+            </span>
+
+            <span>문의 관리</span>
+          </NavLink>
+        </nav>
       </div>
 
-      <nav className="sidebar-menu">
-        <NavLink to="/dashboard">
-          대시보드
-        </NavLink>
-
-        <NavLink to="/users">
-          회원 관리
-        </NavLink>
-
-        <NavLink to="/inquiries">
-          문의 관리
-        </NavLink>
-      </nav>
-
-      <div className="sidebar-user">
-        <strong>
-          {adminUser?.nickname ?? '관리자'}
-        </strong>
-
-        <span>
-          {adminUser?.email ??
-            adminUser?.loginId ??
-            'admin'}
-        </span>
+      <div className="sidebar-footer">
+        <div className="admin-info">
+          <strong>관리자</strong>
+          <span>admin@runstop.com</span>
+        </div>
 
         <button
           type="button"
-          onClick={handleLogout}
+          className="sidebar-logout"
+          onClick={onLogout}
         >
-          로그아웃
+          <LogoutIcon size={18} />
+
+          <span>로그아웃</span>
         </button>
       </div>
     </aside>

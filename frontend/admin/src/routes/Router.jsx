@@ -12,6 +12,7 @@ import UserPage from '../pages/UserPage'
 
 import AdminRoute from './AdminRoute'
 import AdminLayout from '../components/AdminLayout'
+import UserDetailPage from '../pages/UserDetailPage'
 
 function Router() {
   return (
@@ -32,6 +33,10 @@ function Router() {
             <Route
               path="/users"
               element={<UserPage />}
+            />
+            <Route
+              path="/users/:userIdx"
+              element={<UserDetailPage />}
             />
 
             <Route

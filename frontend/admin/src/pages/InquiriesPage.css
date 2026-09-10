@@ -1,0 +1,544 @@
+.inquiries-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* =========================
+   페이지 제목
+========================= */
+
+.page-title-area {
+  margin-bottom: 28px;
+}
+
+.page-title-area h1 {
+  margin: 0 0 6px;
+
+  color: var(--color-primary);
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.page-title-area p {
+  margin: 0;
+
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+
+/* =========================
+   문의 요약 카드
+========================= */
+
+.inquiry-summary-section {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  height: 90px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  padding: 18px 20px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.summary-card > span {
+  margin-bottom: 3px;
+
+  color: #7b8190;
+  font-size: 13px;
+}
+
+.summary-card strong {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+
+  color: var(--color-primary);
+  font-size: 27px;
+  line-height: 1;
+}
+
+.summary-card small {
+  color: #8b909c;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+
+/* 답변 대기 */
+
+.summary-pending {
+  border-color: #f6dd88;
+  background: #fffbed;
+}
+
+.summary-pending strong {
+  color: #c47a00;
+}
+
+
+/* 처리 중 */
+
+.summary-progress {
+  border-color: #c8defd;
+  background: #f1f7ff;
+}
+
+.summary-progress strong {
+  color: #1763df;
+}
+
+
+/* 답변 완료 */
+
+.summary-answered {
+  border-color: #c7eed6;
+  background: #f0fcf4;
+}
+
+.summary-answered strong {
+  color: #0a9b54;
+}
+
+
+/* =========================
+   검색 / 필터
+========================= */
+
+.inquiry-filter-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-bottom: 20px;
+}
+
+.keyword-search {
+  position: relative;
+  width: 260px;
+}
+
+.search-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+
+  transform: translateY(-50%);
+
+  color: #8a909d;
+  font-size: 17px;
+
+  pointer-events: none;
+}
+
+.keyword-search input {
+  width: 100%;
+  height: 42px;
+
+  padding: 0 14px 0 40px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: var(--color-text);
+
+  outline: none;
+}
+
+.keyword-search input::placeholder {
+  color: #9ca3af;
+}
+
+.keyword-search input:focus {
+  border-color: var(--color-primary);
+}
+
+
+/* 상태 필터 */
+
+.status-filter {
+  width: 140px;
+}
+
+.status-filter select {
+  width: 100%;
+  height: 42px;
+
+  padding: 0 12px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #606774;
+
+  outline: none;
+  cursor: pointer;
+}
+
+.status-filter select:focus {
+  border-color: var(--color-primary);
+}
+
+
+/* 초기화 */
+
+.filter-reset-button {
+  height: 42px;
+
+  padding: 0 18px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #7b8190;
+
+  cursor: pointer;
+}
+
+.filter-reset-button:hover {
+  background: #f7f8fa;
+}
+
+
+/* =========================
+   테이블
+========================= */
+
+.inquiry-table-section {
+  overflow: hidden;
+
+  border: 1px solid #e7e9ee;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.inquiry-table {
+  width: 100%;
+
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.inquiry-table thead {
+  background: #ffffff;
+}
+
+.inquiry-table th {
+  height: 48px;
+
+  padding: 0 18px;
+
+  border-bottom: 1px solid #eceef2;
+
+  color: #757b88;
+  font-size: 13px;
+  font-weight: 600;
+
+  text-align: left;
+}
+
+.inquiry-table td {
+  height: 52px;
+
+  padding: 0 18px;
+
+  border-bottom: 1px solid #f0f1f4;
+
+  color: #6f7580;
+  font-size: 13px;
+}
+
+.inquiry-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.inquiry-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+
+/* 문의 번호 */
+
+.inquiry-table th:nth-child(1),
+.inquiry-table td:nth-child(1) {
+  width: 145px;
+}
+
+
+/* 제목 */
+
+.inquiry-table th:nth-child(2),
+.inquiry-table td:nth-child(2) {
+  width: auto;
+}
+
+.inquiry-title-cell {
+  overflow: hidden;
+
+  color: #252936 !important;
+  font-weight: 500;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* 접수일 */
+
+.inquiry-table th:nth-child(3),
+.inquiry-table td:nth-child(3) {
+  width: 140px;
+}
+
+
+/* 상태 */
+
+.inquiry-table th:nth-child(4),
+.inquiry-table td:nth-child(4) {
+  width: 140px;
+}
+
+
+/* 상세 */
+
+.inquiry-table th:nth-child(5),
+.inquiry-table td:nth-child(5) {
+  width: 120px;
+}
+
+
+/* =========================
+   상태 Badge
+========================= */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+
+/* PENDING */
+
+.status-pending {
+  border: 1px solid #f5d773;
+  background: #fff9df;
+  color: #c27900;
+}
+
+
+/* IN_PROGRESS */
+
+.status-in_progress {
+  border: 1px solid #bbd7ff;
+  background: #eef6ff;
+  color: #1260e6;
+}
+
+
+/* ANSWERED */
+
+.status-answered {
+  border: 1px solid #bcebd1;
+  background: #edfbf3;
+  color: #07934d;
+}
+
+
+/* =========================
+   상세보기 버튼
+========================= */
+
+.detail-button {
+  height: 30px;
+
+  padding: 0 12px;
+
+  border: 1px solid #d8dbea;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.detail-button:hover {
+  border-color: var(--color-primary);
+  background: #f8f8ff;
+}
+
+
+/* =========================
+   빈 목록 / 로딩 / 오류
+========================= */
+
+.empty-table-cell {
+  height: 160px !important;
+
+  color: #969ba5 !important;
+
+  text-align: center;
+}
+
+.inquiry-message {
+  padding: 60px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  color: #7b8190;
+
+  text-align: center;
+}
+
+.error-message {
+  color: #d14343;
+}
+
+
+/* =========================
+   페이지네이션
+========================= */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 18px;
+
+  border-top: 1px solid #f0f1f4;
+}
+
+.pagination button {
+  height: 32px;
+
+  padding: 0 12px;
+
+  border: 1px solid #dde0e6;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: var(--color-primary);
+
+  cursor: pointer;
+}
+
+.pagination button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: #747986;
+  font-size: 13px;
+}
+
+.summary-card {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+
+.summary-card {
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 16px rgba(15, 23, 42, 0.1);
+}
+
+.summary-card.active {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 2px rgba(20, 25, 105, 0.2),
+    0 10px 22px rgba(15, 23, 42, 0.14);
+}
+
+/* 선택된 상태의 카드별 포인트 컬러 */
+.summary-total.active {
+  border-color: #10136e;
+  box-shadow:
+    0 0 0 2px rgba(16, 19, 110, 0.18),
+    0 10px 22px rgba(15, 23, 42, 0.14);
+}
+
+.summary-pending.active {
+  border-color: #f2c94c;
+  box-shadow:
+    0 0 0 2px rgba(242, 201, 76, 0.35),
+    0 10px 22px rgba(15, 23, 42, 0.14);
+}
+
+.summary-progress.active {
+  border-color: #9bc5ff;
+  box-shadow:
+    0 0 0 2px rgba(155, 197, 255, 0.45),
+    0 10px 22px rgba(15, 23, 42, 0.14);
+}
+
+.summary-answered.active {
+  border-color: #93e8af;
+  box-shadow:
+    0 0 0 2px rgba(147, 232, 175, 0.45),
+    0 10px 22px rgba(15, 23, 42, 0.14);
+}
+
+.summary-card:focus-visible {
+  outline: 3px solid rgba(170, 255, 40, 0.55);
+  outline-offset: 3px;
+}

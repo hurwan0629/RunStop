@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom'
 
+
 function AdminRoute() {
   const token = localStorage.getItem('adminAccessToken')
 
