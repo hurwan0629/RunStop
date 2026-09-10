@@ -48,7 +48,7 @@ def _create_projected_route_line(route_coordinates: list[Coordinate]) -> LineStr
 
 def analyze_nature_adjacency(
     route_coordinates: list[Coordinate],
-    buffer_distance_m: float = config.BUFFER_M,
+    buffer_distance_m: float = config.NATURE_BUFFER_M,
 ) -> NatureProfile:
     """경로 지점들을 받아서 안에 존재하는 """
 

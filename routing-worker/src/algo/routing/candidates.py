@@ -58,12 +58,12 @@ def generate_candidates_via(
     out = []
     for k in range(n_directions):
         try:
-            r = generate_course_via(G, idx, start, vias, target_m, end=tail,
+            r = generate_course_via(G, idx, mode, start, vias, target_m, end=tail,
                                     bearing=360.0 * k / n_directions,
                                     weights=weights, requirements=requirements)
         except (ValueError, nx.NetworkXException):
             continue
-        if r["distance_error_pct"] <= 10:
+        if r["distance_error_pct"] <= config.CAND_DIST_TOL_PCT:
             out.append(r)
     out.sort(key=lambda r: (r["overlap_ratio"], r["distance_error_pct"]))
     return _drop_near_duplicate_courses(out)[:pool]

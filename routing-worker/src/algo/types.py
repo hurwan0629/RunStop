@@ -35,8 +35,12 @@ class ElevationProfile(TypedDict):
     avg_slope_pct: float | None
     # 경로 구간 중 가장 큰 경사율입니다.
     max_slope_pct: float | None
+    # 경로 구간별 경사율의 표준편차입니다.
+    slope_std_pct: float | None
     # 오르막 구간만 합산한 누적 상승 고도입니다.
     elevation_gain_m: float | None
+    # 내리막 구간만 합산한 누적 하강 고도입니다.
+    elevation_loss_m: float | None
     # 경사 계산에 사용된 샘플 좌표 개수입니다.
     sample_count: int
 
@@ -49,7 +53,7 @@ class NatureProfile(TypedDict):
     water_ratio: float | None
 
 
-# OSM 기반 보행 노면과 이동 흐름 요약 정보입니다.
+# OSM 기반 도로 환경 정보입니다.
 class SurfaceProfile(TypedDict):
     # 분석에 사용된 전체 경로 길이입니다.
     length_m: float
@@ -106,7 +110,7 @@ class CandidateRoute(TypedDict):
     facilities: NotRequired[FacilityProfile]
     # 자연 요소 인접도 분석 결과입니다.
     nature: NotRequired[NatureProfile]
-    # 노면과 이동 흐름 분석 결과입니다.
+    # 도로 환경 정보 분석 결과입니다.
     surface: NotRequired[SurfaceProfile]
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

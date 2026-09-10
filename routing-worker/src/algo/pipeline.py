@@ -13,6 +13,7 @@ from typing import Any
 
 import networkx as nx
 
+from src.algo.ai.candidate_selector import select_candidates_with_ai
 from src.algo.types import CandidateRoute, Coordinate, Requirements, RouteType, Weights
 from src.algo.routing.candidates import generate_candidates, generate_candidates_via
 from src.algo.features.elevation import analyze_elevation_profile
@@ -79,7 +80,7 @@ def recommend(
         # f"{nature_type}_ratio": dict[str, float] 반환
         c["nature"] = analyze_nature_adjacency(c["coords"])       
 
-        # 노면·흐름 (OSM 엣지/노드)
+        # 도로 환경 정보 (OSM 엣지/노드)
         # 도로의 유형을 모두 가져와서 비율을 책정해주기
         # - length_m: 총 길이 float
         # - walkable_ratio: 보행자 도로 float
@@ -93,8 +94,7 @@ def recommend(
         score_candidate(c, weights, requirements)         # sub_scores + conditionScore
         c.pop("nodes", None)                              # 내부용, 응답엔 불필요
 
-    cands.sort(key=lambda c: c["condition_score"], reverse=True)
-    return cands[:top_k]          # 풀에 점수 매긴 뒤 상위 top_k 만
+    return select_candidates_with_ai(cands, weights, requirements, top_k)
 
 if __name__ == "__main__":
     from pathlib import Path

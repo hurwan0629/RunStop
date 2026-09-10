@@ -49,7 +49,7 @@ def generate_candidates_via(
                                     weights=weights, requirements=requirements)
         except (ValueError, nx.NetworkXException):
             continue
-        if r["distance_error_pct"] <= 10:
+        if r["distance_error_pct"] <= config.CAND_DIST_TOL_PCT:
             out.append(r)
     out.sort(key=lambda r: (r["overlap_ratio"], r["distance_error_pct"]))
     return _drop_near_duplicate_courses(out)[:pool]

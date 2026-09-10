@@ -30,6 +30,11 @@ def _overlap_ratio(nodes: NodePath) -> float:
     return reused / total if total else 0.0
 
 
+# [2026-09-10 22:04:55] [거리 보정 반복이 진행될수록 scale 조정 강도를 낮추는 damping 계수를 계산합니다.]
+def _distance_fit_alpha(iteration_index: int) -> float:
+    return max(1.0 / (iteration_index + 1), 0.2)
+
+
 def _build(
     G,
     idx,
@@ -62,7 +67,8 @@ def _build(
     if mode == "point_to_point":
         e = idx.snap(*end)
         ws = ellipse_waypoints(start, end, target_sum_m=scale, n=8)
-        w = ws[int(round(bearing / 45.0)) % 8]
+        # [2026-09-10 22:21:31] [ONE_WAY 타원 경유지는 start-end 선분에 수직인 양쪽 점만 번갈아 사용합니다.]
+        w = ws[2 if int(round(bearing / 30.0)) % 2 == 0 else 6]
         wn = idx.snap(*w)
         a, a_len = shortest_path(G, s, wn, weights=weights, requirements=requirements)
         b, b_len = shortest_path(G, wn, e, penalty_edges=path_to_edge_set(a),
@@ -86,7 +92,7 @@ def generate_course(G, idx, mode, start, target_distance_m, end=None,
     scale = target_distance_m / 2 if mode in ("loop", "out_and_back") else target_distance_m
 
     best = None
-    for _ in range(max_iter):
+    for iteration_index in range(max_iter):
         nodes, dist = _build(
             G, idx, mode, start, end, scale, bearing,
             weights=weights, requirements=requirements,
@@ -99,7 +105,8 @@ def generate_course(G, idx, mode, start, target_distance_m, end=None,
             best = (err, nodes, dist, scale)
         if err <= tol:
             break
-        scale *= target_distance_m / dist       # 스케일 피드백 보정
+        # [2026-09-10 22:04:55] [반복 후반의 scale 보정 폭을 줄여 거리 피팅 흔들림을 완화합니다.]
+        scale *= (target_distance_m / dist) ** _distance_fit_alpha(iteration_index)
 
     if best is None:                     # 모든 시도에서 경로 실패 (start 가 그래프 밖 / target 과다)
         raise ValueError(
@@ -155,8 +162,84 @@ def _route_chain(
     return full, total
 
 
+def _generate_out_and_back_via(
+    G,
+    idx,
+    start: Coordinate,
+    vias: list[Coordinate],
+    target_distance_m: float,
+    bearing: float = 0.0,
+    max_iter: int = config.DIST_FIT_MAX_ITER,
+    tol: float = config.DIST_FIT_TOL,
+    weights: Weights | None = None,
+    requirements: Requirements | None = None,
+) -> CandidateRoute:
+    """
+    경유지를 지난 뒤 같은 node 경로를 역순으로 되돌아오는 ROUND_TRIP 전용 via 경로.
+    generate_course_via 에서 호출됨.
+    """
+    # 목표 거리를 반으로 설정
+    outbound_target_m = target_distance_m / 2
+    # 끝까지 가기
+    anchors = [start] + list(vias)
+    anchor_nodes = [idx.snap(*a) for a in anchors]
+
+    fixed_nodes, fixed_len = _route_chain(
+        G, anchor_nodes, penalty=1.0, weights=weights, requirements=requirements,
+    )
+    # 도달 불가능 처리
+    if fixed_len > outbound_target_m * (1 + tol):
+        raise ValueError(
+            f"경유지를 모두 지나면 편도 최소 {fixed_len/1000:.2f}km 라서 "
+            f"목표 왕복 {target_distance_m/1000:.2f}km 보다 깁니다."
+        )
+    # 이미 가능하면 반환
+    if fixed_len >= outbound_target_m * (1 - tol):
+        nodes = fixed_nodes + fixed_nodes[-2::-1]
+        return _pack("via", nodes, fixed_len * 2, target_distance_m, G,
+                     scale_m=round(fixed_len))
+
+    last_anchor = anchors[-1]
+    scale = outbound_target_m - fixed_len
+
+    best = None
+    # 스케일링 시도
+    for iteration_index in range(max_iter):
+        # 스케일은 원의 반지름 방식 이용
+        w = circle_waypoints(*last_anchor, radius_m=scale, n=1, start_bearing=bearing)[0]
+        wn = idx.snap(*w)
+        outbound_nodes, outbound_len = _route_chain(
+            G,
+            anchor_nodes + [wn],
+            penalty=1.0,
+            weights=weights,
+            requirements=requirements,
+        )
+        total_len = outbound_len * 2
+        if total_len <= 0:
+            scale *= 2
+            continue
+
+        err = abs(total_len - target_distance_m) / target_distance_m
+        if best is None or err < best[0]:
+            best = (err, outbound_nodes, total_len, scale)
+        if err <= tol:
+            break
+        scale *= (target_distance_m / total_len) ** _distance_fit_alpha(iteration_index)
+
+    if best is None:
+        raise ValueError(
+            f"경유지 왕복 경로 생성 실패: start={start}, vias={vias}, "
+            f"target_distance_m={target_distance_m} (bearing={bearing})"
+        )
+
+    err, outbound_nodes, total_len, scale = best
+    nodes = outbound_nodes + outbound_nodes[-2::-1]
+    return _pack("via", nodes, total_len, target_distance_m, G, scale_m=round(scale))
+
+
 def generate_course_via(
-        G, idx, start, vias, target_distance_m, end=None,
+        G, idx, mode, start, vias, target_distance_m, end=None,
         bearing=0.0, 
         max_iter=config.DIST_FIT_MAX_ITER, 
         tol=config.DIST_FIT_TOL, 
@@ -167,6 +250,20 @@ def generate_course_via(
     """사용자가 지정한 경유지(vias, 순서대로 반드시 통과)를 지나는 코스.
     end=None 이면 시작점으로 복귀(순환). 목표거리에 모자라면 마지막 구간에
     우회점 하나를 끼워 채운다. max_iter/tol/penalty=None 이면 config 값."""
+
+    if mode == "out_and_back":
+        return _generate_out_and_back_via(
+            G,
+            idx,
+            start,
+            vias,
+            target_distance_m,
+            bearing=bearing,
+            max_iter=max_iter,
+            tol=tol,
+            weights=weights,
+            requirements=requirements,
+        )
 
     tail = end if end is not None else start
     anchors = [start] + list(vias) + [tail]
@@ -189,7 +286,7 @@ def generate_course_via(
     scale = haversine_m(a_last, b_last) + (target_distance_m - fixed_len)  # 타원 target_sum 초기값
 
     best = None
-    for _ in range(max_iter):
+    for iteration_index in range(max_iter):
         try:
             cand_pts = ellipse_waypoints(a_last, b_last, target_sum_m=scale, n=8)
         except ValueError:
@@ -212,7 +309,8 @@ def generate_course_via(
             best = (err, nodes, length, scale)
         if err <= tol:
             break
-        scale *= target_distance_m / length
+        # [2026-09-10 22:04:55] [경유지 경로도 반복 후반의 scale 보정 폭을 줄여 거리 피팅 흔들림을 완화합니다.]
+        scale *= (target_distance_m / length) ** _distance_fit_alpha(iteration_index)
 
     if best is None:                     # 경유지 체인을 목표 거리로 못 맞춤
         raise ValueError(
@@ -239,6 +337,6 @@ if __name__ == "__main__":
     r = generate_course(G, idx, "point_to_point", start, 3000, end=end, bearing=90.0)
     print("point_to_point ->", r["actual_distance_m"], "m  err", r["distance_error_pct"], "%")
 
-    r = generate_course_via(G, idx, start, [via], 4000, bearing=90.0)
+    r = generate_course_via(G, idx, "loop", start, [via], 4000, bearing=90.0)
     print("via (순환, 경유지 1개) ->", r["actual_distance_m"], "m  err",
           r["distance_error_pct"], "%  overlap", r["overlap_ratio"])

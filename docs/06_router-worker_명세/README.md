@@ -17,9 +17,10 @@ documented_at: "2026-09-10"
 1. [[00. 기본 객체 및 데이터 형태/INDEX|00. 기본 객체 및 데이터 형태]]
 2. [[01. 후보 경로 생성/INDEX|01. 후보 경로 생성]]
 3. [[02. 특징 추출/INDEX|02. 특징 추출]]
-4. [[03. AI 후보 랭킹 - 예정/INDEX|03. AI 후보 랭킹 - 예정]]
-5. [[04. 점수화/INDEX|04. 점수화]]
-6. [[99. 사용 데이터 출처/INDEX|99. 사용 데이터 출처]]
+4. [[04. 점수화/INDEX|04. 점수화]]
+5. [[03. AI 후보 랭킹 - 예정/INDEX|03. AI 후보 선택 계층]]
+6. [[05. recommend 입출력 스키마|05. recommend 입출력 스키마]]
+7. [[99. 사용 데이터 출처/INDEX|99. 사용 데이터 출처]]
 
 ## 현재 실제 실행 흐름
 
@@ -32,7 +33,7 @@ RouteType → RouteMode
    ↓
 후보 생성
    ├─ 일반: generate_candidates → generate_course → _build
-   └─ Via : generate_candidates_via → generate_course_via → _route_chain
+   └─ Via : generate_candidates_via → generate_course_via → _route_chain / _generate_out_and_back_via
    ↓
 Weighted Dijkstra
    ↓
@@ -44,15 +45,16 @@ Feature Extraction
    ├─ nature
    └─ surface
    ↓
-현재 heuristic scoring
+heuristic scoring
    ↓
-condition_score 정렬
+AI 후보 선택 계층
+   └─ 현재 fallback: condition_score 정렬
    ↓
 Top-K (기본 3)
 ```
 
-> [!note] 03. AI 후보 랭킹
-> 현재는 구현되어 있지 않다. 향후 **특징 추출 이후 / 최종 점수화 이전**에 삽입하는 방향만 기록한다.
+> [!note] 03. AI 후보 선택 계층
+> 현재는 `select_candidates_with_ai()`가 존재하며, 실제 AI 연동 전까지 기존 `condition_score` 정렬을 fallback으로 사용한다.
 
 ## 핵심 객체의 변화
 
@@ -87,15 +89,9 @@ Top-K Recommendation
 
 ## 현재 인지한 주요 변경 후보
 
-아래는 **아직 현재 구현이 아니다.**
-
 - 사용자 기본 weight에 pseudo-count 기반 population prior 도입 검토
-- 거리 scale fitting에 반복별 damping 도입 검토
-- ONE_WAY 타원 waypoint 선택 규칙 재검토
-- Elevation feature에 `slope_std_pct`, `elevation_loss_m` 등 추가 검토
-- 시설/자연 공용 `BUFFER_M=100`을 별도 상수로 분리하고 축소 검토
 - 경로 길이의 canonical source를 `CandidateRoute.actual_distance_m`로 통일 검토
-- Feature 이후 AI ranking 계층 추가 예정
+- 실제 AI 후보 선택 로직 연동 예정
 - weighting의 고정 heuristic 임계값 재설계 예정
 
 ---

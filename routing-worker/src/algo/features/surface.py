@@ -1,5 +1,5 @@
 """
-노면·흐름 프로파일 — 코스가 어떤 길로 이뤄졌는지.
+도로 환경 정보 — 코스가 어떤 길로 이뤄졌는지.
 course 가 넘겨준 노드 경로(nodes)와 그래프 G 의 OSM 엣지/노드 속성을 읽는다.
 
 - walkable_ratio : footway/path/pedestrian/living_street 등 보행자 친화 길이 비율

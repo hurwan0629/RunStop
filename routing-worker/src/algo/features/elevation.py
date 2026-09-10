@@ -52,6 +52,7 @@ def analyze_elevation_profile(
     elevations_m = [get_elevation(lat, lon) for lat, lon in sampled_coordinates]
 
     slope_percentages, total_elevation_gain_m = [], 0.0
+    total_elevation_loss_m = 0.0
 
     # 각 구간별 [시작 위치, 종료 위치, 시작 위치 경사도, 종료 위치 경사도] 를 기준으로 데이터를 정리해주기
     for start_coordinate, end_coordinate, start_elevation_m, end_elevation_m \
@@ -69,15 +70,26 @@ def analyze_elevation_profile(
         slope_percentages.append(abs(end_elevation_m - start_elevation_m) / segment_distance_m * 100)
         if end_elevation_m > start_elevation_m:
             total_elevation_gain_m += end_elevation_m - start_elevation_m
+        elif end_elevation_m < start_elevation_m:
+            total_elevation_loss_m += start_elevation_m - end_elevation_m
 
     if not slope_percentages:                        # 전 구간 DEM 없음
         return {"avg_slope_pct": None, "max_slope_pct": None,
-                "elevation_gain_m": None, "sample_count": len(sampled_coordinates)}
+                "slope_std_pct": None, "elevation_gain_m": None,
+                "elevation_loss_m": None, "sample_count": len(sampled_coordinates)}
+
+    avg_slope_pct = sum(slope_percentages) / len(slope_percentages)
+    slope_std_pct = (
+        sum((slope - avg_slope_pct) ** 2 for slope in slope_percentages)
+        / len(slope_percentages)
+    ) ** 0.5
 
     return {
-        "avg_slope_pct": round(sum(slope_percentages) / len(slope_percentages), 2),
+        "avg_slope_pct": round(avg_slope_pct, 2),
         "max_slope_pct": round(max(slope_percentages), 2),
+        "slope_std_pct": round(slope_std_pct, 2),
         "elevation_gain_m": round(total_elevation_gain_m, 1),
+        "elevation_loss_m": round(total_elevation_loss_m, 1),
         "sample_count": len(sampled_coordinates),
     }
 

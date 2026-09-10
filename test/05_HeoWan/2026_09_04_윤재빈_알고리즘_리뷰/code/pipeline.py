@@ -19,6 +19,7 @@ from nature import adjacency_ratios
 from surface import profile as surface_profile
 from weighting import score_candidate
 
+
 _MODE = {
     "LOOP": "loop",
     "ONE_WAY": "point_to_point",
@@ -39,7 +40,7 @@ def _via_candidates(G, idx, mode, start, target_m, end, vias, n_directions, pool
                                     bearing=360.0 * k / n_directions) # bearing = 방위 돌려가면서 확인하는 각도
         except (ValueError, nx.NetworkXException):
             continue
-        if r["distance_error_pct"] <= 10:
+        if r["distance_error_pct"] <= 10:# config.CAND_DIST_TOL_PCT:
             out.append(r)
     # 현재 정렬 기준은 (도로 겹침 비율, 거리 오차 비율)
     out.sort(key=lambda r: (r["overlap_ratio"], r["distance_error_pct"]))

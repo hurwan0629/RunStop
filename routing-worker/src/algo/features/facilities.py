@@ -57,7 +57,7 @@ def _create_projected_route_line(route_coordinates: list[Coordinate]) -> LineStr
 
 def analyze_nearby_facilities(
     route_coordinates: list[Coordinate],
-    buffer_distance_m: float = config.BUFFER_M,
+    buffer_distance_m: float = config.FACILITY_BUFFER_M,
 ) -> FacilityProfile:
     """근처에 있는 시설들 목록 주기"""
 

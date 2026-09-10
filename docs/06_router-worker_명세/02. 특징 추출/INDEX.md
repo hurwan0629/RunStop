@@ -13,7 +13,7 @@ documented_at: "2026-09-10"
 > - **소스 위치:** `routing-worker/src/algo/features/*`
 > - **역할:** 이미 만들어진 후보 경로를 DEM, 시설 CSV, 공원/하천 GeoJSON, OSM Graph로 측정해 raw feature를 추가한다.
 > - **이전 단계:** [[../01. 후보 경로 생성/INDEX|01. 후보 경로 생성]]
-> - **다음 단계:** [[../03. AI 후보 랭킹 - 예정/INDEX|03. AI 후보 랭킹 - 예정]]
+> - **다음 단계:** [[../04. 점수화/INDEX|04. 점수화]]
 > - **주요 입력:** Basic CandidateRoute
 > - **주요 출력:** slope/facilities/nature/surface가 추가된 CandidateRoute
 
