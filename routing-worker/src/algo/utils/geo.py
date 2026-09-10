@@ -8,6 +8,8 @@
 
 from pyproj import Geod, Transformer
 
+from src.algo.types import Coordinate
+
 CRS_WGS84  = 4326   # 외부 좌표 (위도, 경도)
 CRS_METRIC = 5179   # 거리/면적 계산용 미터 좌표 (Korea 2000 / Central Belt)
 
@@ -16,20 +18,25 @@ to_5179 = Transformer.from_crs(f"EPSG:{CRS_WGS84}", f"EPSG:{CRS_METRIC}", always
 to_4326 = Transformer.from_crs(f"EPSG:{CRS_METRIC}", f"EPSG:{CRS_WGS84}", always_xy=True)  # 미터 -> 위경도
 
 
-def point_at_bearing(lat, lon, bearing_deg, distance_m):
+def point_at_bearing(
+    lat: float,
+    lon: float,
+    bearing_deg: float,
+    distance_m: float,
+) -> Coordinate:
     """(lat, lon)에서 방위각(북=0, 시계방향)으로 distance_m 간 지점의 (lat, lon)."""
     lon2, lat2, _ = _geod.fwd(lon, lat, bearing_deg, distance_m)
     return lat2, lon2
 
 
-def haversine_m(a, b):
+def haversine_m(a: Coordinate, b: Coordinate) -> float:
     """두 (lat, lon) 사이 지표면 거리(m)."""
     (lat1, lon1), (lat2, lon2) = a, b
     _, _, dist = _geod.inv(lon1, lat1, lon2, lat2)
     return dist
 
 
-def bearing_deg(a, b):
+def bearing_deg(a: Coordinate, b: Coordinate) -> float:
     """a -> b 방위각(도, 0~360)."""
     (lat1, lon1), (lat2, lon2) = a, b
     fwd_az, _, _ = _geod.inv(lon1, lat1, lon2, lat2)

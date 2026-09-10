@@ -11,9 +11,14 @@ import networkx as nx
 from src.algo.routing.course import generate_course, generate_course_via
 from src.algo.routing.shortest_path import path_to_edge_set
 from src.algo import config
+from src.algo.types import CandidateRoute, Coordinate, NodePath, Requirements, RouteMode, Weights
 
 
-def _courses_share_too_many_edges(a_nodes, b_nodes, threshold=None) -> bool:
+def _courses_share_too_many_edges(
+    a_nodes: NodePath,
+    b_nodes: NodePath,
+    threshold: float | None = None,
+) -> bool:
     """두 코스가 공유한 도로 비율이 threshold 초과면 '같은 코스' 취급.
     threshold=None 이면 config.DEDUP_SIMILARITY."""
     if threshold is None:
@@ -25,7 +30,7 @@ def _courses_share_too_many_edges(a_nodes, b_nodes, threshold=None) -> bool:
     return len(ea & eb) / min(len(ea), len(eb)) > threshold
 
 
-def _drop_near_duplicate_courses(cands):
+def _drop_near_duplicate_courses(cands: list[CandidateRoute]) -> list[CandidateRoute]:
     """앞에서부터 훑으며, 이미 채택한 코스와 너무 비슷하면 버린다."""
     kept = []
     for c in cands:
@@ -35,9 +40,18 @@ def _drop_near_duplicate_courses(cands):
     return kept
 
 def generate_candidates_via(
-    G, idx, mode, start, target_m, end, vias, n_directions,
-    pool=8, weights=None, requirements=None,
-):
+    G,
+    idx,
+    mode: RouteMode,
+    start: Coordinate,
+    target_m: float,
+    end: Coordinate | None,
+    vias: list[Coordinate],
+    n_directions: int,
+    pool: int = 8,
+    weights: Weights | None = None,
+    requirements: Requirements | None = None,
+) -> list[CandidateRoute]:
     """사용자 경유지가 있을 때: 우회점 방향(bearing)만 바꿔가며 후보 풀 생성.
     상위 3개 컷은 안 함 — recommend 가 conditionScore 매긴 뒤 자른다."""
     tail = end if mode == "point_to_point" else None   # LOOP/ROUND_TRIP 는 시작점 복귀
@@ -56,7 +70,7 @@ def generate_candidates_via(
 
 def generate_candidates(G, idx, mode, start, target_distance_m, end=None,
                         n_directions=12, tol_pct=None, max_overlap=None, pool=8,
-                        weights=None, requirements=None):
+                        weights=None, requirements=None) -> list[CandidateRoute]:
     """반환: 최대 pool 개의 후보 (conditionScore 매기기 전 상태).
     tol_pct/max_overlap=None 이면 config 값. pipeline 이 여기에 점수를 붙이고 상위 3개를 고른다."""
     if tol_pct is None:

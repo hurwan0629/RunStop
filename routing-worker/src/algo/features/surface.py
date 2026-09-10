@@ -13,6 +13,8 @@ course 가 넘겨준 노드 경로(nodes)와 그래프 G 의 OSM 엣지/노드 �
 
 import ast
 
+from src.algo.types import NodeId, NodePath, SurfaceProfile
+
 _WALKABLE_HIGHWAY_TYPES = {"footway", "path", "pedestrian", "living_street", "track",
              "steps", "corridor", "cycleway",
              "residential", "unclassified", "service"}   # 주택가 이면도로 = 러닝 무난
@@ -21,7 +23,7 @@ _MAJOR_ROAD_HIGHWAY_TYPES = {"primary", "secondary", "tertiary", "trunk", "motor
             "trunk_link", "motorway_link", "busway"}
 
 
-def _parse_highway_tags(raw_highway_value):
+def _parse_highway_tags(raw_highway_value) -> set[str]:
     """highway 원형(문자열 'steps' 또는 "['steps','footway']") -> 태그 집합."""
     if raw_highway_value is None:
         return set()
@@ -36,7 +38,7 @@ def _parse_highway_tags(raw_highway_value):
     return {serialized_value}
 
 
-def _select_shortest_edge_data(graph, from_node_id, to_node_id):
+def _select_shortest_edge_data(graph, from_node_id: NodeId, to_node_id: NodeId):
     """u->v 평행 엣지 중 최단 길이 하나의 속성 dict."""
     parallel_edges = graph.get_edge_data(from_node_id, to_node_id) or graph.get_edge_data(to_node_id, from_node_id)
     if not parallel_edges:
@@ -44,7 +46,7 @@ def _select_shortest_edge_data(graph, from_node_id, to_node_id):
     return min(parallel_edges.values(), key=lambda edge_data: float(edge_data.get("length", 1e18)))
 
 
-def analyze_surface_profile(graph, route_node_ids):
+def analyze_surface_profile(graph, route_node_ids: NodePath) -> SurfaceProfile:
     """표면의 상태를 뽑아주기"""
     total_length_m = walkable_length_m = major_road_length_m = 0.0
     stairs_segment_count = 0

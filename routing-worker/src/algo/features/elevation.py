@@ -9,13 +9,17 @@ import sys
 # query_elevation.py + 서울_DEM_10m.npy + _meta.json 이 있는 폴더 (배포 패키지 기준)
 from src.algo._datapaths import DEM_DIR
 sys.path.insert(0, str(DEM_DIR))
-from query_elevation import get_elevation                  # noqa: E402
+from src.algo.data.query_elevation import get_elevation                  # noqa: E402
 
 from src.algo.utils.geo import haversine_m
 from src.algo import config
+from src.algo.types import Coordinate, ElevationProfile
 
 
-def sample_route_coordinates(route_coordinates, sampling_interval_m=config.SLOPE_SAMPLE_M):
+def sample_route_coordinates(
+    route_coordinates: list[Coordinate],
+    sampling_interval_m: float = config.SLOPE_SAMPLE_M,
+) -> list[Coordinate]:
     """
     폴리라인에서 대략 interval_m 간격으로 점을 뽑는다. None 이면 config.SLOPE_SAMPLE_M.
     리턴값은 list[tuple[float, float]]
@@ -38,7 +42,10 @@ def sample_route_coordinates(route_coordinates, sampling_interval_m=config.SLOPE
     return sampled_coordinates
 
 
-def analyze_elevation_profile(route_coordinates, sampling_interval_m=config.SLOPE_SAMPLE_M):
+def analyze_elevation_profile(
+    route_coordinates: list[Coordinate],
+    sampling_interval_m: float = config.SLOPE_SAMPLE_M,
+) -> ElevationProfile:
 
     # 
     sampled_coordinates = sample_route_coordinates(route_coordinates, sampling_interval_m)

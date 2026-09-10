@@ -9,6 +9,8 @@
 """
 
 # ── 0점 ↔ 100점 기준 (튜닝 포인트) ─────────────────────────────
+from src.algo.types import CandidateRoute, Requirements, SubScores, Weights
+
 DIST_ERR_ZERO_PCT   = 10.0    # 거리 오차 10% -> 0점, 0% -> 100점
 GAIN_PER_KM_ZERO    = 30.0    # 1km당 오르막 30m -> 0점, 0m -> 100점
 ELEVATION_NEUTRAL   = 50.0    # DEM 없을 때 경사 소점수 (중립)
@@ -65,7 +67,7 @@ def _facility_count_score(count, full, nearest_m):
     return _clamp(base)
 
 
-def compute_sub_scores(cand):
+def compute_sub_scores(cand: CandidateRoute) -> SubScores:
     f = cand.get("facilities") or {}
     slope = cand.get("slope") or {}
     nat = cand.get("nature") or {}
@@ -137,7 +139,7 @@ _DEFAULT_W = {"distance": 3, "elevation": 3, "toilet": 3, "store": 3,
               "park": 3, "night": 3, "surface": 2, "flow": 2, "overlap": 2}
 
 
-def compute_condition_score(subs, weights=None):
+def compute_condition_score(subs: SubScores, weights: Weights | None = None) -> float:
     w = {**_DEFAULT_W, **(weights or {})}
     num = den = 0.0
     for name, score in subs.items():
@@ -149,7 +151,10 @@ def compute_condition_score(subs, weights=None):
     return round(num / den, 1) if den else 0.0
 
 
-def check_requirements(cand, requirements=None):
+def check_requirements(
+    cand: CandidateRoute,
+    requirements: Requirements | None = None,
+) -> tuple[list[str], bool]:
     """반환: (failed_conditions[], exact_match)."""
     req = requirements or {}
     f = cand.get("facilities") or {}
@@ -171,7 +176,11 @@ def check_requirements(cand, requirements=None):
     return failed, len(failed) == 0
 
 
-def score_candidate(cand, weights=None, requirements=None):
+def score_candidate(
+    cand: CandidateRoute,
+    weights: Weights | None = None,
+    requirements: Requirements | None = None,
+) -> CandidateRoute:
     # pipeline에서  scoring의 모듈들을 이용해서 누적한 점수들을 한곳에서 처리하는 코드
     subs = compute_sub_scores(cand)
     

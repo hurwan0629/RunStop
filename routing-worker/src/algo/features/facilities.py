@@ -11,6 +11,7 @@ from shapely import LineString, contains_xy, distance, points as sh_points
 from src.algo.utils.geo import to_5179
 from src.algo._datapaths import FACIL_CSV as FACILITY_DATASET_PATH  # 배포 패키지 datasets/ 또는 RUNSTOP_DATA_DIR
 from src.algo import config
+from src.algo.types import Coordinate, FacilityProfile
 
 # 유형(한글, CSV) -> 결과 키(영문)
 FACILITY_TYPE_TO_KEY = {
@@ -50,11 +51,14 @@ def _load_facility_coordinates():
     return _FACILITY_COORDINATES_CACHE
 
 
-def _create_projected_route_line(route_coordinates):
+def _create_projected_route_line(route_coordinates: list[Coordinate]) -> LineString:
     return LineString([to_5179.transform(lon, lat) for lat, lon in route_coordinates])
 
 
-def analyze_nearby_facilities(route_coordinates, buffer_distance_m=config.BUFFER_M):
+def analyze_nearby_facilities(
+    route_coordinates: list[Coordinate],
+    buffer_distance_m: float = config.BUFFER_M,
+) -> FacilityProfile:
     """근처에 있는 시설들 목록 주기"""
 
     # LineString 받아오기

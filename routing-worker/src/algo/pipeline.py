@@ -9,8 +9,11 @@ routeType 매핑:  LOOP -> loop  |  ONE_WAY -> point_to_point  |  ROUND_TRIP -> 
 API 서버는 다음 단계 (이 recommend() 를 HTTP 로 감싸면 됨).
 """
 
+from typing import Any
+
 import networkx as nx
 
+from src.algo.types import CandidateRoute, Coordinate, Requirements, RouteType, Weights
 from src.algo.routing.candidates import generate_candidates, generate_candidates_via
 from src.algo.features.elevation import analyze_elevation_profile
 from src.algo.features.facilities import analyze_nearby_facilities
@@ -25,8 +28,19 @@ _MODE = {
 }
 
 
-def recommend(G, idx, route_type, start, target_km, end=None, vias=None,
-              weights=None, requirements=None, n_directions=12, top_k=3):
+def recommend(
+    G: nx.Graph,
+    idx: Any,
+    route_type: RouteType,
+    start: Coordinate,
+    target_km: float,
+    end: Coordinate | None = None,
+    vias: list[Coordinate] | None = None,
+    weights: Weights | None = None,
+    requirements: Requirements | None = None,
+    n_directions: int = 12,
+    top_k: int = 3,
+) -> list[CandidateRoute]:
     mode = _MODE.get(route_type)
     if mode is None:
         raise ValueError(f"route_type 은 {list(_MODE)} 중 하나 (받음: {route_type})")

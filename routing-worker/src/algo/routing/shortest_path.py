@@ -10,9 +10,10 @@ import networkx as nx
 
 from src.algo import config
 from src.algo.scoring.edge_cost import create_edge_cost_function
+from src.algo.types import EdgeSet, NodeId, NodePath, Requirements, Weights
 
 
-def _edge_len(data):
+def _edge_len(data) -> float:
     """엣지 길이(m). MultiDiGraph면 data={key: 속성}, 단순 그래프면 속성 dict 자체."""
     if data is None:
         return float("inf")
@@ -21,20 +22,20 @@ def _edge_len(data):
     return min(float(a.get("length", 1.0)) for a in data.values())
 
 
-def path_to_edge_set(nodes):
+def path_to_edge_set(nodes: NodePath) -> EdgeSet:
     """경로 노드열 -> 방향 무시한 엣지 집합 {frozenset({u, v}), ...}."""
     return {frozenset((u, v)) for u, v in zip(nodes[:-1], nodes[1:])}
 
 
 def shortest_path(
-    G,
-    src,
-    dst,
-    penalty_edges=None,
-    factor=config.LOOP_PENALTY_FACTOR,
-    weights=None,
-    requirements=None,
-):
+    G: nx.Graph,
+    src: NodeId,
+    dst: NodeId,
+    penalty_edges: EdgeSet | None = None,
+    factor: float = config.LOOP_PENALTY_FACTOR,
+    weights: Weights | None = None,
+    requirements: Requirements | None = None,
+) -> tuple[NodePath, float]:
     """src, dst = 노드 id. penalty_edges = {frozenset({u,v}), ...} (이미 쓴 도로).
     factor=None 이면 config.LOOP_PENALTY_FACTOR.
     반환: (노드 리스트, 실제 거리_m). 경로 없으면 nx.NetworkXNoPath 발생."""

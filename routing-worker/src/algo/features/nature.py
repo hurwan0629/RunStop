@@ -13,6 +13,7 @@ from shapely import LineString
 from src.algo.utils.geo import to_5179, CRS_METRIC
 from src.algo._datapaths import OSM_OUT as NATURE_DATA_DIRECTORY   # 배포 패키지 datasets/osm/out 또는 RUNSTOP_DATA_DIR
 from src.algo import config
+from src.algo.types import Coordinate, NatureProfile
 NATURE_LAYER_PATHS = {
     "park": NATURE_DATA_DIRECTORY / "서울_공원.geojson",
     "water": NATURE_DATA_DIRECTORY / "서울_하천_polygon.geojson",
@@ -41,11 +42,14 @@ def _load_nature_layers():
     return _NATURE_LAYER_CACHE
 
 
-def _create_projected_route_line(route_coordinates):
+def _create_projected_route_line(route_coordinates: list[Coordinate]) -> LineString:
     return LineString([to_5179.transform(lon, lat) for lat, lon in route_coordinates])
 
 
-def analyze_nature_adjacency(route_coordinates: list[tuple[float, float]], buffer_distance_m=config.BUFFER_M):
+def analyze_nature_adjacency(
+    route_coordinates: list[Coordinate],
+    buffer_distance_m: float = config.BUFFER_M,
+) -> NatureProfile:
     """경로 지점들을 받아서 안에 존재하는 """
 
     # shapely의 LineString 생성 함수

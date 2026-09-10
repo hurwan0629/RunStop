@@ -10,13 +10,14 @@
 (오차 5% 이내 또는 6회).
 """
 
-from src.algo.utils.geo import haversine_m
+from src.algo import config
 from src.algo.routing.shortest_path import shortest_path, path_to_edge_set
 from src.algo.routing.waypoints import circle_waypoints, ellipse_waypoints
-from src.algo import config
+from src.algo.types import CandidateRoute, Coordinate, NodeId, NodePath, Requirements, RouteMode, Weights
+from src.algo.utils.geo import haversine_m
 
 
-def _overlap_ratio(nodes):
+def _overlap_ratio(nodes: NodePath) -> float:
     """방향 무시, 이미 지난 도로 재방문 비율. 순환 품질 지표."""
     seen, reused, total = set(), 0, 0
     for u, v in zip(nodes[:-1], nodes[1:]):
@@ -29,7 +30,17 @@ def _overlap_ratio(nodes):
     return reused / total if total else 0.0
 
 
-def _build(G, idx, mode, start, end, scale, bearing, weights=None, requirements=None):
+def _build(
+    G,
+    idx,
+    mode: RouteMode,
+    start: Coordinate,
+    end: Coordinate | None,
+    scale: float,
+    bearing: float,
+    weights: Weights | None = None,
+    requirements: Requirements | None = None,
+) -> tuple[NodePath, float]:
     s = idx.snap(*start)
 
     if mode == "out_and_back":
@@ -64,7 +75,7 @@ def _build(G, idx, mode, start, end, scale, bearing, weights=None, requirements=
 
 def generate_course(G, idx, mode, start, target_distance_m, end=None,
                     bearing=0.0, max_iter=None, tol=None,
-                    weights=None, requirements=None):
+                    weights=None, requirements=None) -> CandidateRoute:
     if mode == "point_to_point" and end is None:
         raise ValueError("point_to_point 모드는 end 좌표가 필요합니다")
     if max_iter is None:
@@ -99,7 +110,14 @@ def generate_course(G, idx, mode, start, target_distance_m, end=None,
     return _pack(mode, nodes, dist, target_distance_m, G, round(scale))
 
 
-def _pack(mode, nodes, dist, target_m, G, scale_m):
+def _pack(
+    mode: RouteMode,
+    nodes: NodePath,
+    dist: float,
+    target_m: float,
+    G,
+    scale_m: int,
+) -> CandidateRoute:
     """course 결과 dict. generate_course / generate_course_via 공통.
     nodes: OSM 엣지 속성(노면·계단·신호등)을 읽으려면 노드 경로가 필요해 함께 넘긴다."""
     err = abs(dist - target_m) / target_m
@@ -117,11 +135,11 @@ def _pack(mode, nodes, dist, target_m, G, scale_m):
 
 def _route_chain(
         G, 
-        node_chain, 
+        node_chain: list[NodeId], 
         penalty=config.VIA_PENALTY_FACTOR, 
-        weights=None, 
-        requirements=None
-    ):
+        weights: Weights | None = None, 
+        requirements: Requirements | None = None
+    ) -> tuple[NodePath, float]:
     """연속한 노드쌍을 최단경로로 잇되, 앞 구간에서 쓴 엣지엔 벌점 (왕복 억제).
     penalty=None 이면 config.VIA_PENALTY_FACTOR. 반환: (전체 노드열, 총 길이 m)."""
 
@@ -145,7 +163,7 @@ def generate_course_via(
         penalty=config.VIA_PENALTY_FACTOR,
         weights=None, 
         requirements=None
-    ):
+    ) -> CandidateRoute:
     """사용자가 지정한 경유지(vias, 순서대로 반드시 통과)를 지나는 코스.
     end=None 이면 시작점으로 복귀(순환). 목표거리에 모자라면 마지막 구간에
     우회점 하나를 끼워 채운다. max_iter/tol/penalty=None 이면 config 값."""

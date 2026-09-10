@@ -17,21 +17,30 @@ elevation.py · scoring.py · nature.py 가 이 모듈만 바라본다.
 import os
 from pathlib import Path
 
-_BUNDLED = Path(__file__).resolve().parent.parent / "datasets"
-_LEGACY = Path("/Users/user/Desktop/runstop/data")
+_PACKAGE_DATA = Path(__file__).resolve().parent / "data"
+_LEGACY_DATASETS = Path(__file__).resolve().parent.parent / "datasets"
 
 
 def _resolve_root() -> Path:
     env = os.environ.get("RUNSTOP_DATA_DIR")
     if env:
         return Path(env).expanduser().resolve()
-    if _BUNDLED.is_dir():
-        return _BUNDLED
-    return _LEGACY
+    if _PACKAGE_DATA.is_dir():
+        return _PACKAGE_DATA
+    if _LEGACY_DATASETS.is_dir():
+        return _LEGACY_DATASETS
+    raise FileNotFoundError(
+        "RunStop data directory not found. "
+        "Set RUNSTOP_DATA_DIR or include src/algo/data in the Docker image."
+    )
 
 
 DATA_ROOT = _resolve_root()
 
-DEM_DIR = DATA_ROOT / "배포"
-FACIL_CSV = DATA_ROOT / "배포" / "서울_시설데이터_통합.csv"
+DEM_DIR = DATA_ROOT / "배포" if (DATA_ROOT / "배포").is_dir() else DATA_ROOT
+FACIL_CSV = (
+    DATA_ROOT / "배포" / "서울_시설데이터_통합.csv"
+    if (DATA_ROOT / "배포" / "서울_시설데이터_통합.csv").is_file()
+    else DATA_ROOT / "서울_시설데이터_통합.csv"
+)
 OSM_OUT = DATA_ROOT / "osm" / "out"
