@@ -25,6 +25,7 @@ export function registerBookmarksRoutes(router: Router): void {
   router.get("/api/bookmarks/points", authenticate, asyncHandler(listPointBookmarks));
   router.post("/api/bookmarks/points", authenticate, asyncHandler(createPointBookmark));
   router.delete("/api/bookmarks/points/:bookmarkIdx", authenticate, asyncHandler(deletePointBookmark));
+  
   router.get("/api/bookmarks/routes", authenticate, asyncHandler(listRouteBookmarks));
   router.post("/api/bookmarks/routes", authenticate, asyncHandler(createRouteBookmark));
   router.delete("/api/bookmarks/routes/:bookmarkIdx", authenticate, asyncHandler(deleteRouteBookmark));

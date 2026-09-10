@@ -34,14 +34,14 @@ export default function CourseSetupScreen() {
     setLocationError(null);
 
     try {
-      const isLocationEnabled =
+      const isLocationEnabled = // GPS 켜져있는지 확인
         await Location.hasServicesEnabledAsync();
 
       if (!isLocationEnabled) {
         throw new Error('기기의 위치 기능을 켜주세요.');
       }
 
-      const permission =
+      const permission =  // 위치 권한 요청
         await Location.requestForegroundPermissionsAsync();
 
       if (permission.status !== 'granted') {
@@ -51,7 +51,7 @@ export default function CourseSetupScreen() {
       }
 
       const result = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
+        accuracy: Location.Accuracy.High, // 현재 위치 가져오기
       });
 
       const nextLocation: LocationPoint = {
