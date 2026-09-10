@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from .dto.recommend import RouteRecommendRequestDTO
 from .dto.parser import parse_node_request_to_python_recommendation, parse_python_recommendation_to_node_require
-from .algorithm.pipeline import recommend
-from .algorithm.graph import load_graph, grid_graph, NodeIndex
+from .algo.pipeline import recommend
+from .algo.utils.graph import load_graph, grid_graph, NodeIndex
 from pathlib import Path
 
 graphml = Path(__file__).parent / "algorithm" / "data" / "서울_보행네트워크.graphml"

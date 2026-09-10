@@ -8,9 +8,12 @@
 
 from pyproj import Geod, Transformer
 
+CRS_WGS84  = 4326   # 외부 좌표 (위도, 경도)
+CRS_METRIC = 5179   # 거리/면적 계산용 미터 좌표 (Korea 2000 / Central Belt)
+
 _geod = Geod(ellps="WGS84")
-to_5179 = Transformer.from_crs("EPSG:4326", "EPSG:5179", always_xy=True)  # 위경도 -> 미터
-to_4326 = Transformer.from_crs("EPSG:5179", "EPSG:4326", always_xy=True)  # 미터 -> 위경도
+to_5179 = Transformer.from_crs(f"EPSG:{CRS_WGS84}", f"EPSG:{CRS_METRIC}", always_xy=True)  # 위경도 -> 미터
+to_4326 = Transformer.from_crs(f"EPSG:{CRS_METRIC}", f"EPSG:{CRS_WGS84}", always_xy=True)  # 미터 -> 위경도
 
 
 def point_at_bearing(lat, lon, bearing_deg, distance_m):
@@ -31,7 +34,6 @@ def bearing_deg(a, b):
     (lat1, lon1), (lat2, lon2) = a, b
     fwd_az, _, _ = _geod.inv(lon1, lat1, lon2, lat2)
     return fwd_az % 360
-
 
 if __name__ == "__main__":
     gangnam = (37.4979, 127.0276)
