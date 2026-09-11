@@ -374,6 +374,24 @@ export default function SignupScreen() {
             </Pressable>
 
             <Text style={styles.title}>회원가입</Text>
+            <View
+              accessibilityLabel={`2단계 중 ${step}단계`}
+              style={styles.stepIndicator}>
+              <View
+                style={
+                  step === 1
+                    ? styles.stepIndicatorActive
+                    : styles.stepIndicatorInactive
+                }
+              />
+              <View
+                style={
+                  step === 2
+                    ? styles.stepIndicatorActive
+                    : styles.stepIndicatorInactive
+                }
+              />
+            </View>
           </View>
 
           {step === 1 ? (
@@ -391,6 +409,7 @@ export default function SignupScreen() {
                   clearFieldError('nickname');
                 }}
                 placeholder="닉네임을 입력해 주세요."
+                placeholderTextColor="#C8D0DC"
                 style={[
                   styles.input,
                   fieldErrors.nickname ? styles.inputError : undefined,
@@ -412,6 +431,7 @@ export default function SignupScreen() {
                     clearFieldError('loginId');
                   }}
                   placeholder="아이디를 입력해 주세요."
+                  placeholderTextColor="#C8D0DC"
                   style={[
                     styles.rowInput,
                     fieldErrors.loginId ? styles.inputError : undefined,
@@ -456,6 +476,7 @@ export default function SignupScreen() {
                     clearFieldError('password');
                   }}
                   placeholder="영문, 숫자, 특수문자 포함 8자 이상"
+                  placeholderTextColor="#C8D0DC"
                   secureTextEntry={!isPasswordVisible}
                   style={styles.passwordInput}
                   value={password}
@@ -465,10 +486,9 @@ export default function SignupScreen() {
                   accessibilityRole="button"
                   onPress={() =>
                     setIsPasswordVisible((visible) => !visible)
-                  }>
-                  <Text style={styles.visibilityButton}>
-                    {isPasswordVisible ? '숨기기' : '보기'}
-                  </Text>
+                  }
+                  style={styles.visibilityButton}>
+                  <EyeIcon active={isPasswordVisible} />
                 </Pressable>
               </View>
               <Feedback message={fieldErrors.password} />
@@ -484,6 +504,7 @@ export default function SignupScreen() {
                   clearFieldError('passwordConfirm');
                 }}
                 placeholder="비밀번호를 한 번 더 입력해 주세요."
+                placeholderTextColor="#C8D0DC"
                 secureTextEntry={!isPasswordVisible}
                 style={[
                   styles.input,
@@ -510,6 +531,7 @@ export default function SignupScreen() {
                     clearFieldError('phone');
                   }}
                   placeholder="010-0000-0000"
+                  placeholderTextColor="#C8D0DC"
                   style={[
                     styles.rowInput,
                     fieldErrors.phone ? styles.inputError : undefined,
@@ -545,6 +567,7 @@ export default function SignupScreen() {
                         clearFieldError('verificationCode');
                       }}
                       placeholder="6자리 인증번호"
+                      placeholderTextColor="#C8D0DC"
                       style={[
                         styles.rowInput,
                         fieldErrors.verificationCode
@@ -598,6 +621,7 @@ export default function SignupScreen() {
                   clearFieldError('weightKg');
                 }}
                 placeholder="예: 65"
+                placeholderTextColor="#C8D0DC"
                 style={[
                   styles.input,
                   fieldErrors.weightKg ? styles.inputError : undefined,
@@ -615,6 +639,7 @@ export default function SignupScreen() {
                   clearFieldError('heightCm');
                 }}
                 placeholder="예: 172"
+                placeholderTextColor="#C8D0DC"
                 style={[
                   styles.input,
                   fieldErrors.heightCm ? styles.inputError : undefined,
@@ -657,5 +682,13 @@ export default function SignupScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+function EyeIcon({ active }: { active: boolean }) {
+  return (
+    <View style={[styles.eyeOutline, active && styles.eyeOutlineActive]}>
+      <View style={[styles.eyePupil, active && styles.eyePupilActive]} />
+    </View>
   );
 }

@@ -323,6 +323,8 @@ volumes/
 # =========================================================
 
 storage/
+!frontend/mobile/src/storage/
+!frontend/mobile/src/storage/**
 uploads/
 downloads/
 

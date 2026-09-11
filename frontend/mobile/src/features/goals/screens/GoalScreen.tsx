@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   Text,
@@ -13,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/providers/AuthProvider';
 import { getApiErrorMessage } from '@/services/api/errors';
 
-import { createGoal, getCurrentGoal } from '../api/goalsApi';
+import { createGoal, getCurrentGoal, stopGoal } from '../api/goalsApi';
 import type { CurrentGoalResponse, GoalType } from '../types';
 import { styles } from './GoalScreen.styles';
 
@@ -101,6 +102,32 @@ export default function GoalScreen() {
 
   const activeGoal = currentGoal?.goal ?? null;
 
+  const handleStopGoal = async () => {
+    if (!accessToken || !activeGoal || isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    setFormError('');
+
+    try {
+      await stopGoal(accessToken, activeGoal.idx);
+      setNotice('러닝 목표를 종료했습니다.');
+      await loadCurrentGoal();
+    } catch (error) {
+      setFormError(getApiErrorMessage(error));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const confirmStopGoal = () => {
+    Alert.alert('목표를 종료할까요?', '종료 후에는 새로운 목표를 만들 수 있어요.', [
+      { text: '취소', style: 'cancel' },
+      { text: '목표 종료', style: 'destructive', onPress: () => void handleStopGoal() },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.header}>
@@ -140,6 +167,8 @@ export default function GoalScreen() {
             goalType={activeGoal.goalType}
             rate={currentGoal?.progress.rate ?? 0}
             targetDistance={activeGoal.targetDistance}
+            isStopping={isSaving}
+            onStop={confirmStopGoal}
           />
         ) : null}
 
@@ -265,12 +294,16 @@ function CurrentGoalCard({
   goalType,
   rate,
   targetDistance,
+  isStopping,
+  onStop,
 }: {
   distance: number;
   endDate: string;
   goalType: GoalType;
   rate: number;
   targetDistance: number;
+  isStopping: boolean;
+  onStop: () => void;
 }) {
   const safeRate = Math.max(0, Math.min(100, rate));
 
@@ -293,6 +326,20 @@ function CurrentGoalCard({
       <Text style={styles.currentFootnote}>
         {'진행 중인 목표를 마친 뒤 새 목표를 설정할 수 있어요.'}
       </Text>
+      <Pressable
+        disabled={isStopping}
+        onPress={onStop}
+        style={({ pressed }) => [
+          styles.stopButton,
+          pressed && styles.pressed,
+          isStopping && styles.disabled,
+        ]}>
+        {isStopping ? (
+          <ActivityIndicator color="#D33D34" />
+        ) : (
+          <Text style={styles.stopButtonText}>{'현재 목표 종료'}</Text>
+        )}
+      </Pressable>
     </View>
   );
 }

@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInRight } from 'react-native-reanimated';
 
 import { getApiErrorMessage } from '@/services/api/errors';
 
@@ -411,7 +412,10 @@ export function AccountRecoveryScreen({
           </View>
 
           {mode === 'find-id' ? (
-            <View style={styles.form}>
+            <Animated.View
+              entering={FadeInRight.duration(180)}
+              key="find-id-form"
+              style={styles.form}>
               <Text style={styles.description}>
                 가입 시 등록한 전화번호로 인증하면 아이디를 확인할 수
                 있어요.
@@ -468,9 +472,12 @@ export function AccountRecoveryScreen({
               ) : null}
 
               <Feedback message={formError ?? undefined} />
-            </View>
+            </Animated.View>
           ) : (
-            <View style={styles.form}>
+            <Animated.View
+              entering={FadeInRight.duration(180)}
+              key="reset-password-form"
+              style={styles.form}>
               <Text style={styles.description}>
                 아이디와 가입 시 등록한 전화번호를 확인한 후 인증번호를
                 보내드려요.
@@ -621,7 +628,7 @@ export function AccountRecoveryScreen({
               ) : null}
 
               <Feedback message={formError ?? undefined} />
-            </View>
+            </Animated.View>
           )}
 
           <Pressable

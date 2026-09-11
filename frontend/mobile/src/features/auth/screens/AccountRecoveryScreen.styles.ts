@@ -23,8 +23,8 @@ export const styles = StyleSheet.create({
   },
   title: {
     color: '#0A145A',
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '900',
   },
   tabs: {
     flexDirection: 'row',
