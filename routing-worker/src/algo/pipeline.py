@@ -44,7 +44,7 @@ def recommend(G, idx, route_type, start, target_km, end=None, vias=None,
         cands = generate_candidates(G, idx, mode, start, target_m,
                                     end=end, n_directions=n_directions,
                                     weights=weights, requirements=requirements)
-
+    
     for c in cands:
         
         # 경사 (DEM)

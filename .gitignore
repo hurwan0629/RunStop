@@ -351,3 +351,6 @@ predictions/
 *.pid.lock
 
 .history/
+
+LightGBM 사용 방법.md
+Runstop AI 적용 방향 정리.md

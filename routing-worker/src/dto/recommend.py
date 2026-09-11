@@ -11,6 +11,7 @@ class ElementConditionsDTO(BaseModel):
 
 
 # 요청 DTO
+
 class RouteRecommendRequestDTO(BaseModel):
     routeType: Literal["LOOP", "ROUND_TRIP", "ONE_WAY"]
     startPoint: CoordinateDTO
