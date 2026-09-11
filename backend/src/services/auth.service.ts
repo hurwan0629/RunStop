@@ -376,7 +376,7 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
     });
   }
 
-  // 사용자 로그인 아이디로 
+  // 사용자 로그인 아이디로 탐색해보기
   const [loginIdUser, phoneUser] = await Promise.all([
     findUserByLoginId(signupDto.loginId),
     findUserByPhone(signupDto.phone),
@@ -402,8 +402,10 @@ export async function signupUser(signupDto: SignupDTO): Promise<AuthResponseDTO>
     });
   }
 
+
   const passwordHash = await hashPassword(signupDto.password);
 
+  // 사용자 추가하기
   const createdUser = await withTransaction(async (client) => {
     const user = await createUser(
       {
@@ -571,7 +573,10 @@ export async function validateAccessTokenUser(userIdx: number): Promise<Authenti
     });
   }
 
-  if (user.status === "SUSPENDED" && isSuspendedUntilActive(user.suspendedUntil)) {
+  if (
+    user.status === "SUSPENDED" &&
+    (user.suspendedUntil === null || isSuspendedUntilActive(user.suspendedUntil))
+  ) {
     throw new ApiError({
       status: 423,
       code: "SUSPENDED_USER",

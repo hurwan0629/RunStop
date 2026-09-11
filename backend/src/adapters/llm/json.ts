@@ -44,6 +44,16 @@ function normalizeWeights(value: unknown): Record<string, number> {
   return out;
 }
 
+function normalizeRequirements(value: unknown): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  for (const [key, raw] of Object.entries(asRecord(value))) {
+    if (typeof raw === "boolean") {
+      out[key] = raw;
+    }
+  }
+  return out;
+}
+
 export function normalizeRouteConditionJson(value: unknown): ParsedRouteConditions {
   const raw = asRecord(value);
   const elementConditions = asRecord(raw.elementConditions);
@@ -51,7 +61,7 @@ export function normalizeRouteConditionJson(value: unknown): ParsedRouteConditio
 
   return {
     weights: normalizeWeights(source.weights),
-    requirements: asRecord(source.requirements),
+    requirements: normalizeRequirements(source.requirements),
     raw,
   };
 }

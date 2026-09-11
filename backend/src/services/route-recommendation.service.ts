@@ -127,7 +127,7 @@ async function applyLlmRouteConditions(dto: RouteRequestDTO): Promise<RouteReque
  */
 export async function recommendRoutes(
   userIdx: number,
-  dto: RouteRequestDTO,
+  dto: RouteRequestDTO, // /api/routes/recommend에 대한 body DTO를 그대로 받음
 ): Promise<RouteRecommendResponseDTO> {
   logger.info({
     serviceName: "routes",
@@ -151,11 +151,13 @@ export async function recommendRoutes(
   try {
     logger.info({ serviceName: "routes", action: "recommendRoutes", userIdx }, "service:worker_request:start");
 
+    // input = dto/route/worker-route-request.dto.ts WorkerRouteRequestDTO
+    // output = dto/route/worker-route-response.dto.ts WorkerRouterResponseDTO
     workerResponse = await requestRouteRecommendations({
       startPoint: routeRequest.startPoint,
       waypoints: routeRequest.waypoints,
       endPoint,
-      isRoundTrip: routeRequest.endPoint === undefined,
+      routeType: dto.routeType,
       prompt: routeRequest.prompt,
       elementConditions: routeRequest.elementConditions,
       maxCandidates: 3,
@@ -172,9 +174,14 @@ export async function recommendRoutes(
     throw error;
   }
 
-  // // // // // // // // // // // // // // // // //
-  //       3. 요청과 추천 결과를 DB에 저장합니다.      //
-  // // // // // // // // // // // // // // // // //
+
+  // // // // // // // // // // // // // // // // // // // // // // // // // // 
+  // //               [Database] 사용자 요청부터 응답 결과까지 저장            // //
+  // // // // // // // // // // // // // // // // // // // // // // // // // // 
+  // 워커로부터 응답이 문제 없이 받아졋다면 그대로 다음 3각지 요소를 저장합니다.
+  // 1. 사용자 요청
+  // 2. 사용자 요청에 포함된 주요 route_points
+  // 3. 파이썬 워커의 응답
   const saved = await withTransaction(async (client) => {
     const savedRouteRequest = await createRouteRequest({
       userIdx,

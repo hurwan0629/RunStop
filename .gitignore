@@ -87,6 +87,11 @@ htmlcov/
 
 .cache/
 
+*.pkl
+routes_map.html
+map_*.html
+.venv/
+
 
 # =========================================================
 # Python Virtual Environment
@@ -318,6 +323,8 @@ volumes/
 # =========================================================
 
 storage/
+!frontend/mobile/src/storage/
+!frontend/mobile/src/storage/**
 uploads/
 downloads/
 

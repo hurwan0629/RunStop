@@ -6,7 +6,9 @@ import type { WorkerRouteCandidateDTO } from "../dto/worker/worker-route-respons
 type QueryClient = Pool | PoolClient;
 
 export type RouteRecommendationRow = {
+  // route_recommendation.idx
   idx: number;
+  // 
   routeRequestIdx: number;
   name: string;
   score: number | null;
@@ -82,8 +84,8 @@ function parseLineStringGeoJson(value: unknown): RouteCoordinateDTO[] {
  * 워커가 생성한 경로 추천 후보를 추가합니다.
  */
 export async function createRouteRecommendations(
-  routeRequestIdx: number,
-  candidates: WorkerRouteCandidateDTO[],
+  routeRequestIdx: number,  // 사용자가 요청한 데이터 idx
+  candidates: WorkerRouteCandidateDTO[],  // 워커가 응답하는 정보
   client?: QueryClient,
 ): Promise<RouteRecommendationRow[]> {
   const created: RouteRecommendationRow[] = [];

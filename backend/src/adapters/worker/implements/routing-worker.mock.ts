@@ -1,5 +1,9 @@
 import type { WorkerRouteRequestDTO } from "../../../dto/worker/worker-route-request.dto.js";
-import type { WorkerRouteResponseDTO } from "../../../dto/worker/worker-route-response.dto.js";
+import type {
+  WorkerRouteCandidateDTO,
+  WorkerRoutePointDTO,
+  WorkerRouteResponseDTO,
+} from "../../../dto/worker/worker-route-response.dto.js";
 import type { RouteWorkerClient } from "../types.js";
 
 export class MockRouteWorkerClient implements RouteWorkerClient {
@@ -8,26 +12,25 @@ export class MockRouteWorkerClient implements RouteWorkerClient {
   }
 
   async requestRouteRecommendations(input: WorkerRouteRequestDTO): Promise<WorkerRouteResponseDTO> {
-    const lat = input.startPoint.lat;
-    const lng = input.startPoint.lng;
-    const endPoint = input.endPoint;
+    const startPoint = input.startPoint;
+    const endPoint = input.endPoint ?? input.startPoint;
     const targetDistance = Number(input.elementConditions.targetDistance ?? 5000);
     const fallbackMiddlePoint = {
-      lat: (lat + endPoint.lat) / 2 + 0.002,
-      lng: (lng + endPoint.lng) / 2 + 0.002,
+      lat: (startPoint.lat + endPoint.lat) / 2 + 0.002,
+      lng: (startPoint.lng + endPoint.lng) / 2 + 0.002,
     };
     const path = [
-      input.startPoint,
+      startPoint,
       ...input.waypoints,
       ...(input.waypoints.length === 0 ? [fallbackMiddlePoint] : []),
       endPoint,
     ];
-    const points = [
+    const points: WorkerRoutePointDTO[] = [
       {
         sequence: 0,
-        pointType: "START" as const,
-        lat,
-        lng,
+        pointType: "START",
+        lat: startPoint.lat,
+        lng: startPoint.lng,
         title: "출발지",
       },
       ...input.waypoints.map((waypoint, index) => ({
@@ -39,10 +42,10 @@ export class MockRouteWorkerClient implements RouteWorkerClient {
       })),
       {
         sequence: input.waypoints.length + 1,
-        pointType: "END" as const,
+        pointType: "END",
         lat: endPoint.lat,
         lng: endPoint.lng,
-        title: input.isRoundTrip ? "도착지(출발지)" : "도착지",
+        title: input.routeType === "ROUND_TRIP" ? "도착지(출발지)" : "도착지",
       },
     ];
     const makeCandidate = (
@@ -51,7 +54,7 @@ export class MockRouteWorkerClient implements RouteWorkerClient {
       score: number,
       extraDistance: number,
       middleOffset: number,
-    ) => ({
+    ): WorkerRouteCandidateDTO => ({
       name,
       score,
       path: path.map((point, pointIndex) => {

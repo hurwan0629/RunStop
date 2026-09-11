@@ -10,9 +10,13 @@ import type { RouteWorkerClient } from "../types.js";
 export class HttpRouteWorkerClient implements RouteWorkerClient {
   async checkHealth(): Promise<{ ok: boolean }> {
     const response = await fetch(new URL("/health", env.WORKER_URL));
-    return { ok: response.ok };
+
+    return {
+      ok: response.ok,
+    };
   }
 
+  // 데이터 포스트로 넣기
   async requestRouteRecommendations(input: WorkerRouteRequestDTO): Promise<WorkerRouteResponseDTO> {
     const response = await fetch(new URL("/routes/recommend", env.WORKER_URL), {
       method: "POST",

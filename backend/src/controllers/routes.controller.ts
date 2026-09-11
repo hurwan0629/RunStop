@@ -47,6 +47,8 @@ export async function recommendRoutes(req: Request, res: Response, next: NextFun
     });
   }
 
+  // 경로 요청 데이터와 함께 이를 userIdx와 함께 묶어서 생성 후 DB에 저장하는 서비스 계층 route-recommendation.service
+  // 여기에서 routeRequestSchema가 파이썬에 보내질 WorkerRouteRequestDTO 형태로 재구성되어서 보내짐.
   const result = await recommendRoutesService(userIdx, parseResult.data);
 
   res.json({
@@ -93,6 +95,7 @@ export async function selectRouteRecommendation(req: Request, res: Response, nex
 
 export async function getRouteDetail(req: Request, res: Response, next: NextFunction): Promise<void> {
   const userIdx = getAuthenticatedUserIdx(req);
+  // routeDetailParamsScehema 라는 러닝 경로 상세 조회 api의 파라미터 dto
   const paramsResult = routeDetailParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
@@ -104,6 +107,11 @@ export async function getRouteDetail(req: Request, res: Response, next: NextFunc
     });
   }
 
+  // route_recommendations.idx에 대한 
+  // route_recommendation [대표 상태들 + linestring]
+  // route_points [지나가는 주요 지점들]
+  // route_bookmarks [북마크 여부]
+  // 응답 DTO인 routeDetailSchema에 맞춰주는 데이터
   const result = await getRouteDetailService(userIdx, paramsResult.data.routeIdx);
 
   res.json({
