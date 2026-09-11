@@ -24,6 +24,7 @@ export class LocalLlmClient implements RouteConditionLlmClient {
         model: this.model,
         prompt: `${ROUTE_CONDITION_SYSTEM_PROMPT}\n\n${buildRouteConditionPrompt(input)}`,
         stream: false,
+<<<<<<< HEAD
 
         think: false,
 
@@ -66,6 +67,10 @@ export class LocalLlmClient implements RouteConditionLlmClient {
       //   stream: false,
       //   format: "json",
       // }),
+=======
+        format: "json",
+      }),
+>>>>>>> 6617e8543fc403ac9a5278ab5a1678198a005ffd
     });
 
     if (!response.ok) {
@@ -81,4 +86,7 @@ export class LocalLlmClient implements RouteConditionLlmClient {
     return normalizeRouteConditionText(json.response ?? JSON.stringify(json));
   }
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6617e8543fc403ac9a5278ab5a1678198a005ffd

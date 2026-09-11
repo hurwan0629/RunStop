@@ -1,5 +1,5 @@
 /* eslint-disable */
-import * as Router from 'expo-router';
+import Router from 'expo-router';
 
 export * from 'expo-router';
 

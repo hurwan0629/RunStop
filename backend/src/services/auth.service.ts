@@ -1,5 +1,5 @@
-import * as bcrypt from "bcrypt";
-import * as jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
 import type { AuthResponseDTO } from "../dto/auth/auth-response.dto.js";
 import type { LoginDTO } from "../dto/auth/login.dto.js";
