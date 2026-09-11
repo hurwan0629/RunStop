@@ -33,8 +33,10 @@ export class LocalLlmClient implements RouteConditionLlmClient {
               properties: {
                 distance: { type: "integer", minimum: 1, maximum: 5 },
                 elevation: { type: "integer", minimum: 1, maximum: 5 },
+                safety: { type: "integer", minimum: 1, maximum: 5 },
                 toilet: { type: "integer", minimum: 1, maximum: 5 },
                 store: { type: "integer", minimum: 1, maximum: 5 },
+                nature: { type: "integer", minimum: 1, maximum: 5 },
                 park: { type: "integer", minimum: 1, maximum: 5 },
                 night: { type: "integer", minimum: 1, maximum: 5 },
                 surface: { type: "integer", minimum: 1, maximum: 5 },
@@ -45,6 +47,16 @@ export class LocalLlmClient implements RouteConditionLlmClient {
             },
             requirements: {
               type: "object",
+              properties: {
+                toilet: { type: "boolean" },
+                store: { type: "boolean" },
+                park: { type: "boolean" },
+                no_stairs: { type: "boolean" },
+                max_slope_pct: { type: "number" },
+                max_slope: { type: "number" },
+                maxSlope: { type: "number" },
+              },
+              additionalProperties: false,
             },
           },
           required: ["weights", "requirements"],

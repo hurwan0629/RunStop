@@ -21,11 +21,16 @@ export function registerDevTestRouter(router: Router): void {
     // 기존 요청 객체를 기준으로 두고, prompt가 있을 때만 LLM 결과를 반영합니다.
     let routeRequest = parseResult.data;
 
+    // 프롬프트가 있을 경우에만 프롬프트 파싱
     if (routeRequest.prompt) {
       // 자연어 prompt를 Python worker가 이해하는 weights / requirements 후보로 변환합니다.
       const parsedConditions = await getRouteConditionLlmClient().parseRouteConditions({
+        // 프롬프트
         prompt: routeRequest.prompt,
+        // 총 거리
         targetDistance: routeRequest.elementConditions.targetDistance,
+        // 가중치
+        // 필수로 들어갔으면 하는 내용들
       });
 
       // LLM 결과가 있으면 기존 weights / requirements와 병합하지 않고 교체합니다.
@@ -33,8 +38,14 @@ export function registerDevTestRouter(router: Router): void {
         ...routeRequest,
         elementConditions: {
           ...routeRequest.elementConditions,
-          weights: parsedConditions.weights,
-          requirements: parsedConditions.requirements,
+          weights: {
+            ...parsedConditions.weights,
+            ...routeRequest.elementConditions.weights,
+          },
+          requirements: {
+            ...parsedConditions.requirements,
+            ...routeRequest.elementConditions.requirements,
+          },
         },
       };
     }

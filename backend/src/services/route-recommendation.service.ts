@@ -102,11 +102,15 @@ function ensureCandidatePoints(candidate: WorkerRouteCandidateDTO) {
   ];
 }
 
+/**
+ * llm을 이용하여 python fastapi에 넣을 response 형태를 만들어줍니다.
+ */
 async function applyLlmRouteConditions(dto: RouteRequestDTO): Promise<RouteRequestDTO> {
   if (!dto.prompt) {
     return dto;
   }
 
+  // lmm에 
   const parsedConditions = await getRouteConditionLlmClient().parseRouteConditions({
     prompt: dto.prompt,
     targetDistance: dto.elementConditions.targetDistance,
@@ -114,10 +118,21 @@ async function applyLlmRouteConditions(dto: RouteRequestDTO): Promise<RouteReque
 
   return {
     ...dto,
+    // 기존 데이터에 elementConditions를 넣어줍니다.
     elementConditions: {
+      // 기존의 데이터를 넣고
       ...dto.elementConditions,
-      weights: parsedConditions.weights,
-      requirements: parsedConditions.requirements,
+      // weight를 덮어씌워준다음에
+      weights: {
+        ...parsedConditions.weights,
+        // 기존 사용자가 넣은 데이터를 넣어줍ㄴ디ㅣㅏ.
+        ...dto.elementConditions.weights,
+      },
+      requirements: {
+        ...parsedConditions.requirements,
+        // 기존 사용자가 넣은 데이터를 덮어씌워줍니다.
+        ...dto.elementConditions.requirements,
+      },
     },
   };
 }

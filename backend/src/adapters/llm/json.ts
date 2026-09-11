@@ -1,5 +1,9 @@
 import type { ParsedRouteConditions } from "./types.js";
 import { ApiError } from "../../middleware/error.js";
+import {
+  sanitizeRouteRequirements,
+  sanitizeRouteWeights,
+} from "../../dto/route/route-request.dto.js";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -33,35 +37,14 @@ function parseJsonObject(text: string): Record<string, unknown> {
   }
 }
 
-function normalizeWeights(value: unknown): Record<string, number> {
-  const out: Record<string, number> = {};
-  for (const [key, raw] of Object.entries(asRecord(value))) {
-    const numberValue = Number(raw);
-    if (Number.isFinite(numberValue)) {
-      out[key] = Math.min(5, Math.max(1, Math.round(numberValue)));
-    }
-  }
-  return out;
-}
-
-function normalizeRequirements(value: unknown): Record<string, boolean> {
-  const out: Record<string, boolean> = {};
-  for (const [key, raw] of Object.entries(asRecord(value))) {
-    if (typeof raw === "boolean") {
-      out[key] = raw;
-    }
-  }
-  return out;
-}
-
 export function normalizeRouteConditionJson(value: unknown): ParsedRouteConditions {
   const raw = asRecord(value);
   const elementConditions = asRecord(raw.elementConditions);
   const source = Object.keys(elementConditions).length > 0 ? elementConditions : raw;
 
   return {
-    weights: normalizeWeights(source.weights),
-    requirements: normalizeRequirements(source.requirements),
+    weights: sanitizeRouteWeights(asRecord(source.weights)),
+    requirements: sanitizeRouteRequirements(asRecord(source.requirements)),
     raw,
   };
 }

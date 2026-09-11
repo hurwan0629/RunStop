@@ -3,6 +3,7 @@ import type {
   RouteConditionLlmClient,
   RouteConditionParseInput,
 } from "../types.js";
+import type { RouteRequirementValue } from "../../../dto/route/route-request.dto.js";
 
 function includesAny(text: string, words: string[]): boolean {
   return words.some((word) => text.includes(word));
@@ -12,7 +13,7 @@ export class MockLlmClient implements RouteConditionLlmClient {
   async parseRouteConditions(input: RouteConditionParseInput): Promise<ParsedRouteConditions> {
     const text = input.prompt.toLowerCase();
     const weights: Record<string, number> = {};
-    const requirements: Record<string, boolean> = {};
+    const requirements: Record<string, RouteRequirementValue> = {};
 
     if (includesAny(text, ["화장실", "toilet"])) {
       weights.toilet = 5;

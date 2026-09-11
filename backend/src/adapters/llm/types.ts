@@ -1,3 +1,5 @@
+import type { RouteRequirementValue } from "../../dto/route/route-request.dto.js";
+
 export type LlmMode = "mock" | "api" | "local";
 
 /**
@@ -7,8 +9,6 @@ export type RouteConditionParseInput = {
   prompt: string;
   routeType?: "LOOP" | "ONE_WAY" | "ROUND_TRIP";
   targetDistance?: number;
-  weights?: Record<string, number>;
-  requirements?: Record<string, boolean>;
 };
 
 /**
@@ -18,7 +18,7 @@ export type ParsedRouteConditions = {
   // 가중치
   weights: Record<string, number>;
   // 요구사항
-  requirements: Record<string, boolean>;
+  requirements: Record<string, RouteRequirementValue>;
   // 일반 사용자 프롬프트
   raw?: Record<string, unknown>;
 };
