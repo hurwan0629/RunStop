@@ -13,6 +13,7 @@ import {
   recommendRoutes as recommendRoutesService,
   selectRouteRecommendation as selectRouteRecommendationService,
 } from "../services/route-recommendation.service.js";
+import { getRouteConditionLlmClient } from "../adapters/llm/llm.client.js";
 
 const routeRequestParamsSchema = z.object({
   requestIdx: z.coerce.number().int().positive(),
@@ -34,6 +35,25 @@ function getAuthenticatedUserIdx(req: Request): number {
   return req.user.idx;
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function asNumberRecord(value: unknown): Record<string, number> {
+  const out: Record<string, number> = {};
+
+  for (const [key, raw] of Object.entries(asRecord(value))) {
+    const numberValue = Number(raw);
+    if (Number.isFinite(numberValue)) {
+      out[key] = numberValue;
+    }
+  }
+
+  return out;
+}
+
 /**
  * 경로 추천 요청을 생성하고 워커의 후보 경로를 저장합니다.
  */
@@ -53,8 +73,45 @@ export async function recommendRoutes(req: Request, res: Response, next: NextFun
     });
   }
 
+  // [2026-09-11 09:11:19] 기존 요청을 그대로 받아주기
+  let routeRequest = parseResult.data;
+
+  // 요청에 prompt가 있으면 만들어둔 llm을 이용하셔 weight, requirements, raw? 를 반환해주기
+  if (routeRequest.prompt) {
+    // 한번 올바른 타입으로 확인해주기 (typecheck용)
+    const weights = asNumberRecord(routeRequest.elementConditions.weights);
+    const requirements = asRecord(routeRequest.elementConditions.requirements);
+
+    // llmClient 받아서 받은 프롬프트 및 기타 데이터 변형하여 받아주기
+    const parsedConditions = await getRouteConditionLlmClient().parseRouteConditions({
+      prompt: routeRequest.prompt,
+      targetDistance: routeRequest.elementConditions.targetDistance,
+      weights,
+      requirements,
+    });
+
+    // 실제로 사용할 요청 객체를 만들어주기
+    routeRequest = {
+      // 기존 요청값을 그대로 먼저 사용
+      ...routeRequest,
+      // 거기에 추가로 사용할 요청 가중치들 다시 받아주기
+      // 덮어 씌워진 부분은 아래에 다시 풀어주기.
+      elementConditions: {
+        ...routeRequest.elementConditions,
+        weights: {
+          ...weights,
+          ...parsedConditions.weights,
+        },
+        requirements: {
+          ...requirements,
+          ...parsedConditions.requirements,
+        },
+      },
+    };
+  }
+
   // 경로 요청 데이터와 함께 이를 userIdx와 함께 묶어서 생성 후 DB에 저장하는 서비스 계층 route-recommendation.service
-  const result = await recommendRoutesService(userIdx, parseResult.data);
+  const result = await recommendRoutesService(userIdx, routeRequest);
 
   res.json({
     success: true,
