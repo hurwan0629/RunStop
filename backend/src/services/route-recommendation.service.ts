@@ -1,4 +1,5 @@
-﻿import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
+import { getRouteConditionLlmClient } from "../adapters/llm/llm.client.js";
+import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
 import type { RouteDetailDTO } from "../dto/route/route-detail.dto.js";
 import type {
   RouteRecommendResponseDTO,
@@ -101,6 +102,26 @@ function ensureCandidatePoints(candidate: WorkerRouteCandidateDTO) {
   ];
 }
 
+async function applyLlmRouteConditions(dto: RouteRequestDTO): Promise<RouteRequestDTO> {
+  if (!dto.prompt) {
+    return dto;
+  }
+
+  const parsedConditions = await getRouteConditionLlmClient().parseRouteConditions({
+    prompt: dto.prompt,
+    targetDistance: dto.elementConditions.targetDistance,
+  });
+
+  return {
+    ...dto,
+    elementConditions: {
+      ...dto.elementConditions,
+      weights: parsedConditions.weights,
+      requirements: parsedConditions.requirements,
+    },
+  };
+}
+
 /**
  * 경로 요청을 생성하고 routing-worker를 호출한 뒤 추천 후보를 저장합니다.
  */
@@ -116,21 +137,27 @@ export async function recommendRoutes(
     hasEndPoint: dto.endPoint !== undefined,
   }, "service:start");
 
-  // 워커([2026-09-02 20:12:24] 기준 파이썬 fastapi)에 시작 공간, 프롬프트, 추출된 데이터, 출력해야할 총 경로 개수를 출력합니다.
-  const endPoint = dto.endPoint ?? dto.startPoint;
+  // // // // // // // // // // // // // // // // //
+  //       1. LLM으로 요청 조건을 보강합니다.         //
+  // // // // // // // // // // // // // // // // //
+  const routeRequest = await applyLlmRouteConditions(dto);
 
-  let workerResponse;
+  // // // // // // // // // // // // // // // // //
+  //       2. Python routing-worker를 호출합니다.   //
+  // // // // // // // // // // // // // // // // //
+  const endPoint = routeRequest.endPoint ?? routeRequest.startPoint;
+  let workerResponse: Awaited<ReturnType<typeof requestRouteRecommendations>>;
 
   try {
     logger.info({ serviceName: "routes", action: "recommendRoutes", userIdx }, "service:worker_request:start");
 
     workerResponse = await requestRouteRecommendations({
-      startPoint: dto.startPoint,
-      waypoints: dto.waypoints,
+      startPoint: routeRequest.startPoint,
+      waypoints: routeRequest.waypoints,
       endPoint,
-      isRoundTrip: dto.endPoint === undefined,
-      prompt: dto.prompt,
-      elementConditions: dto.elementConditions,
+      isRoundTrip: routeRequest.endPoint === undefined,
+      prompt: routeRequest.prompt,
+      elementConditions: routeRequest.elementConditions,
       maxCandidates: 3,
     });
 
@@ -145,23 +172,20 @@ export async function recommendRoutes(
     throw error;
   }
 
-  // 워커로부터 응답이 문제 없이 받아졋다면 그대로 다음 3각지 요소를 저장합니다.
-  // 1. 사용자 요청
-  // 2. 사용자 요청에 포함된 주요 route_points
-  // 3. 파이썬 워커의 응답
+  // // // // // // // // // // // // // // // // //
+  //       3. 요청과 추천 결과를 DB에 저장합니다.      //
+  // // // // // // // // // // // // // // // // //
   const saved = await withTransaction(async (client) => {
-    // 사용자 요청 저장
-    const routeRequest = await createRouteRequest({
+    const savedRouteRequest = await createRouteRequest({
       userIdx,
-      prompt: dto.prompt,
-      elementConditions: dto.elementConditions,
+      prompt: routeRequest.prompt,
+      elementConditions: routeRequest.elementConditions,
     }, client);
 
-    // 
-    await createRouteRequestPoints(routeRequest.idx, buildRouteRequestPoints(dto), client);
+    await createRouteRequestPoints(savedRouteRequest.idx, buildRouteRequestPoints(routeRequest), client);
 
     const recommendations = await createRouteRecommendations(
-      routeRequest.idx,
+      savedRouteRequest.idx,
       workerResponse.candidates,
       client,
     );
@@ -177,7 +201,7 @@ export async function recommendRoutes(
     }
 
     return {
-      routeRequest,
+      routeRequest: savedRouteRequest,
       recommendations,
     };
   });
@@ -212,7 +236,6 @@ export async function selectRouteRecommendation(
     recommendationIdx: dto.recommendationIdx,
   }, "service:start");
 
-  // 해당 requestIdx가 사용자의 requestIdx 맞는지 확인
   const routeRequest = await findRouteRequestByIdxAndUserIdx(routeRequestIdx, userIdx);
 
   if (!routeRequest) {
@@ -241,7 +264,6 @@ export async function selectRouteRecommendation(
     });
   }
 
-  // route_recommendation과 route_requests.idx를 이용하여 데이터 찾기
   const recommendation = await findRouteRecommendationByIdxAndRequestIdx(
     dto.recommendationIdx,
     routeRequestIdx,
@@ -263,7 +285,6 @@ export async function selectRouteRecommendation(
     });
   }
 
-  // route_requests.selected_recommendations_idx 를 수정해줍니다.
   const updated = await selectRecommendationForRequest(routeRequestIdx, dto.recommendationIdx);
 
   if (!updated) {
@@ -305,12 +326,6 @@ export async function getRouteDetail(
 ): Promise<RouteDetailDTO> {
   logger.info({ serviceName: "routes", action: "getRouteDetail", userIdx, routeRecommendationIdx }, "service:start");
 
-  // 선택한 추천 코스에 대한 상세 데이터를 전달해줍니다.
-  // 경로에대한 
-  // route_recommendations
-  // route_point
-  // route_bookmark
-  // 를 응답해줍니다.
   const [route, points, isBookmarked] = await Promise.all([
     findRouteDetailByIdx(routeRecommendationIdx),
     findRoutePointsByRecommendationIdx(routeRecommendationIdx),

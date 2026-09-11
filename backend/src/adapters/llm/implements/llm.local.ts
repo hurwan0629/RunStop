@@ -24,8 +24,48 @@ export class LocalLlmClient implements RouteConditionLlmClient {
         model: this.model,
         prompt: `${ROUTE_CONDITION_SYSTEM_PROMPT}\n\n${buildRouteConditionPrompt(input)}`,
         stream: false,
-        format: "json",
+
+        think: false,
+
+        format: {
+          type: "object",
+          properties: {
+            weights: {
+                type: "object",
+                properties: {
+                  distance: { type: "integer", minimum: 1, maximum: 5 },
+                  elevation: { type: "integer", minimum: 1, maximum: 5 },
+                  toilet: { type: "integer", minimum: 1, maximum: 5 },
+                  store: { type: "integer", minimum: 1, maximum: 5 },
+                  park: { type: "integer", minimum: 1, maximum: 5 },
+                  night: { type: "integer", minimum: 1, maximum: 5 },
+                  surface: { type: "integer", minimum: 1, maximum: 5 },
+                  flow: { type: "integer", minimum: 1, maximum: 5 },
+                  overlap: { type: "integer", minimum: 1, maximum: 5 },
+                },
+                additionalProperties: false,
+            },
+            requirements: {
+              type: "object",
+            },
+          },
+          required: ["weights", "requirements"],
+          additionalProperties: false,
+        },
+
+        options: {
+          temperature: 0,
+        },
       }),
+      
+      
+      // 초기 body 요구사항
+      // JSON.stringify({
+      //   model: this.model,
+      //   prompt: `${ROUTE_CONDITION_SYSTEM_PROMPT}\n\n${buildRouteConditionPrompt(input)}`,
+      //   stream: false,
+      //   format: "json",
+      // }),
     });
 
     if (!response.ok) {
@@ -41,3 +81,4 @@ export class LocalLlmClient implements RouteConditionLlmClient {
     return normalizeRouteConditionText(json.response ?? JSON.stringify(json));
   }
 }
+

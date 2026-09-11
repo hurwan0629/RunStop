@@ -9,6 +9,7 @@ import { registerRunningRoutes } from "./routes/running.routes.js";
 import { registerUsersRoutes } from "./routes/users.routes.js";
 import { createRequestLogger } from "./logging/logger.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
+import { registerDevTestRouter } from "./routes/dev-test.routes.js";
 
 /**
  * 익스프레스 애플리케이션 인스턴스를 생성하고 기본 설정을 구성합니다.
@@ -39,6 +40,9 @@ export function createApp() {
   registerRouteRecommendationRoutes(router);
   registerBookmarksRoutes(router);
   registerInquiriesRoutes(router);
+
+  // dev용
+  registerDevTestRouter(router)
 
   app.get("/health", (req, res) => {
     res.json({
