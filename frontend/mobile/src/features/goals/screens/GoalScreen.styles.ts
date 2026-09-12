@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   header: {
-    minHeight: 96,
+    minHeight: 84,
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomColor: '#F3F4F6',
@@ -31,8 +31,8 @@ export const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     paddingHorizontal: 28,
-    paddingTop: 42,
-    paddingBottom: 52,
+    paddingTop: 28,
+    paddingBottom: 40,
   },
   loader: {
     marginTop: 40,
@@ -46,23 +46,23 @@ export const styles = StyleSheet.create({
   typeRow: {
     flexDirection: 'row',
     gap: 0,
-    borderRadius: 20,
+    borderRadius: 16,
     backgroundColor: colors.inactive,
-    padding: 6,
+    padding: 4,
   },
   typeButton: {
     flex: 1,
-    minHeight: 58,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 15,
+    borderRadius: 12,
   },
   typeButtonActive: {
     backgroundColor: colors.navy,
   },
   typeButtonText: {
     color: colors.textSub,
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '800',
   },
   typeButtonTextActive: {
@@ -70,39 +70,39 @@ export const styles = StyleSheet.create({
   },
   distanceLabel: {
     color: colors.muted,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
-    marginTop: 40,
-    marginBottom: 16,
+    marginTop: 28,
+    marginBottom: 10,
   },
   distanceInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 116,
-    borderRadius: 24,
+    minHeight: 84,
+    borderRadius: 18,
     backgroundColor: colors.cardBg,
     justifyContent: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 20
   },
   distanceInput: {
     flex: 1,
     color: colors.navy,
-    fontSize: 48,
+    fontSize: 34,
     fontWeight: '900',
     paddingHorizontal: 0,
     paddingVertical: 6,
   },
   distanceUnit: {
     color: colors.muted,
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: '800',
   },
   quickLabel: {
     color: colors.muted,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
-    marginTop: 36,
-    marginBottom: 12,
+    marginTop: 26,
+    marginBottom: 10,
   },
   quickRow: {
     flexDirection: 'row',
@@ -110,10 +110,10 @@ export const styles = StyleSheet.create({
   },
   quickButton: {
     flex: 1,
-    minHeight: 68,
+    minHeight: 54,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 18,
+    borderRadius: 14,
     backgroundColor: colors.inactive,
   },
   quickButtonActive: {
@@ -121,7 +121,7 @@ export const styles = StyleSheet.create({
   },
   quickButtonText: {
     color: colors.navy,
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: '900',
   },
   quickButtonTextActive: {
@@ -146,16 +146,16 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   primaryButton: {
-    minHeight: 56,
+    minHeight: 54,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 22,
+    borderRadius: 14,
     backgroundColor: colors.navy,
-    marginTop: 38,
+    marginTop: 28,
   },
   primaryButtonText: {
     color: colors.lime,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
   },
   pressed: {

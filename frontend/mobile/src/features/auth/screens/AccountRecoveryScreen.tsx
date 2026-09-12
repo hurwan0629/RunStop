@@ -26,7 +26,7 @@ import { styles } from './AccountRecoveryScreen.styles';
 export type AccountRecoveryMode = 'find-id' | 'reset-password';
 
 interface AccountRecoveryScreenProps {
-  mode: AccountRecoveryMode;
+  initialMode?: AccountRecoveryMode;
 }
 
 type PendingAction =
@@ -65,9 +65,11 @@ function Feedback({
 }
 
 export function AccountRecoveryScreen({
-  mode,
+  initialMode = 'find-id',
 }: AccountRecoveryScreenProps) {
   const router = useRouter();
+
+  const [mode, setMode] = useState<AccountRecoveryMode>(initialMode);
 
   const [phone, setPhone] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -101,9 +103,7 @@ export function AccountRecoveryScreen({
       return;
     }
 
-    router.replace(
-      nextMode === 'find-id' ? '/find-id' : '/reset-password',
-    );
+    setMode(nextMode);
   };
 
   const resetVerificationState = () => {

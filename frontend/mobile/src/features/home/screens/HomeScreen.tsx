@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import {
   ActivityIndicator,
+  Image,
+  type ImageSourcePropType,
   Pressable,
   ScrollView,
   Text,
@@ -22,6 +24,12 @@ import { useAuth } from '@/providers/AuthProvider';
 import { getApiErrorMessage } from '@/services/api/errors';
 
 import { styles } from './HomeScreen.styles';
+
+const homeSectionIcons = {
+  goal: require('@/assets/images/homeSectionIcons/target.png'),
+  recentRunning: require('@/assets/images/homeSectionIcons/running.png'),
+  bookmarks: require('@/assets/images/homeSectionIcons/star.png'),
+};
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -149,6 +157,7 @@ export default function HomeScreen() {
         </View>
 
         <SectionHeader
+          icon={homeSectionIcons.goal}
           onPress={() => router.push('/profile/goals')}
           title="러닝 목표"
         />
@@ -176,6 +185,7 @@ export default function HomeScreen() {
         )}
 
         <SectionHeader
+          icon={homeSectionIcons.recentRunning}
           onPress={() => router.push('/records')}
           title="최근 러닝"
         />
@@ -209,6 +219,7 @@ export default function HomeScreen() {
         )}
 
         <SectionHeader
+          icon={homeSectionIcons.bookmarks}
           onPress={() => router.push('/profile/bookmarks')}
           title="즐겨찾기 코스"
         />
@@ -275,22 +286,30 @@ function DistanceCard({ label, meters }: { label: string; meters: number }) {
 }
 
 function SectionHeader({
+  icon,
   title,
   onPress,
 }: {
+  icon: ImageSourcePropType;
   title: string;
   onPress: () => void;
 }) {
   return (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <View style={styles.sectionTitleGroup}>
+        <Image
+          source={icon}
+          style={[styles.sectionIcon, { tintColor: '#04045E' }]}
+        />
+        <Text style={styles.sectionTitle}>{title}</Text>
+      </View>
+
       <Pressable accessibilityRole="button" onPress={onPress} hitSlop={8}>
-        <Text style={styles.moreText}>{'더보기'}</Text>
+        <Text style={styles.moreText}>더보기</Text>
       </Pressable>
     </View>
   );
 }
-
 function EmptyCard({
   title,
   description,

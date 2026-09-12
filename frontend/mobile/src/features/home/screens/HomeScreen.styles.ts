@@ -45,6 +45,16 @@ export const styles = StyleSheet.create({
     marginTop: 7,
     marginBottom: 20,
   },
+  sectionTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  sectionIcon: {
+    width: 19,
+    height: 19,
+    resizeMode: 'contain',
+  },
   heroCard: {
     backgroundColor: '#F8F9FF',
     borderWidth: 1,

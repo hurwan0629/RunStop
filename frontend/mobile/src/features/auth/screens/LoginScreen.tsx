@@ -148,11 +148,23 @@ export default function LoginScreen() {
               </Text>
             </Pressable>
             <Text style={styles.linkDivider}>{'|'}</Text>
-            <Pressable onPress={() => router.push('/find-id')}>
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/account-recovery',
+                  params: { mode: 'find-id' },
+                })
+              }>
               <Text style={styles.linkText}>{'아이디 찾기'}</Text>
             </Pressable>
             <Text style={styles.linkDivider}>{'|'}</Text>
-            <Pressable onPress={() => router.push('/reset-password')}>
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/account-recovery',
+                  params: { mode: 'reset-password' },
+                })
+              }>
               <Text style={styles.linkText}>{'비밀번호 찾기'}</Text>
             </Pressable>
           </View>
