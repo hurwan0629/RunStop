@@ -1,0 +1,232 @@
+import { StyleSheet } from 'react-native';
+
+/** 최종 디자인 적용 전, 페이스 분석 정보 구조를 확인하기 위한 기본 스타일입니다. */
+export const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    width: 32,
+    color: '#0A145A',
+    fontSize: 38,
+    lineHeight: 40,
+  },
+  screenTitle: {
+    color: '#0A145A',
+    fontSize: 23,
+    fontWeight: '800',
+    marginLeft: 8,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 48,
+  },
+  loader: {
+    marginTop: 50,
+  },
+  messageCard: {
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E5ED',
+    borderRadius: 14,
+    backgroundColor: '#F8F9FC',
+    padding: 28,
+  },
+  messageText: {
+    color: '#737B8D',
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  retryText: {
+    color: '#100078',
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 16,
+  },
+  bestCard: {
+    borderRadius: 18,
+    backgroundColor: '#100078',
+    padding: 22,
+  },
+  bestLabel: {
+    color: '#BFC4DD',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  bestValueRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginTop: 10,
+  },
+  bestValue: {
+    color: '#C8FF30',
+    fontSize: 36,
+    fontWeight: '900',
+  },
+  paceUnit: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    marginLeft: 6,
+    marginBottom: 6,
+  },
+  comparisonText: {
+    color: '#D8DBEA',
+    fontSize: 13,
+    marginTop: 14,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 30,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    color: '#0A145A',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  sectionSubtitle: {
+    color: '#9299A8',
+    fontSize: 12,
+  },
+  chartCard: {
+    borderWidth: 1,
+    borderColor: '#E3E6EF',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingTop: 18,
+    paddingBottom: 16,
+  },
+  chartRow: {
+    minHeight: 138,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  chartColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  chartPace: {
+    minHeight: 17,
+    color: '#596275',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  barArea: {
+    height: 98,
+    justifyContent: 'flex-end',
+    marginTop: 5,
+  },
+  chartBar: {
+    width: 14,
+    borderRadius: 7,
+    backgroundColor: '#100078',
+  },
+  emptyBar: {
+    backgroundColor: '#E4E7ED',
+  },
+  monthLabel: {
+    color: '#8D94A3',
+    fontSize: 11,
+    marginTop: 7,
+  },
+  chartHelp: {
+    color: '#9299A8',
+    fontSize: 11,
+    marginTop: 14,
+    textAlign: 'center',
+  },
+  segmentCard: {
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E3E6EF',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 18,
+  },
+  segmentRow: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  rowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEF0F4',
+  },
+  segmentDistance: {
+    color: '#0A145A',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  segmentPace: {
+    color: '#343B4D',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  segmentHelp: {
+    color: '#9299A8',
+    fontSize: 11,
+    lineHeight: 17,
+    paddingVertical: 14,
+  },
+  levelCard: {
+    borderWidth: 1,
+    borderColor: '#E3E6EF',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    padding: 18,
+  },
+  expText: {
+    color: '#0A145A',
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 18,
+  },
+  levelRow: {
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  levelDot: {
+    zIndex: 1,
+    width: 12,
+    height: 12,
+    borderWidth: 3,
+    borderColor: '#A7EF2A',
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF',
+  },
+  levelLine: {
+    position: 'absolute',
+    top: 25,
+    left: 5,
+    width: 2,
+    height: 30,
+    backgroundColor: '#E2E6D9',
+  },
+  levelText: {
+    color: '#343B4D',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 12,
+  },
+  levelHelp: {
+    color: '#9299A8',
+    fontSize: 11,
+    lineHeight: 17,
+    marginTop: 16,
+  },
+});

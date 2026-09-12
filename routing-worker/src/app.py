@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from .dto.recommend import RouteRecommendRequestDTO
 from .dto.parser import parse_node_request_to_python_recommendation, parse_python_recommendation_to_node_require
-from .algorithm.pipeline import recommend
-from .algorithm.graph import load_graph, grid_graph, NodeIndex
+from .algo.pipeline import recommend
+from .algo.utils.graph import load_graph, grid_graph, NodeIndex
 from pathlib import Path
 
-graphml = Path(__file__).parent / "algorithm" / "data" / "서울_보행네트워크.graphml"
+graphml = Path(__file__).parent / "algo" / "data" / "서울_보행네트워크.graphml"
 # 그래프 파일이 존재하면 
 if graphml.exists():
     # 그래프 도로망 데이터를 불러와주기
@@ -19,7 +19,6 @@ else:
 
 # G의 인덱스를 캐싱하여 (lat, lon)을 넣으면 가장 가까운 인덱스를 반환해주는 idx 노드 인덱스 객체를 가져와주기
 idx = NodeIndex(G)
-
 
 app = FastAPI()
 
