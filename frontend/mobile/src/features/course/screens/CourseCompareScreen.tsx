@@ -1,30 +1,64 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { mockCourseRecommendations } from '../mocks/mockRecommendations';
-import type { CourseRecommendationPreview } from '../types';
+import { useAuth } from '@/providers/AuthProvider';
+import { getApiErrorMessage } from '@/services/api/errors';
+
+import { selectCourse } from '../api/courseApi';
+import { useCourseDraft } from '../context/CourseDraftContext';
+import type { RouteRecommendation } from '../types';
 import { courseFlowStyles as styles } from './CourseFlow.styles';
 
-/** 추천된 세 코스를 비교하고 하나를 선택하는 4단계 화면입니다. */
 export default function CourseCompareScreen() {
   const router = useRouter();
-  const [selectedId, setSelectedId] = useState(
-    mockCourseRecommendations[0].id,
+  const { accessToken } = useAuth();
+  const { draft, recommendationResult } = useCourseDraft();
+  const recommendations = useMemo(
+    () => recommendationResult?.recommendations ?? [],
+    [recommendationResult],
   );
+  const [selectedId, setSelectedId] = useState<number | null>(
+    recommendations[0]?.idx ?? null,
+  );
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const selectedCourse = useMemo(
-    () =>
-      mockCourseRecommendations.find((course) => course.id === selectedId) ??
-      mockCourseRecommendations[0],
-    [selectedId],
+    () => recommendations.find((course) => course.idx === selectedId) ?? null,
+    [recommendations, selectedId],
   );
 
-  const openSelectedCourse = () => {
-    router.push({
-      pathname: '/course/[courseId]',
-      params: { courseId: selectedCourse.id },
-    });
+  const openSelectedCourse = async () => {
+    if (!accessToken || !recommendationResult || !selectedCourse) {
+      setErrorMessage('선택할 수 있는 코스가 없습니다.');
+      return;
+    }
+
+    setIsSelecting(true);
+    setErrorMessage('');
+
+    try {
+      await selectCourse(
+        accessToken,
+        recommendationResult.requestIdx,
+        selectedCourse.idx,
+      );
+      router.push({
+        pathname: '/course/[courseId]',
+        params: { courseId: String(selectedCourse.idx) },
+      });
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error));
+    } finally {
+      setIsSelecting(false);
+    }
   };
 
   return (
@@ -37,7 +71,7 @@ export default function CourseCompareScreen() {
           onPress={() => router.back()}>
           <Text style={styles.backButton}>{'‹'}</Text>
         </Pressable>
-        <Text style={styles.screenTitle}>{'코스 비교'}</Text>
+        <Text style={styles.screenTitle}>{'추천 코스 비교'}</Text>
         <View style={styles.stepBadge}>
           <Text style={styles.stepText}>{'4 / 4'}</Text>
         </View>
@@ -46,33 +80,56 @@ export default function CourseCompareScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
+        <Text style={styles.compareStartPoint}>
+          {`← ${draft.startPoint?.name ?? '출발지'} 기준 코스`}
+        </Text>
         <Text style={styles.introTitle}>{'추천 코스를 비교해 보세요'}</Text>
         <Text style={styles.compareHelp}>
-          {
-            '카드를 누르면 상세 조건이 열립니다. 현재는 화면 확인용 추천 결과예요.'
-          }
+          {'추천 점수와 거리, 오르막 정보를 비교해 하나를 선택할 수 있어요.'}
         </Text>
 
-        {mockCourseRecommendations.map((course) => (
-          <CourseCard
-            active={selectedId === course.id}
-            course={course}
-            key={course.id}
-            onPress={() => setSelectedId(course.id)}
-          />
-        ))}
+        {recommendations.length === 0 ? (
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryValue}>
+              {'추천 결과가 없습니다. 조건을 바꾸고 다시 찾아주세요.'}
+            </Text>
+          </View>
+        ) : (
+          recommendations.map((course, index) => (
+            <CourseCard
+              active={selectedId === course.idx}
+              course={course}
+              key={course.idx}
+              label={String.fromCharCode(65 + index)}
+              onPress={() => setSelectedId(course.idx)}
+            />
+          ))
+        )}
 
-        <Pressable
-          accessibilityRole="button"
-          onPress={openSelectedCourse}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && styles.pressed,
-          ]}>
-          <Text style={styles.primaryButtonText}>
-            {`${selectedCourse.label} 코스 선택하기`}
+        {errorMessage ? (
+          <Text style={[styles.noticeText, { color: '#E5484D' }]}>
+            {errorMessage}
           </Text>
-        </Pressable>
+        ) : null}
+
+        {selectedCourse ? (
+          <Pressable
+            accessibilityRole="button"
+            disabled={isSelecting}
+            onPress={() => void openSelectedCourse()}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              pressed && styles.pressed,
+            ]}>
+            {isSelecting ? (
+              <ActivityIndicator color="#C8FF30" />
+            ) : (
+              <Text style={styles.primaryButtonText}>
+                {`코스 ${courseLabel(recommendations, selectedCourse.idx)} 선택하기`}
+              </Text>
+            )}
+          </Pressable>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -81,12 +138,23 @@ export default function CourseCompareScreen() {
 function CourseCard({
   active,
   course,
+  label,
   onPress,
 }: {
   active: boolean;
-  course: CourseRecommendationPreview;
+  course: RouteRecommendation;
+  label: string;
   onPress: () => void;
 }) {
+  const distanceKm = course.totalDistance === null
+    ? '--'
+    : (course.totalDistance / 1000).toFixed(1);
+  const estimatedMinutes = course.totalDistance === null
+    ? '--'
+    : String(Math.round((course.totalDistance / 1000) * 6));
+
+  const score = course.score === null ? null : Math.max(0, Math.min(100, Math.round(course.score)));
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -98,40 +166,49 @@ function CourseCard({
         pressed && styles.pressed,
       ]}>
       <View style={styles.courseHeader}>
-        <View style={styles.courseLabel}>
-          <Text style={styles.courseLabelText}>{course.label}</Text>
+        <View style={[styles.courseRadio, active && styles.courseRadioActive]}>
+          {active ? <View style={styles.courseRadioDot} /> : null}
         </View>
         <View style={styles.courseCopy}>
-          <Text style={styles.courseName}>{course.name}</Text>
-          <Text style={styles.courseSummary}>{course.summary}</Text>
+          <View style={styles.courseNameRow}>
+            <Text style={styles.courseName}>{`코스 ${label}`}</Text>
+            {active ? <Text style={styles.recommendBadge}>{'추천'}</Text> : null}
+          </View>
+          <Text style={styles.courseSummary}>{`${distanceKm}km · 예상 ${estimatedMinutes}분`}</Text>
         </View>
-        <Text style={styles.scoreText}>{`${course.score}점`}</Text>
+        <View style={styles.scoreBlock}>
+          <Text style={styles.scoreLabel}>{'조건 충족도'}</Text>
+          <View style={styles.scoreLine}>
+            <View style={[styles.scoreFill, { width: `${score ?? 0}%` }]} />
+          </View>
+          <Text style={styles.scoreText}>{score === null ? '--' : `${score}%`}</Text>
+        </View>
       </View>
 
-      <View style={styles.metricRow}>
-        <Metric label="거리" value={`${course.distanceKm}km`} />
-        <Metric label="예상 시간" value={`${course.estimatedMinutes}분`} />
-        <Metric label="평균 페이스" value={`${course.averagePace}/km`} />
+      <View style={styles.detailGrid}>
+        <Metric label="거리" value={`${distanceKm}km`} />
+        <Metric label="예상 시간" value={`${estimatedMinutes}분`} />
+        <Metric
+          label="누적 오르막"
+          value={course.totalAscent === null ? '--' : `${Math.round(course.totalAscent)}m`}
+        />
+        <Metric
+          label="경사도 편차"
+          value={course.slopeStd === null ? '--' : course.slopeStd.toFixed(1)}
+        />
       </View>
 
       {active ? (
         <>
           <View style={styles.detailsDivider} />
-          <View style={styles.detailGrid}>
-            <Detail label="누적 오르막" value={`${course.totalAscentM}m`} />
-            <Detail label="경사도" value={course.slopeLabel} />
-            <Detail label="화장실" value={`${course.toiletCount}곳`} />
-            <Detail
-              label="편의점"
-              value={`${course.convenienceStoreCount}곳`}
-            />
-            <Detail label="야간 인프라" value={course.nightInfraLabel} />
+          <View style={styles.reasonBox}>
+            <Text style={styles.reasonTitle}>{'추천 이유'}</Text>
+            <Text style={styles.reasonText}>
+              {course.slopeStd === null
+                ? '입력한 조건을 기준으로 경로를 비교했습니다.'
+                : `입력한 목표에 맞춰 경사도 편차 ${course.slopeStd.toFixed(1)}인 경로를 우선 추천했어요.`}
+            </Text>
           </View>
-          <Text style={styles.reasonTitle}>{'이 코스를 추천한 이유'}</Text>
-          {course.reasons.map((reason) => (
-            <Text key={reason} style={styles.reasonText}>{`• ${reason}`}</Text>
-          ))}
-          <Text style={styles.selectedHint}>{'선택된 코스'}</Text>
         </>
       ) : null}
     </Pressable>
@@ -140,18 +217,14 @@ function CourseCard({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.metricItem}>
+    <View style={styles.metricTile}>
       <Text style={styles.metricLabel}>{label}</Text>
       <Text style={styles.metricValue}>{value}</Text>
     </View>
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.detailItem}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
-    </View>
-  );
+function courseLabel(recommendations: RouteRecommendation[], selectedId: number) {
+  const index = recommendations.findIndex((course) => course.idx === selectedId);
+  return String.fromCharCode(65 + Math.max(0, index));
 }

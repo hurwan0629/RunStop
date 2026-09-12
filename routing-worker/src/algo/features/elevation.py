@@ -8,8 +8,12 @@ import sys
 
 # query_elevation.py + 서울_DEM_10m.npy + _meta.json 이 있는 폴더 (배포 패키지 기준)
 from src.algo._datapaths import DEM_DIR
-sys.path.insert(0, str(DEM_DIR))
-from src.algo.data.query_elevation import get_elevation                  # noqa: E402
+if str(DEM_DIR) not in sys.path:
+    sys.path.insert(0, str(DEM_DIR))
+
+# query_elevation.py는 DATA_ROOT/배포에 배치된다. DATA_ROOT 자체를
+# 패키지로 가정하면 배포 환경과 실제 데이터 레이아웃이 어긋난다.
+from query_elevation import get_elevation  # noqa: E402
 
 from src.algo.utils.geo import haversine_m
 from src.algo import config

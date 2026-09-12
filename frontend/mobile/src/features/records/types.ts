@@ -22,8 +22,3 @@ export interface RunningHistoryResponse {
 export interface RunningRecordPreview extends RunningHistoryItem {
   courseName: string;
 }
-
-/** 기록 목록 화면에서 코스 이름까지 함께 보여주기 위한 임시 표시 타입입니다. */
-export interface RunningRecordPreview extends RunningHistoryItem {
-  courseName: string;
-}

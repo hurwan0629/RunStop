@@ -1,30 +1,31 @@
-import { Redirect } from 'expo-router';
-
-/**
- * 앱 진입 경로입니다.
- * 로그인 상태 확인 로직을 붙이기 전까지 로그인 화면으로 이동합니다.
- */
-import { ActivityIndicator, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { RunStopIntroAnimation } from '../features/intro/components/RunStopIntroAnimation';
 
 import { useAuth } from '@/providers/AuthProvider';
 
-export default function Index() {
+export default function IndexScreen() {
+  const router = useRouter();
+  const [introFinished, setIntroFinished] = useState(false);
+
   const { accessToken, isInitializing } = useAuth();
 
-  if (isInitializing) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  const finishIntro = useCallback(() => {
+    setIntroFinished(true);
+  }, []);
 
-  return (
-    <Redirect href={accessToken ? '/home' : '/login'} />
-  );
+  useEffect(() => {
+    if (!introFinished || isInitializing) {
+      return;
+    }
+
+    if (accessToken) {
+      router.replace('/home');
+      return;
+    }
+
+    router.replace('/login');
+  }, [accessToken, introFinished, isInitializing, router]);
+
+  return <RunStopIntroAnimation onFinished={finishIntro} />;
 }
