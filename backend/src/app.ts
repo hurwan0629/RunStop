@@ -1,5 +1,6 @@
 import express from "express";
 import helmet from "helmet";
+import cors from "cors";
 import { registerRouters } from "./routes/index.routes.js";
 import { createRequestLogger } from "./logging/logger.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
@@ -18,6 +19,15 @@ import { asyncHandler } from "./middleware/async-handler.js"
 export function createApp() {
   const app = express();
 
+  // cors 설정
+  app.use(cors({
+    origin: [
+      "http://localhost:3000",
+      // "http://"
+    ],
+    credentials: true,
+  }));
+
   // 헬멧을 통해서 XSS, 스니핑 등 방지
   app.use(helmet());
   // 요청별 requestId, 응답 상태, 처리 시간을 로그로 남기기
@@ -31,7 +41,7 @@ export function createApp() {
   // 각 도메인 7개에 대해서 라우터 등록해주기
   registerRouters(router)
 // dev용
-  registerDevTestRouter(router)
+  // registerDevTestRouter(router)
 
   app.get("/health", asyncHandler(async (req, res) => {
     res.json([

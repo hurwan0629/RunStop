@@ -258,6 +258,8 @@ export async function selectRouteRecommendation(
     recommendationIdx: dto.recommendationIdx,
   }, "service:start");
 
+
+  // 사용자 요청이 존재하거나 이미 선택한 것을 걸러내기 위해 경로 요청을 뽑기
   const routeRequest = await findRouteRequestByIdxAndUserIdx(routeRequestIdx, userIdx);
 
   if (!routeRequest) {
@@ -286,6 +288,7 @@ export async function selectRouteRecommendation(
     });
   }
 
+  // 요청에 속하는 추천 코스인지 확인하기 위해 매칭되는 데이터 가져오기
   const recommendation = await findRouteRecommendationByIdxAndRequestIdx(
     dto.recommendationIdx,
     routeRequestIdx,
@@ -307,6 +310,7 @@ export async function selectRouteRecommendation(
     });
   }
 
+  //선택을 위해 selected_route_recommends_idx
   const updated = await selectRecommendationForRequest(routeRequestIdx, dto.recommendationIdx);
 
   if (!updated) {

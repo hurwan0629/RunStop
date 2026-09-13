@@ -87,6 +87,8 @@ export async function listAdminUsers(
 
       lastLoginAt:
         row.lastLoginAt?.toISOString() ?? null,
+
+      inquiryCount: row.inquiryCount,
     })),
 
     page: query.page,

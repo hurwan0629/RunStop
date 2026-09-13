@@ -22,6 +22,7 @@ export type AdminUserListRow = {
   status: AdminUserStatus;
   joinedAt: Date;
   lastLoginAt: Date | null;
+  inquiryCount: number;
 };
 
 export type FindAdminUsersInput = {
@@ -54,29 +55,41 @@ export async function findAdminUsers(
     status: AdminUserStatus;
     created_at: Date;
     last_login_at: Date | null;
+    inquiry_count: number;
   }>(
     `
       SELECT
-        idx,
-        login_id,
-        nickname,
-        phone,
-        status,
-        created_at,
-        last_login_at
-      FROM service.users
-      WHERE role = 'USER'
+        u.idx,
+        u.login_id,
+        u.nickname,
+        u.phone,
+        u.status,
+        u.created_at,
+        u.last_login_at,
+        COUNT(i.idx)::integer AS inquiry_count
+      FROM service.users u
+      LEFT JOIN service.inquiries i
+        ON i.users_idx = u.idx
+      WHERE u.role = 'USER'
         AND (
           $1::text IS NULL
-          OR login_id ILIKE '%' || $1 || '%'
-          OR nickname ILIKE '%' || $1 || '%'
-          OR phone ILIKE '%' || $1 || '%'
+          OR u.login_id ILIKE '%' || $1 || '%'
+          OR u.nickname ILIKE '%' || $1 || '%'
+          OR u.phone ILIKE '%' || $1 || '%'
         )
         AND (
           $2::service.user_status IS NULL
-          OR status = $2
+          OR u.status = $2
         )
-      ORDER BY created_at DESC, idx DESC
+      GROUP BY
+        u.idx,
+        u.login_id,
+        u.nickname,
+        u.phone,
+        u.status,
+        u.created_at,
+        u.last_login_at
+      ORDER BY u.created_at DESC, u.idx DESC
       LIMIT $3
       OFFSET $4
     `,
@@ -96,6 +109,7 @@ export async function findAdminUsers(
     status: row.status,
     joinedAt: row.created_at,
     lastLoginAt: row.last_login_at,
+    inquiryCount: row.inquiry_count,
   }));
 }
 

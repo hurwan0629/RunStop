@@ -51,6 +51,8 @@ export const adminUserListItemSchema = z.object({
   joinedAt: z.string(),
 
   lastLoginAt: z.string().nullable(),
+
+  inquiryCount: z.number().int().nonnegative(),
 });
 
 /**

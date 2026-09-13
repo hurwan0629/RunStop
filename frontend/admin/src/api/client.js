@@ -6,6 +6,8 @@ import {
 
 const apiClient = axios.create({
   baseURL: '/api',
+  // baseURL: 'http://localhost:3000/api',
+  // baseURL: 'http://runstop.hurwan.net/api',
 
   headers: {
     'Content-Type': 'application/json',
