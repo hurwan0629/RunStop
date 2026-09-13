@@ -316,6 +316,7 @@ $RECYCLE.BIN/
 # Docker runtime / local volumes
 docker-data/
 volumes/
+*.dump
 
 
 # =========================================================

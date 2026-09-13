@@ -56,9 +56,11 @@ def recommend(
             weights=weights, requirements=requirements,
         )
     else:
+        # print("generate_candidates")
         cands = generate_candidates(G, idx, mode, start, target_m,
                                     end=end, n_directions=n_directions,
                                     weights=weights, requirements=requirements)
+        # print("cands:", len(cands))
 
     for c in cands:
         
@@ -94,6 +96,7 @@ def recommend(
         score_candidate(c, weights, requirements)         # sub_scores + conditionScore
         c.pop("nodes", None)                              # 내부용, 응답엔 불필요
 
+    # print("cands_count:", len(cands))
     return select_candidates_with_ai(cands, weights, requirements, top_k)
 
 if __name__ == "__main__":

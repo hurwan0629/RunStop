@@ -16,4 +16,4 @@ def select_candidates_with_ai(
         candidates,
         key=lambda candidate: candidate["condition_score"],
         reverse=True,
-    )[:top_k]
+    )#[:top_k]

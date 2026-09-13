@@ -72,6 +72,7 @@ def main():
     )
     if not candidates:
         raise SystemExit("후보 없음 (ONE_WAY 는 목표거리 > 직선거리 여야 함)")
+    print("candidates 후보 수:", len(candidates))
 
     route_map = folium.Map(location=start_coordinates, zoom_start=15, tiles="OpenStreetMap")
     folium.Marker(start_coordinates, tooltip="출발",
