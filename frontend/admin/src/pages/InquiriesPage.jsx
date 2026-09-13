@@ -1,6 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
-import { getInquiries } from '../api/inquiriesApi'
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
+
+import { useSearchParams } from 'react-router-dom'
+
+import { getInquiries, getInquirySummary } from '../api/inquiriesApi'
 import InquiryDetailDrawer from '../components/InquiryDetailDrawer.jsx'
+
+import './InquiriesPage.css'
+
+
 
 const LIMIT = 20
 
@@ -19,7 +30,9 @@ function formatDate(dateString) {
     return '-'
   }
 
-  return new Date(dateString).toLocaleDateString('ko-KR', {
+  return new Date(
+    dateString,
+  ).toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -27,24 +40,36 @@ function formatDate(dateString) {
 }
 
 function InquiriesPage() {
-  // 백엔드에서 받아온 문의 목록
+
+  
   const [inquiries, setInquiries] = useState([])
 
-  // 목록 조회 조건
+  const [summary, setSummary] = useState({
+  total: 0,
+  pending: 0,
+  inProgress: 0,
+  answered: 0,
+})
+  
+
   const [page, setPage] = useState(1)
-  const [status, setStatus] = useState('')
+
+  const [searchParams, setSearchParams] =
+    useSearchParams()
+
+  const status = searchParams.get('status') ?? ''
+
   const [keyword, setKeyword] = useState('')
 
-  // 상세 Drawer에서 선택한 문의 번호
   const [selectedInquiryIdx, setSelectedInquiryIdx] =
     useState(null)
 
-  // 상세에서 상태나 답변이 변경되었을 때 목록 새로고침
   const [reloadKey, setReloadKey] = useState(0)
 
-  // 화면 상태
   const [isLoading, setIsLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('')
+
+  const [errorMessage, setErrorMessage] =
+    useState('')
 
   useEffect(() => {
     let isCancelled = false
@@ -54,15 +79,19 @@ function InquiriesPage() {
         setIsLoading(true)
         setErrorMessage('')
 
-        const data = await getInquiries({
+        const [inquiryData, summaryData] = await Promise.all([
+        getInquiries({
           page,
           limit: LIMIT,
           status,
-        })
+        }),
+        getInquirySummary(),
+      ])
 
-        if (!isCancelled) {
-          setInquiries(data.items ?? [])
-        }
+      if (!isCancelled) {
+        setInquiries(inquiryData.items ?? [])
+        setSummary(summaryData)
+      }
       } catch (error) {
         console.error('문의 목록 조회 오류:', error)
 
@@ -85,7 +114,7 @@ function InquiriesPage() {
         }
 
         setErrorMessage(
-          error.response?.data?.message ??
+          error.response?.data?.error?.message ??
             '문의 목록을 불러오지 못했습니다.',
         )
       } finally {
@@ -102,12 +131,10 @@ function InquiriesPage() {
     }
   }, [page, status, reloadKey])
 
-  /*
-   * 현재 백엔드에는 keyword 검색 기능이 없기 때문에
-   * 현재 페이지에서 받아온 문의 제목만 검색한다.
-   */
   const filteredInquiries = useMemo(() => {
-    const normalizedKeyword = keyword.trim().toLowerCase()
+    const normalizedKeyword = keyword
+      .trim()
+      .toLowerCase()
 
     if (!normalizedKeyword) {
       return inquiries
@@ -120,37 +147,26 @@ function InquiriesPage() {
     )
   }, [inquiries, keyword])
 
-  /*
-   * 현재 백엔드 응답에는 전체 개수 total이 없다.
-   * 따라서 요약 숫자는 현재 받아온 페이지 기준이다.
-   */
-  const summary = useMemo(() => {
-    return {
-      total: inquiries.length,
+  
 
-      pending: inquiries.filter(
-        (inquiry) => inquiry.status === 'PENDING',
-      ).length,
+  const handleStatusChange = (nextStatus) => {
+    const nextSearchParams = new URLSearchParams(
+      searchParams,
+    )
 
-      inProgress: inquiries.filter(
-        (inquiry) =>
-          inquiry.status === 'IN_PROGRESS',
-      ).length,
-
-      answered: inquiries.filter(
-        (inquiry) => inquiry.status === 'ANSWERED',
-      ).length,
+    if (nextStatus) {
+      nextSearchParams.set('status', nextStatus)
+    } else {
+      nextSearchParams.delete('status')
     }
-  }, [inquiries])
 
-  const handleStatusFilterChange = (event) => {
-    setStatus(event.target.value)
+    setSearchParams(nextSearchParams)
     setPage(1)
   }
 
   const handleReset = () => {
     setKeyword('')
-    setStatus('')
+    setSearchParams({})
     setPage(1)
   }
 
@@ -168,7 +184,6 @@ function InquiriesPage() {
 
   return (
     <main className="inquiries-page">
-      {/* 페이지 제목 */}
       <header className="page-title-area">
         <h1>문의 관리</h1>
 
@@ -178,56 +193,77 @@ function InquiriesPage() {
         </p>
       </header>
 
-      {/* 문의 상태 요약 */}
       <section className="inquiry-summary-section">
-        <div className="summary-card summary-total">
+        <button
+          type="button"
+          className={`summary-card summary-total ${
+            !status ? 'active' : ''
+          }`}
+          onClick={() => handleStatusChange('')}
+        >
           <span>전체 문의</span>
 
           <strong>
             {summary.total}
             <small>건</small>
           </strong>
-        </div>
+        </button>
 
-        <div className="summary-card summary-pending">
+        <button
+          type="button"
+          className={`summary-card summary-pending ${
+            status === 'PENDING' ? 'active' : ''
+          }`}
+          onClick={() =>
+            handleStatusChange('PENDING')
+          }
+        >
           <span>답변 대기</span>
 
           <strong>
             {summary.pending}
             <small>건</small>
           </strong>
-        </div>
+        </button>
 
-        <div className="summary-card summary-progress">
+        <button
+          type="button"
+          className={`summary-card summary-progress ${
+            status === 'IN_PROGRESS' ? 'active' : ''
+          }`}
+          onClick={() =>
+            handleStatusChange('IN_PROGRESS')
+          }
+        >
           <span>처리 중</span>
 
           <strong>
             {summary.inProgress}
             <small>건</small>
           </strong>
-        </div>
+        </button>
 
-        <div className="summary-card summary-answered">
+        <button
+          type="button"
+          className={`summary-card summary-answered ${
+            status === 'ANSWERED' ? 'active' : ''
+          }`}
+          onClick={() =>
+            handleStatusChange('ANSWERED')
+          }
+        >
           <span>답변 완료</span>
 
           <strong>
             {summary.answered}
             <small>건</small>
           </strong>
-        </div>
+        </button>
       </section>
 
-      <p className="summary-description">
-        현재 조회된 페이지의 문의를 기준으로 계산한
-        숫자입니다.
-      </p>
-
-      {/* 검색 및 필터 */}
       <section className="inquiry-filter-section">
         <div className="keyword-search">
-          <label htmlFor="inquiryKeyword">
-            문의 제목 검색
-          </label>
+          <span className="search-icon">⌕</span>
 
           <input
             id="inquiryKeyword"
@@ -236,24 +272,30 @@ function InquiriesPage() {
             onChange={(event) =>
               setKeyword(event.target.value)
             }
-            placeholder="제목 검색"
+            placeholder="문의 제목 검색"
+            aria-label="문의 제목 검색"
           />
         </div>
 
         <div className="status-filter">
-          <label htmlFor="inquiryStatus">
-            처리 상태
-          </label>
-
           <select
             id="inquiryStatus"
             value={status}
-            onChange={handleStatusFilterChange}
+            onChange={(event) =>
+              handleStatusChange(event.target.value)
+            }
+            aria-label="처리 상태"
           >
             <option value="">전체 상태</option>
-            <option value="PENDING">답변 대기</option>
-            <option value="IN_PROGRESS">처리 중</option>
-            <option value="ANSWERED">답변 완료</option>
+            <option value="PENDING">
+              답변 대기
+            </option>
+            <option value="IN_PROGRESS">
+              처리 중
+            </option>
+            <option value="ANSWERED">
+              답변 완료
+            </option>
           </select>
         </div>
 
@@ -266,7 +308,6 @@ function InquiriesPage() {
         </button>
       </section>
 
-      {/* 로딩 및 오류 */}
       {isLoading && (
         <div className="inquiry-message">
           문의 목록을 불러오는 중입니다.
@@ -289,7 +330,6 @@ function InquiriesPage() {
         </div>
       )}
 
-      {/* 문의 목록 */}
       {!isLoading && !errorMessage && (
         <section className="inquiry-table-section">
           <table className="inquiry-table">
@@ -356,7 +396,6 @@ function InquiriesPage() {
             </tbody>
           </table>
 
-          {/* 페이지 이동 */}
           <div className="pagination">
             <button
               type="button"
@@ -370,10 +409,6 @@ function InquiriesPage() {
 
             <button
               type="button"
-              /*
-               * total 값이 없기 때문에 LIMIT보다 적게
-               * 반환되면 마지막 페이지로 판단한다.
-               */
               disabled={inquiries.length < LIMIT}
               onClick={handleNextPage}
             >
@@ -383,7 +418,6 @@ function InquiriesPage() {
         </section>
       )}
 
-      {/* 문의 상세 Drawer */}
       {selectedInquiryIdx !== null && (
         <InquiryDetailDrawer
           inquiryIdx={selectedInquiryIdx}
