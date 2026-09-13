@@ -1,0 +1,4 @@
+# Actual runtime dependencies are maintained in requirements.txt.
+-r requirements.txt
+# Optional models: requirements-models.txt
+# Optional routing generation: requirements-routing.txt
