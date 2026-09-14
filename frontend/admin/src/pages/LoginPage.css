@@ -1,0 +1,173 @@
+.login-page {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+
+  background: #ffffff;
+}
+
+.login-brand-section {
+  width: 50%;
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--color-primary);
+}
+
+.login-brand {
+  color: #ffffff;
+}
+
+.login-brand h1 {
+  margin: 0;
+
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.login-brand p {
+  margin: 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+
+  color: var(--color-lime);
+}
+
+.login-brand span {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 오른쪽 */
+
+.login-form-section {
+  width: 50%;
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #ffffff;
+}
+
+.login-form-container {
+  width: 380px;
+}
+
+.login-form-container h2 {
+  margin: 0 0 8px;
+
+  font-size: 28px;
+  font-weight: 700;
+
+  color: var(--color-text);
+}
+
+.login-description {
+  margin: 0 0 40px;
+
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.login-field {
+  margin-bottom: 20px;
+}
+
+.login-field label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.login-field input {
+  width: 100%;
+  height: 48px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
+  outline: none;
+
+  transition: border-color 0.2s;
+}
+
+.login-field input:focus {
+  border-color: var(--color-primary);
+}
+
+.login-button {
+  width: 100%;
+  height: 50px;
+
+  margin-top: 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: var(--color-primary);
+
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background: var(--color-primary-hover);
+}
+
+.login-error {
+  margin: -5px 0 10px;
+
+  font-size: 13px;
+  color: #e5484d;
+}
+
+.login-page {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+
+  position: relative;
+z-index: 1;
+}
+
+/* 배경의 러닝 코스 느낌 곡선 */
+.login-route-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  width: 100%;
+  height: 100%;
+
+  pointer-events: none;
+  opacity: 0.48;
+  filter: blur(0.3px);
+}
+
+.login-route-lines path {
+  fill: none;
+  stroke: rgba(126, 145, 230, 0.36);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+/* 기존 로그인 콘텐츠가 선보다 앞에 보이도록 */
+.login-page > *:not(.login-route-lines) {
+  position: relative;
+  z-index: 1;
+}
+

@@ -66,7 +66,7 @@ def generate_candidates_via(
         if r["distance_error_pct"] <= config.CAND_DIST_TOL_PCT:
             out.append(r)
     out.sort(key=lambda r: (r["overlap_ratio"], r["distance_error_pct"]))
-    return _drop_near_duplicate_courses(out)[:pool]
+    return _drop_near_duplicate_courses(out)#[:pool]
 
 def generate_candidates(G, idx, mode, start, target_distance_m, end=None,
                         n_directions=12, tol_pct=None, max_overlap=None, pool=8,
@@ -94,7 +94,8 @@ def generate_candidates(G, idx, mode, start, target_distance_m, end=None,
             results.append(r)
 
     results.sort(key=lambda r: (r["overlap_ratio"], r["distance_error_pct"]))
-    return _drop_near_duplicate_courses(results)[:pool]
+    # print("len befor drop:", len(results))
+    return _drop_near_duplicate_courses(results)#[:pool]
 
 
 if __name__ == "__main__":

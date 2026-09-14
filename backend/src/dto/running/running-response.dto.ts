@@ -16,6 +16,15 @@ export const runningFinishResponseSchema = z.object({
   averagePace: z.number().int().positive().nullable(),
 });
 
+export const runningEndResponseSchema = z.object({
+  sessionIdx: z.number().int().positive(),
+  status: z.enum(["COMPLETED", "STOPPED", "CANCELLED"]),
+  distance: z.number().int().nonnegative(),
+  averagePace: z.number().int().positive().nullable(),
+});
+
+export type RunningEndResponseDTO = z.infer<typeof runningEndResponseSchema>;
+
 export const runningPaceSegmentSchema = z.object({
   distanceFrom: z.number().int().nonnegative(),
   distanceTo: z.number().int().positive(),

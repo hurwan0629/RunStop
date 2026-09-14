@@ -11,7 +11,9 @@ from shapely import LineString, contains_xy, distance, points as sh_points
 from src.algo.utils.geo import to_5179
 from src.algo._datapaths import FACIL_CSV as FACILITY_DATASET_PATH  # 배포 패키지 datasets/ 또는 RUNSTOP_DATA_DIR
 from src.algo import config
-from src.algo.types import Coordinate, FacilityProfile
+from src.algo.types import CandidateRoute, Coordinate, FacilityProfile
+
+FACILITY_STATUS_KEYS = ("toilet", "store")
 
 # 유형(한글, CSV) -> 결과 키(영문)
 FACILITY_TYPE_TO_KEY = {
@@ -104,6 +106,36 @@ def analyze_nearby_facilities(
         metrics[f"{key}_nearest_m"] = round(nearest_distance_m, 1)
 
     return metrics
+
+
+def get_facility_count(candidate: CandidateRoute, key: str) -> int:
+    facilities = candidate.get("facilities") or {}
+    value = facilities.get(f"{key}_count", 0)
+
+    try:
+        return max(0, int(value))
+    except (TypeError, ValueError):
+        return 0
+
+
+def get_facility_status(
+    candidate: CandidateRoute,
+    facility_preferences: dict[str, str] | None,
+) -> dict[str, str]:
+    preferences = facility_preferences or {}
+    statuses: dict[str, str] = {}
+
+    for key in FACILITY_STATUS_KEYS:
+        preference = preferences.get(key, "IGNORE")
+
+        if preference != "PREFER":
+            statuses[key] = "IGNORE"
+        elif get_facility_count(candidate, key) > 0:
+            statuses[key] = "MET"
+        else:
+            statuses[key] = "RELAXED"
+
+    return statuses
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ import { registerInquiriesRoutes } from "./inquiries.routes.js";
 import { registerRouteRecommendationRoutes } from "./routes.routes.js";
 import { registerRunningRoutes } from "./running.routes.js";
 import { registerUsersRoutes } from "./users.routes.js";
-
+import { registerPlacesRoutes } from "./places.routes.js";
 
 export function registerRouters(router: Router): void {
   // 0. 관리자
@@ -22,6 +22,9 @@ export function registerRouters(router: Router): void {
   
   // 3. 실제 파이썬 워커 호출 계층
   registerRouteRecommendationRoutes(router);
+
+  // 장소 검색
+  registerPlacesRoutes(router);
   
   // 4. 사용자 목표 설정 및 달리기
   registerGoalsRoutes(router);

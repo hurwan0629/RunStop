@@ -300,3 +300,52 @@ export async function answerInquiry(
 
   return row ? mapInquiryDetailRow(row) : null;
 }
+
+
+export type InquirySummaryRow = {
+  total: number;
+  pending: number;
+  inProgress: number;
+  answered: number;
+};
+
+/**
+ * 관리자 문의 관리 화면의 상태별 문의 수를 조회합니다.
+ */
+export async function summarizeInquiries(
+  client?: QueryClient,
+): Promise<InquirySummaryRow> {
+  const result = await getQueryClient(client).query<{
+    total: number;
+    pending: number;
+    in_progress: number;
+    answered: number;
+  }>(
+    `
+      SELECT
+        COUNT(*)::integer AS total,
+
+        COUNT(*) FILTER (
+          WHERE status = 'PENDING'
+        )::integer AS pending,
+
+        COUNT(*) FILTER (
+          WHERE status = 'IN_PROGRESS'
+        )::integer AS in_progress,
+
+        COUNT(*) FILTER (
+          WHERE status = 'ANSWERED'
+        )::integer AS answered
+      FROM service.inquiries
+    `,
+  );
+
+  const row = result.rows[0];
+
+  return {
+    total: row?.total ?? 0,
+    pending: row?.pending ?? 0,
+    inProgress: row?.in_progress ?? 0,
+    answered: row?.answered ?? 0,
+  };
+}

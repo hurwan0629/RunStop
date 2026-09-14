@@ -4,6 +4,7 @@ import type {
   CreateGoalRequest,
   CurrentGoalResponse,
   RunningGoal,
+  StopGoalResponse,
 } from '../types';
 
 export function getCurrentGoal(accessToken: string) {
@@ -20,5 +21,12 @@ export function createGoal(
     method: 'POST',
     accessToken,
     body: input,
+  });
+}
+
+export function stopGoal(accessToken: string, goalIdx: number) {
+  return apiRequest<StopGoalResponse>(`/api/goals/${goalIdx}/stop`, {
+    method: 'POST',
+    accessToken,
   });
 }

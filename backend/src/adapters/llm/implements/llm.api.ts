@@ -1,23 +1,76 @@
+import { env } from "../../../config/env.js";
+import { ApiError } from "../../../middleware/error.js";
+import {
+  normalizeRouteConditionJson,
+  normalizeRouteConditionText,
+  normalizeRouteNamingJson,
+  normalizeRouteNamingText,
+} from "../json.js";
 import {
   ROUTE_CONDITION_SYSTEM_PROMPT,
+  ROUTE_NAMING_SYSTEM_PROMPT,
   buildRouteConditionPrompt,
+  buildRouteNamingPrompt,
 } from "../prompt.js";
-import { normalizeRouteConditionJson, normalizeRouteConditionText } from "../json.js";
-import { ApiError } from "../../../middleware/error.js";
 import type {
   ParsedRouteConditions,
   RouteConditionLlmClient,
   RouteConditionParseInput,
+  RouteNamingInput,
+  RouteNamingResult,
 } from "../types.js";
+
+type ChatMessage = {
+  role: "system" | "user";
+  content: string;
+};
 
 export class ApiLlmClient implements RouteConditionLlmClient {
   constructor(
-    private readonly url = process.env.LLM_API_URL,
-    private readonly apiKey = process.env.LLM_API_KEY,
-    private readonly model = process.env.LLM_MODEL ?? "gpt-4o-mini",
+    private readonly url = env.LLM_API_URL,
+    private readonly apiKey = env.LLM_API_KEY,
+    private readonly model = env.LLM_MODEL,
   ) {}
 
-  async parseRouteConditions(input: RouteConditionParseInput): Promise<ParsedRouteConditions> {
+  async parseRouteConditions(
+    input: RouteConditionParseInput,
+  ): Promise<ParsedRouteConditions> {
+    const json = await this.requestJson(
+      [
+        { role: "system", content: ROUTE_CONDITION_SYSTEM_PROMPT },
+        { role: "user", content: buildRouteConditionPrompt(input) },
+      ],
+      "LLM_API_REQUEST_FAILED",
+      "LLM API 호출에 실패했습니다.",
+    );
+
+    const content = this.extractContent(json);
+
+    return typeof content === "string"
+      ? normalizeRouteConditionText(content)
+      : normalizeRouteConditionJson(content);
+  }
+
+  async generateRouteNames(
+    input: RouteNamingInput,
+  ): Promise<RouteNamingResult> {
+    const json = await this.requestJson(
+      [
+        { role: "system", content: ROUTE_NAMING_SYSTEM_PROMPT },
+        { role: "user", content: buildRouteNamingPrompt(input) },
+      ],
+      "LLM_NAMING_API_REQUEST_FAILED",
+      "코스 이름 생성 LLM 호출에 실패했습니다.",
+    );
+
+    const content = this.extractContent(json);
+
+    return typeof content === "string"
+      ? normalizeRouteNamingText(content)
+      : normalizeRouteNamingJson(content);
+  }
+
+  private assertConfigured(): void {
     if (!this.url) {
       throw new ApiError({
         status: 500,
@@ -27,36 +80,51 @@ export class ApiLlmClient implements RouteConditionLlmClient {
       });
     }
 
-    const response = await fetch(this.url, {
+    if (!this.apiKey) {
+      throw new ApiError({
+        status: 500,
+        code: "LLM_CONFIG_MISSING",
+        message: "LLM API 설정이 누락되었습니다.",
+        details: { env: "LLM_API_KEY" },
+      });
+    }
+  }
+
+  private async requestJson(
+    messages: ChatMessage[],
+    errorCode: string,
+    errorMessage: string,
+  ): Promise<unknown> {
+    this.assertConfigured();
+
+    const response = await fetch(this.url!, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {}),
+        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
         model: this.model,
-        messages: [
-          { role: "system", content: ROUTE_CONDITION_SYSTEM_PROMPT },
-          { role: "user", content: buildRouteConditionPrompt(input) },
-        ],
+        messages,
         response_format: { type: "json_object" },
       }),
     });
 
     if (!response.ok) {
+      const body = await response.text().catch(() => "");
+
       throw new ApiError({
         status: 502,
-        code: "LLM_API_REQUEST_FAILED",
-        message: "LLM API 호출에 실패했습니다.",
-        details: { status: response.status },
+        code: errorCode,
+        message: errorMessage,
+        details: {
+          status: response.status,
+          body: body.slice(0, 500),
+        },
       });
     }
 
-    const json = await response.json() as unknown;
-    const content = this.extractContent(json);
-    return typeof content === "string"
-      ? normalizeRouteConditionText(content)
-      : normalizeRouteConditionJson(content);
+    return response.json() as Promise<unknown>;
   }
 
   private extractContent(value: unknown): unknown {

@@ -1,8 +1,10 @@
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  Button,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -23,18 +25,9 @@ export default function LoginScreen() {
   const [passwordError, setPasswordError] = useState('');
 
   const handleLogin = async () => {
-    const input = {
-      loginId: loginId.trim(),
-      password,
-    };
-
-    const nextLoginIdError = input.loginId
-      ? ''
-      : '아이디를 입력해 주세요.';
-
-    const nextPasswordError = input.password
-      ? ''
-      : '비밀번호를 입력해 주세요.';
+    const input = { loginId: loginId.trim(), password };
+    const nextLoginIdError = input.loginId ? '' : '아이디를 입력해 주세요.';
+    const nextPasswordError = input.password ? '' : '비밀번호를 입력해 주세요.';
 
     setLoginIdError(nextLoginIdError);
     setPasswordError(nextPasswordError);
@@ -43,119 +36,148 @@ export default function LoginScreen() {
       return;
     }
 
-    const success = await login(input);
-
-    if (success) {
+    if (await login(input)) {
       router.replace('/home');
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.title}>RunStop</Text>
-
-        <Text style={styles.subtitle}>
-          화장실·편의점·경사도·야간 인프라 반영
-        </Text>
-
-        <Text style={styles.label}>아이디</Text>
-
-        <TextInput
-          accessibilityLabel="아이디"
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!isLoading}
-          onChangeText={(text) => {
-            setLoginId(text);
-            setLoginIdError('');
-          }}
-          placeholder="아이디를 입력해 주세요"
-          returnKeyType="next"
-          style={[
-            styles.input,
-            loginIdError ? styles.inputError : undefined,
-          ]}
-          value={loginId}
-        />
-
-        {loginIdError ? (
-          <Text style={styles.errorText}>
-            ⓘ {loginIdError}
+    <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.brandRow}>
+            <View style={styles.brandMark}>
+              <Text style={styles.brandMarkText}>{'R'}</Text>
+            </View>
+            <Text style={styles.brandName}>{'RunStop'}</Text>
+          </View>
+          <Text style={styles.subtitle}>
+            {'화장실·편의점·경사도·야간 인프라 반영'}
           </Text>
-        ) : null}
 
-        <Text style={styles.label}>비밀번호</Text>
+          <View style={styles.form}>
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>{'아이디'}</Text>
+              <TextInput
+                accessibilityLabel="아이디"
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isLoading}
+                onChangeText={(text) => {
+                  setLoginId(text);
+                  setLoginIdError('');
+                }}
+                placeholder="아이디를 입력하세요"
+                placeholderTextColor="#C8D0DC"
+                returnKeyType="next"
+                style={[styles.input, loginIdError && styles.inputError]}
+                value={loginId}
+              />
+              {loginIdError ? (
+                <Text style={styles.errorText}>{`ⓘ  ${loginIdError}`}</Text>
+              ) : null}
+            </View>
 
-        <View
-          style={[
-            styles.passwordRow,
-            passwordError ? styles.inputError : undefined,
-          ]}>
-          <TextInput
-            accessibilityLabel="비밀번호"
-            editable={!isLoading}
-            onChangeText={(text) => {
-              setPassword(text);
-              setPasswordError('');
-            }}
-            onSubmitEditing={() => void handleLogin()}
-            placeholder="비밀번호를 입력해 주세요"
-            returnKeyType="done"
-            secureTextEntry={!isPasswordVisible}
-            style={styles.passwordInput}
-            value={password}
-          />
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>{'비밀번호'}</Text>
+              <View
+                style={[
+                  styles.passwordRow,
+                  passwordError && styles.inputError,
+                ]}>
+                <TextInput
+                  accessibilityLabel="비밀번호"
+                  editable={!isLoading}
+                  onChangeText={(text) => {
+                    setPassword(text);
+                    setPasswordError('');
+                  }}
+                  onSubmitEditing={() => void handleLogin()}
+                  placeholder="비밀번호를 입력하세요"
+                  placeholderTextColor="#C8D0DC"
+                  returnKeyType="done"
+                  secureTextEntry={!isPasswordVisible}
+                  style={styles.passwordInput}
+                  value={password}
+                />
+                <Pressable
+                  accessibilityLabel={
+                    isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'
+                  }
+                  accessibilityRole="button"
+                  hitSlop={10}
+                  onPress={() =>
+                    setIsPasswordVisible((visible) => !visible)
+                  }
+                  style={styles.visibilityButton}>
+                  <EyeIcon active={isPasswordVisible} />
+                </Pressable>
+              </View>
+              {passwordError ? (
+                <Text style={styles.errorText}>{`ⓘ  ${passwordError}`}</Text>
+              ) : null}
+            </View>
 
-          <Pressable
-            accessibilityRole="button"
-            onPress={() =>
-              setIsPasswordVisible((visible) => !visible)
-            }>
-            <Text>
-              {isPasswordVisible ? '숨기기' : '보기'}
-            </Text>
-          </Pressable>
-        </View>
+            <Pressable
+              accessibilityRole="button"
+              disabled={isLoading}
+              onPress={() => void handleLogin()}
+              style={({ pressed }) => [
+                styles.loginButton,
+                isLoading && styles.disabledButton,
+                pressed && !isLoading && styles.pressed,
+              ]}>
+              <Text style={styles.loginButtonText}>
+                {isLoading ? '로그인 중...' : '로그인'}
+              </Text>
+            </Pressable>
+            {errorMessage ? (
+              <Text style={styles.serverErrorText}>{`ⓘ  ${errorMessage}`}</Text>
+            ) : null}
+          </View>
 
-        {passwordError ? (
-          <Text style={styles.errorText}>
-            ⓘ {passwordError}
-          </Text>
-        ) : null}
-
-        <Button
-          disabled={isLoading}
-          onPress={() => void handleLogin()}
-          title={isLoading ? '로그인 중...' : '로그인'}
-        />
-
-        {errorMessage ? (
-          <Text style={styles.errorText}>
-            ⓘ {errorMessage}
-          </Text>
-        ) : null}
-
-        <View style={styles.links}>
-          <Link href="/signup">회원가입</Link>
-          <Link href="/find-id">아이디 찾기</Link>
-          <Link href="/reset-password">비밀번호 찾기</Link>
-        </View>
-
-        {__DEV__ ? (
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push('/home')}
-            style={({ pressed }) => [
-              styles.previewButton,
-              pressed && styles.previewButtonPressed,
-            ]}>
-            <Text style={styles.previewButtonText}>
-              홈 화면 미리보기 (개발용)
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
+          <View style={styles.links}>
+            <Pressable onPress={() => router.push('/signup')}>
+              <Text style={[styles.linkText, styles.primaryLinkText]}>
+                {'회원가입'}
+              </Text>
+            </Pressable>
+            <Text style={styles.linkDivider}>{'|'}</Text>
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/account-recovery',
+                  params: { mode: 'find-id' },
+                })
+              }>
+              <Text style={styles.linkText}>{'아이디 찾기'}</Text>
+            </Pressable>
+            <Text style={styles.linkDivider}>{'|'}</Text>
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/account-recovery',
+                  params: { mode: 'reset-password' },
+                })
+              }>
+              <Text style={styles.linkText}>{'비밀번호 찾기'}</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+function EyeIcon({ active }: { active: boolean }) {
+  return (
+    <View style={[styles.eyeOutline, active && styles.eyeOutlineActive]}>
+      <View style={[styles.eyePupil, active && styles.eyePupilActive]} />
+    </View>
   );
 }

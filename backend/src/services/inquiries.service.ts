@@ -16,10 +16,15 @@ import {
   createInquiry as createInquiryRepository,
   findInquiries,
   findInquiryByIdx,
+  summarizeInquiries,
   updateInquiryStatus as updateInquiryStatusRepository,
   type InquiryDetailRow,
 } from "../repositories/inquiries.repository.js";
 import type { UserRole } from "../types/user-context.js";
+
+import type {
+  InquirySummaryResponseDTO,
+} from "../dto/inquiries/inquiry-summary.dto.js";
 
 function canReadInquiry(row: InquiryDetailRow, userIdx: number, role: UserRole): boolean {
   return role === "ADMIN" || row.userIdx === userIdx;
@@ -258,4 +263,33 @@ export async function answerInquiry(
     answererIdx: answered.answererIdx,
     answeredAt: answered.answeredAt.toISOString(),
   };
+}
+
+
+/**
+ * 관리자 문의 관리 화면의 상태별 전체 문의 수를 반환합니다.
+ */
+export async function getInquirySummary(): Promise<
+  InquirySummaryResponseDTO
+> {
+  logger.info(
+    {
+      serviceName: "inquiries",
+      action: "getInquirySummary",
+    },
+    "service:start",
+  );
+
+  const summary = await summarizeInquiries();
+
+  logger.info(
+    {
+      serviceName: "inquiries",
+      action: "getInquirySummary",
+      total: summary.total,
+    },
+    "service:success",
+  );
+
+  return summary;
 }

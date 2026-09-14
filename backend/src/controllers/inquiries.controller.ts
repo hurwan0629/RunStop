@@ -14,6 +14,11 @@ import {
   inquiryStatusUpdateResponseSchema,
   inquiryStatusUpdateSchema,
 } from "../dto/inquiries/inquiry-status-update.dto.js";
+
+import {
+  inquirySummaryResponseSchema,
+} from "../dto/inquiries/inquiry-summary.dto.js";
+
 import { ApiError } from "../middleware/error.js";
 import {
   answerInquiry as answerInquiryService,
@@ -21,6 +26,7 @@ import {
   getInquiryDetail as getInquiryDetailService,
   listInquiries as listInquiriesService,
   updateInquiryStatus as updateInquiryStatusService,
+  getInquirySummary as getInquirySummaryService,
 } from "../services/inquiries.service.js";
 
 const inquiryParamsSchema = z.object({
@@ -162,5 +168,19 @@ export async function answerInquiry(req: Request, res: Response, next: NextFunct
   res.json({
     success: true,
     data: inquiryAnswerResponseSchema.parse(result),
+  });
+}
+/**
+ * 관리자 문의 관리 화면의 상태별 전체 문의 수를 반환합니다.
+ */
+export async function getInquirySummary(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  const result = await getInquirySummaryService();
+
+  res.json({
+    success: true,
+    data: inquirySummaryResponseSchema.parse(result),
   });
 }

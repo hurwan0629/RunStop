@@ -43,7 +43,7 @@
 ### 1. 환경변수
 환경변수의 경우에는 3가지로 
 - `development`: 로컬DB, 자세한 로그, 개발 API Key를 사용할 수 있을 것 같습니다.
-- `test`: 테스트 전용 DB, Monk API를 통한 프론트 도움, 테스트 보안 키 등
+- `test`: 테스트 전용 DB, Mock API를 통한 프론트 도움, 테스트 보안 키 등
 - `production`: 실제 DB/API Key와 구현된 API들, 진짜 필요한 로그들을 추려서 정리할 예정입니다.
 
 > 스크립트의 `NODE_ENV`를 이용하여 `development`, `test`, `production`으로 나누어낼 생각입니다.

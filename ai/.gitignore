@@ -1,0 +1,12 @@
+datasets/**/*.parquet
+datasets/**/*.jsonl
+datasets/**/*.csv
+artifacts/**/*
+!artifacts/README.md
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.venv-*/
+.env
+.ipynb_checkpoints/

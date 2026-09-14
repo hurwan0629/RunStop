@@ -146,6 +146,7 @@ MANIFEST
 
 data/
 datasets/
+!ai/datasets/
 
 # 폴더 자체는 Git에 유지하고 싶을 경우
 data/*
@@ -321,6 +322,7 @@ $RECYCLE.BIN/
 # Docker runtime / local volumes
 docker-data/
 volumes/
+*.dump
 
 
 # =========================================================

@@ -23,9 +23,36 @@ export type ParsedRouteConditions = {
   raw?: Record<string, unknown>;
 };
 
+// 경로명
+export type RouteNamingCandidateInput = {
+  candidateIndex: number;
+  routeType: "LOOP" | "ONE_WAY" | "ROUND_TRIP";
+  distanceKm: number;
+  verifiedLandmarks: string[];
+  nightRequested: boolean;
+  nightScore: number | null;
+  elevationGainM: number | null;
+  maxSlopePct: number | null;
+};
+
+export type RouteNamingInput = {
+  candidates: RouteNamingCandidateInput[];
+};
+
+export type RouteNamingResult = {
+  names: Array<{
+    candidateIndex: number;
+    name: string;
+  }>;
+};
+
 /**
  *  구현체의 구현 규칙
  */ 
 export type RouteConditionLlmClient = {
   parseRouteConditions(input: RouteConditionParseInput): Promise<ParsedRouteConditions>;
+
+  generateRouteNames(
+    input: RouteNamingInput,
+  ): Promise<RouteNamingResult>;
 };

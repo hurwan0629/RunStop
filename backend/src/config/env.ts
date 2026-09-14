@@ -36,6 +36,30 @@ const envSchema = z.object({
     .preprocess((value) => value === "true" || value === true, z.boolean())
     .default(false),
 
+  SOLAPI_API_KEY: z.string().min(1).optional(),
+
+  SOLAPI_API_SECRET: z.string().min(1).optional(),
+
+  SOLAPI_FROM_NUMBER: z.string().min(1).optional(),
+
+  NAVER_API_HUB_CLIENT_ID: z.string().min(1).optional(),
+
+  NAVER_API_HUB_CLIENT_SECRET: z.string().min(1).optional(),
+
+  LLM_MODE: z
+    .enum(["mock", "local", "api"])
+    .default("mock"),
+
+  LLM_LOCAL_URL: z.string().url().optional(),
+
+  LLM_LOCAL_MODEL: z.string().min(1).optional(),
+
+  LLM_API_URL: z.string().url().optional(),
+
+  LLM_API_KEY: z.string().min(1).optional(),
+
+  LLM_MODEL: z.string().min(1).default("gpt-4o-mini"),
+
   DATABASE_URL: z
     .string()
     .min(1),
@@ -48,6 +72,30 @@ const envSchema = z.object({
   WORKER_MODE: z
     .enum(["mock", "http"])
     .default("mock"),
+}).superRefine((value, ctx) => {
+  if (value.SMS_API_ENABLED) {
+    for (const key of ["SOLAPI_API_KEY", "SOLAPI_API_SECRET", "SOLAPI_FROM_NUMBER"] as const) {
+      if (!value[key]) {
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: `${key} is required when SMS_API_ENABLED=true`,
+        });
+      }
+    }
+  }
+
+  if (value.LLM_MODE === "api") {
+    for (const key of ["LLM_API_URL", "LLM_API_KEY"] as const) {
+      if (!value[key]) {
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: `${key} is required when LLM_MODE=api`,
+        });
+      }
+    }
+  }
 });
 
 /**

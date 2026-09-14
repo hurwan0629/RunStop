@@ -1,0 +1,9 @@
+# Install into the Python selected by generation.worker_python before generating real routes.
+# The HTML editor and model experiments do not need these geospatial packages.
+networkx>=3.4,<4
+numpy>=2,<3
+pandas>=2.2,<4
+scipy>=1.14,<2
+pyproj>=3.6,<4
+shapely>=2.0,<3
+geopandas>=1.0,<2
