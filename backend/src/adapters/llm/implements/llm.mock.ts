@@ -2,6 +2,8 @@ import type {
   ParsedRouteConditions,
   RouteConditionLlmClient,
   RouteConditionParseInput,
+  RouteNamingInput,
+  RouteNamingResult,
 } from "../types.js";
 
 function includesAny(text: string, words: string[]): boolean {
@@ -25,5 +27,26 @@ export class MockLlmClient implements RouteConditionLlmClient {
     if (includesAny(text, ["계단", "stairs"])) requirements.no_stairs = true;
 
     return { weights, requirements };
+  }
+
+    async generateRouteNames(
+    input: RouteNamingInput,
+  ): Promise<RouteNamingResult> {
+    return {
+      names: input.candidates.map((candidate) => {
+        const landmark = candidate.verifiedLandmarks[0];
+        const routeLabel =
+          candidate.routeType === "LOOP" ? "순환 러닝 코스" : "러닝 코스";
+
+        const name = landmark
+          ? `${landmark} 인근 ${candidate.distanceKm.toFixed(1)}km ${routeLabel}`
+          : `약 ${candidate.distanceKm.toFixed(1)}km ${routeLabel}`;
+
+        return {
+          candidateIndex: candidate.candidateIndex,
+          name,
+        };
+      }),
+    };
   }
 }

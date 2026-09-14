@@ -17,7 +17,7 @@ import { useAuth } from '@/providers/AuthProvider';
 import { getApiErrorMessage } from '@/services/api/errors';
 
 import {
-  finishRunningSession,
+  endRunningSession,
   saveRunningTrackpoints,
 } from '../api/runningApi';
 import type { RunningTrackpoint } from '../types';
@@ -202,7 +202,18 @@ export default function ActiveRunningScreen() {
 
     try {
       await flushTrackpoints();
-      const result = await finishRunningSession(accessToken, sessionId);
+      const result = await endRunningSession(accessToken, sessionId);
+
+      // GPS가 충분히 쌓이기 전에 끝낸 러닝은 기록 목록에 남기지 않는다.
+      if (result.status === 'CANCELLED') {
+        Alert.alert(
+          '러닝을 취소했어요',
+          '유효한 GPS 기록이 부족해 이번 러닝은 기록으로 저장되지 않았습니다.',
+          [{ text: '확인', onPress: () => router.replace('/home') }],
+        );
+        return;
+      }
+
       router.replace({
         pathname: '/running/result',
         params: {
@@ -211,6 +222,7 @@ export default function ActiveRunningScreen() {
           distance: String(result.distance),
           elapsedSeconds: String(elapsedSeconds),
           sessionId: String(result.sessionIdx),
+          status: result.status,
         },
       });
     } catch (error) {

@@ -220,6 +220,9 @@ function RecordCard({
         <View>
           <Text style={styles.recordDate}>{formatRecordDate(record.startedAt)}</Text>
           <Text style={styles.recordName}>{record.courseName}</Text>
+          {record.status === 'STOPPED' ? (
+            <Text style={styles.recordStoppedLabel}>{'중단됨'}</Text>
+          ) : null}
         </View>
         <Text style={styles.recordChevron}>{'›'}</Text>
       </View>

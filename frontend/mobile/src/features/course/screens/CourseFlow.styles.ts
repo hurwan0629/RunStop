@@ -422,8 +422,9 @@ export const courseFlowStyles = StyleSheet.create({
   },
   courseName: {
     color: colors.navy,
-    fontSize: 23,
+    fontSize: 18,
     fontWeight: '900',
+    lineHeight: 25,
   },
   courseSummary: {
     color: colors.muted,
@@ -442,16 +443,6 @@ export const courseFlowStyles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     gap: 8,
-  },
-  recommendBadge: {
-    backgroundColor: colors.lime,
-    borderRadius: 12,
-    color: colors.navy,
-    fontSize: 11,
-    fontWeight: '900',
-    overflow: 'hidden',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
   },
   scoreBlock: {
     alignItems: 'flex-end',

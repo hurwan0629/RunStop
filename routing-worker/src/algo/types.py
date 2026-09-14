@@ -51,6 +51,9 @@ class NatureProfile(TypedDict):
     park_ratio: float | None
     # 경로 주변 버퍼 영역 중 하천과 겹치는 비율입니다.
     water_ratio: float | None
+    # 공원, 하천 이름 받아오기
+    park_names: list[str]
+    water_names: list[str]
 
 
 # OSM 기반 도로 환경 정보입니다.

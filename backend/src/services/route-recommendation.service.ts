@@ -1,4 +1,4 @@
-import { getRouteConditionLlmClient } from "../adapters/llm/llm.client.js";
+import { getRouteConditionLlmClient, generateRouteNames } from "../adapters/llm/llm.client.js";
 import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
 import type { RouteDetailDTO } from "../dto/route/route-detail.dto.js";
 import type {
@@ -119,6 +119,53 @@ function readFacilitySummary(
   };
 }
 
+// 0.15: 경로 주변 버퍼의 15% 이상이어야지 코스 이름에 하천이나 공원 이름을 씀
+const LANDMARK_MIN_RATIO = 0.15;
+
+function readNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : null;
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function readVerifiedLandmarks(
+  featureValues: Record<string, unknown> | null,
+): string[] {
+  const natureValue = featureValues?.nature;
+
+  if (
+    !natureValue
+    || typeof natureValue !== "object"
+    || Array.isArray(natureValue)
+  ) {
+    return [];
+  }
+
+  const nature = natureValue as Record<string, unknown>;
+  const waterRatio = readNumber(nature.waterRatio) ?? 0;
+  const parkRatio = readNumber(nature.parkRatio) ?? 0;
+  const waterNames = readStringArray(nature.waterNames);
+  const parkNames = readStringArray(nature.parkNames);
+
+  const landmarks: string[] = [];
+
+  if (waterRatio >= LANDMARK_MIN_RATIO) {
+    landmarks.push(...waterNames.slice(0, 1));
+  }
+
+  if (parkRatio >= LANDMARK_MIN_RATIO) {
+    landmarks.push(...parkNames.slice(0, 1));
+  }
+
+  return [...new Set(landmarks)];
+}
+
 function toRouteRecommendationDTO(row: {
   idx: number;
   name: string;
@@ -218,6 +265,65 @@ async function applyLlmRouteConditions(dto: RouteRequestDTO): Promise<RouteReque
   };
 }
 
+const MAX_RECOMMENDATION_COUNT = 3;
+
+/**
+ * 사용자가 고른 경사 기준을 우선 적용하되, 후보가 부족할 때만 단계적으로 완화한다.
+ * 예: 완만(5%) -> 8% -> 제한 없음
+ */
+function getSlopeFallbackLimits(
+  requestedMaxSlope: number | undefined,
+): Array<number | undefined> {
+  const limits =
+    requestedMaxSlope === undefined
+      ? [undefined]
+      : requestedMaxSlope <= 5
+        ? [requestedMaxSlope, 8, undefined]
+        : requestedMaxSlope <= 8
+          ? [requestedMaxSlope, 12, undefined]
+          : [requestedMaxSlope, undefined];
+
+  return limits.filter(
+    (limit, index) => limits.indexOf(limit) === index,
+  );
+}
+
+/** 같은 경로가 완화 단계에서 다시 반환되면 한 번만 유지한다. */
+function getCandidateFingerprint(candidate: WorkerRouteCandidateDTO): string {
+  return candidate.path
+    .map((point) => `${point.lat.toFixed(5)},${point.lng.toFixed(5)}`)
+    .join("|");
+}
+
+/**
+ * DB의 feature_values에 경사 조건이 엄격히 충족됐는지,
+ * 후보 확보를 위해 완화됐는지를 함께 저장한다.
+ */
+function withSlopeFallbackStatus(
+  candidate: WorkerRouteCandidateDTO,
+  requestedMaxSlope: number | undefined,
+  appliedMaxSlope: number | undefined,
+): WorkerRouteCandidateDTO {
+  const status =
+    requestedMaxSlope === undefined
+      ? "IGNORE"
+      : requestedMaxSlope === appliedMaxSlope
+        ? "MET"
+        : "RELAXED";
+
+  return {
+    ...candidate,
+    featureValues: {
+      ...candidate.featureValues,
+      slopeConstraint: {
+        requestedMaxSlopePct: requestedMaxSlope ?? null,
+        appliedMaxSlopePct: appliedMaxSlope ?? null,
+        status,
+      },
+    },
+  };
+}
+
 /**
  * 경로 요청을 생성하고 routing-worker를 호출한 뒤 추천 후보를 저장합니다.
  */
@@ -242,32 +348,153 @@ export async function recommendRoutes(
   //       2. Python routing-worker를 호출합니다.   //
   // // // // // // // // // // // // // // // // //
   const endPoint = routeRequest.endPoint ?? routeRequest.startPoint;
-  let workerResponse: Awaited<ReturnType<typeof requestRouteRecommendations>>;
+  const requestedMaxSlope = routeRequest.elementConditions.maxSlope;
+  const slopeFallbackLimits = getSlopeFallbackLimits(requestedMaxSlope);
+  const collectedCandidates: WorkerRouteCandidateDTO[] = [];
+  const seenCandidateKeys = new Set<string>();
 
   try {
-    logger.info({ serviceName: "routes", action: "recommendRoutes", userIdx }, "service:worker_request:start");
+    for (const appliedMaxSlope of slopeFallbackLimits) {
+      if (collectedCandidates.length >= MAX_RECOMMENDATION_COUNT) {
+        break;
+      }
 
-    // input = dto/route/worker-route-request.dto.ts WorkerRouteRequestDTO
-    // output = dto/route/worker-route-response.dto.ts WorkerRouterResponseDTO
-    workerResponse = await requestRouteRecommendations({
-      startPoint: routeRequest.startPoint,
-      waypoints: routeRequest.waypoints,
-      endPoint,
-      routeType: dto.routeType,
-      prompt: routeRequest.prompt,
-      elementConditions: routeRequest.elementConditions,
-      maxCandidates: 3,
+      logger.info(
+        {
+          serviceName: "routes",
+          action: "recommendRoutes",
+          userIdx,
+          requestedMaxSlope: requestedMaxSlope ?? null,
+          appliedMaxSlope: appliedMaxSlope ?? null,
+        },
+        "service:worker_request:start",
+      );
+
+      const phaseResponse = await requestRouteRecommendations({
+        startPoint: routeRequest.startPoint,
+        waypoints: routeRequest.waypoints,
+        endPoint,
+        routeType: routeRequest.routeType,
+        prompt: routeRequest.prompt,
+        elementConditions: {
+          ...routeRequest.elementConditions,
+          maxSlope: appliedMaxSlope,
+        },
+        maxCandidates: MAX_RECOMMENDATION_COUNT,
+      });
+
+      for (const candidate of phaseResponse.candidates) {
+        const candidateKey = getCandidateFingerprint(candidate);
+
+        if (seenCandidateKeys.has(candidateKey)) {
+          continue;
+        }
+
+        seenCandidateKeys.add(candidateKey);
+        collectedCandidates.push(
+          withSlopeFallbackStatus(
+            candidate,
+            requestedMaxSlope,
+            appliedMaxSlope,
+          ),
+        );
+
+        if (collectedCandidates.length >= MAX_RECOMMENDATION_COUNT) {
+          break;
+        }
+      }
+
+      logger.info(
+        {
+          serviceName: "routes",
+          action: "recommendRoutes",
+          userIdx,
+          requestedMaxSlope: requestedMaxSlope ?? null,
+          appliedMaxSlope: appliedMaxSlope ?? null,
+          collectedCandidateCount: collectedCandidates.length,
+        },
+        "service:worker_request:success",
+      );
+    }
+  } catch (error) {
+    logger.error(
+      {
+        serviceName: "routes",
+        action: "recommendRoutes",
+        userIdx,
+        err: error,
+      },
+      "service:worker_request:error",
+    );
+    throw error;
+  }
+
+  if (collectedCandidates.length === 0) {
+    throw new ApiError({
+      status: 422,
+      code: "ROUTE_CANDIDATES_NOT_FOUND",
+      message: "입력한 조건으로 추천 코스를 찾지 못했습니다.",
+    });
+  }
+
+  const workerResponse = {
+    candidates: collectedCandidates,
+  };
+
+  let candidatesForSave = workerResponse.candidates;
+
+  try {
+    const nightRequested =
+      (routeRequest.elementConditions.weights.night ?? 0) >= 4;
+
+    const namingResult = await generateRouteNames({
+      candidates: workerResponse.candidates.map(
+        (candidate, candidateIndex) => {
+          const slope = readSlopeProfile(candidate.featureValues);
+          const nightScore = readNumber(candidate.featureScores.night);
+
+          return {
+            candidateIndex,
+            routeType: routeRequest.routeType,
+            distanceKm:
+              candidate.totalDistance !== null
+                ? candidate.totalDistance / 1000
+                : routeRequest.elementConditions.targetDistance / 1000,
+            verifiedLandmarks: readVerifiedLandmarks(
+              candidate.featureValues,
+            ),
+            nightRequested,
+            nightScore,
+            elevationGainM: slope?.elevationGainM ?? null,
+            maxSlopePct: slope?.maxSlopePct ?? null,
+          };
+        },
+      ),
     });
 
-    logger.info({
-      serviceName: "routes",
-      action: "recommendRoutes",
-      userIdx,
-      candidateCount: workerResponse.candidates.length,
-    }, "service:worker_request:success");
+    const nameByCandidateIndex = new Map(
+      namingResult.names.map((item) => [
+        item.candidateIndex,
+        item.name,
+      ]),
+    );
+
+    candidatesForSave = workerResponse.candidates.map(
+      (candidate, candidateIndex) => ({
+        ...candidate,
+        name:
+          nameByCandidateIndex.get(candidateIndex) ?? candidate.name,
+      }),
+    );
   } catch (error) {
-    logger.error({ serviceName: "routes", action: "recommendRoutes", userIdx, err: error }, "service:worker_request:error");
-    throw error;
+    logger.warn(
+      {
+        serviceName: "routes",
+        action: "recommendRoutes",
+        err: error,
+      },
+      "service:route_name_generation_failed",
+    );
   }
 
 
@@ -283,19 +510,19 @@ export async function recommendRoutes(
       userIdx,
       prompt: routeRequest.prompt,
       elementConditions: routeRequest.elementConditions,
+      routeType: routeRequest.routeType,
     }, client);
 
     await createRouteRequestPoints(savedRouteRequest.idx, buildRouteRequestPoints(routeRequest), client);
 
     const recommendations = await createRouteRecommendations(
       savedRouteRequest.idx,
-      workerResponse.candidates,
+      candidatesForSave,
       client,
     );
 
     for (const [index, recommendation] of recommendations.entries()) {
-      const candidate = workerResponse.candidates[index];
-
+      const candidate = candidatesForSave[index];
       if (!candidate) {
         continue;
       }

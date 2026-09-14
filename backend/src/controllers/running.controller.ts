@@ -8,6 +8,7 @@ import {
   runningPaceResponseSchema,
   runningStartResponseSchema,
   runningTrackpointsResponseSchema,
+  runningEndResponseSchema,
 } from "../dto/running/running-response.dto.js";
 import { runningStartSchema } from "../dto/running/running-start.dto.js";
 import { runningTrackpointsSchema } from "../dto/running/running-trackpoint.dto.js";
@@ -18,6 +19,7 @@ import {
   listRunningHistory,
   saveRunningTrackpoints as saveRunningTrackpointsService,
   startRunningSession as startRunningSessionService,
+  endRunningSession as endRunningSessionService,
 } from "../services/running.service.js";
 
 const runningSessionParamsSchema = z.object({
@@ -151,6 +153,36 @@ export async function finishRunningSession(req: Request, res: Response, next: Ne
   res.json({
     success: true,
     data: runningFinishResponseSchema.parse(result),
+  });
+}
+
+export async function endRunningSession(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const userIdx = getAuthenticatedUserIdx(req);
+  const sessionIdx = parseSessionIdx(req);
+  const parseResult = runningFinishSchema.safeParse(req.body);
+
+  if (!parseResult.success) {
+    throw new ApiError({
+      status: 400,
+      code: "INVALID_RUNNING_END_REQUEST",
+      message: "러닝 종료 요청 값이 올바르지 않습니다.",
+      details: parseResult.error.flatten(),
+    });
+  }
+
+  const result = await endRunningSessionService(
+    userIdx,
+    sessionIdx,
+    parseResult.data,
+  );
+
+  res.json({
+    success: true,
+    data: runningEndResponseSchema.parse(result),
   });
 }
 

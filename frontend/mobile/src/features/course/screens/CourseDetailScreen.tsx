@@ -18,16 +18,21 @@ import { startRunningSession } from '@/features/running/api/runningApi';
 import { useAuth } from '@/providers/AuthProvider';
 import { getApiErrorMessage } from '@/services/api/errors';
 
-import { getCourseDetail } from '../api/courseApi';
+import { getCourseDetail, selectCourse } from '../api/courseApi';
 import { CourseMap } from '../components/CourseMap';
 import type { LocationPoint, RouteDetail } from '../types';
 import { styles } from './CourseDetailScreen.styles';
 
 export default function CourseDetailScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ courseId?: string }>();
+  const params = useLocalSearchParams<{
+    courseId?: string;
+    requestId?: string;
+  }>();
   const { accessToken } = useAuth();
   const courseId = Number(params.courseId);
+  const requestId = Number(params.requestId);
+  const hasRouteRequestId = Number.isInteger(requestId) && requestId > 0;
   const [course, setCourse] = useState<RouteDetail | null>(null);
   const [bookmarkIdx, setBookmarkIdx] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -103,6 +108,14 @@ export default function CourseDetailScreen() {
     setErrorMessage('');
 
     try {
+      if (hasRouteRequestId) {
+        await selectCourse(
+          accessToken,
+          requestId,
+          course.idx,
+        );
+      }
+
       const session = await startRunningSession(accessToken, course.idx);
       router.push({
         pathname: '/running/active',

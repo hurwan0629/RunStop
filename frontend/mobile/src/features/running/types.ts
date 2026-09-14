@@ -18,6 +18,14 @@ export type RunningFinishResponse = {
   averagePace: number | null;
 };
 
+/** 서버가 GPS 기록과 도착 조건으로 결정한 종료 결과입니다. */
+export type RunningEndResponse = {
+  sessionIdx: number;
+  status: 'COMPLETED' | 'STOPPED' | 'CANCELLED';
+  distance: number;
+  averagePace: number | null;
+};
+
 export type RunningPaceResponse = {
   sessionIdx: number;
   averagePace: number | null;

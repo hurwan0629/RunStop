@@ -20,7 +20,13 @@ def parse_node_request_to_python_recommendation(
     result["target_km"] = node_req.elementConditions.targetDistance / 1000.0
 
     result["weights"] = node_req.elementConditions.weights
-    result["requirements"] = node_req.elementConditions.requirements
+
+    requirements = dict(node_req.elementConditions.requirements)
+
+    if node_req.elementConditions.maxSlope is not None:
+        requirements["max_slope_pct"] = node_req.elementConditions.maxSlope
+
+    result["requirements"] = requirements
     result["facility_preferences"] = node_req.elementConditions.facilityPreferences
 
     return result
@@ -47,6 +53,15 @@ def parse_python_recommendation_to_node_require(results):
             "elevationGainM": slope.get("elevation_gain_m"),
             "elevationLossM": slope.get("elevation_loss_m"),
             "sampleCount": slope.get("sample_count"),
+        }
+
+        nature = result.get("nature") or {}
+
+        feature_values["nature"] = {
+            "parkRatio": nature.get("park_ratio"),
+            "waterRatio": nature.get("water_ratio"),
+            "parkNames": nature.get("park_names", []),
+            "waterNames": nature.get("water_names", []),
         }
 
         candidates.append({

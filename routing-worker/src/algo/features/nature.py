@@ -62,7 +62,12 @@ def analyze_nature_adjacency(
     nature_layers = _load_nature_layers()
 
     # 
-    metrics = {}
+    metrics: NatureProfile = {
+        "park_ratio": None,
+        "water_ratio": None,
+        "park_names": [],
+        "water_names": [],
+    }
     # 환경 종류 가져오기 [2026-09-10 12:55:07] 기준 [park(공원), water(하천)]이 존재함.
     for nature_type in NATURE_LAYER_PATHS:
         # 해당 geopandas df 가져와주기
@@ -76,6 +81,26 @@ def analyze_nature_adjacency(
         if not intersecting_indices:
             metrics[f"{nature_type}_ratio"] = 0.0
             continue
+
+        # 경로 주변에 실제로 있는 공원이나 하천 데이터 행
+        matched_features = nature_layer_gdf.iloc[intersecting_indices]
+
+        # GeoJSON에 들어 있는 실제 명칭 추출
+        if "name" in matched_features.columns:
+            names = [
+                str(name).strip()
+                for name in matched_features["name"].dropna().tolist()
+                if str(name).strip()
+            ]
+
+        # 중복 이름 제거 후 최대 3개만 유지
+        unique_names = list(dict.fromkeys(names))[:3]
+
+        if nature_type == "park":
+            metrics["park_names"] = unique_names
+        elif nature_type == "water":
+            metrics["water_names"] = unique_names
+
         # 앞에서 경로 버퍼에 포함되는 환경들만 가져와주기
         merged_nature_geometry = nature_layer_gdf.geometry.iloc[intersecting_indices].union_all()
         # 겹치는 비율 반환해주기 (버퍼 너비 대비 겹치는 면적 비율)

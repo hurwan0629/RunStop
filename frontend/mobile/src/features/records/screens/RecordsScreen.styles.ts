@@ -88,6 +88,18 @@ export const styles = StyleSheet.create({
   },
   recordDate: { color: colors.muted, fontSize: 14 },
   recordName: { color: colors.navy, fontSize: 19, fontWeight: '900', marginTop: 12 },
+  recordStoppedLabel: {
+    alignSelf: 'flex-start',
+    borderRadius: 10,
+    backgroundColor: '#FDE7E8',
+    color: '#B4232A',
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 8,
+    overflow: 'hidden',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
   completeBadge: {
     borderRadius: 14,
     backgroundColor: '#DFFFAD',

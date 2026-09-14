@@ -11,20 +11,26 @@ export default function RunningResultScreen() {
     distance?: string;
     elapsedSeconds?: string;
     sessionId?: string;
+    status?: 'COMPLETED' | 'STOPPED';
   }>();
   const distance = Number(params.distance) || 0;
   const averagePace = Number(params.averagePace) || null;
   const elapsedSeconds = Number(params.elapsedSeconds) || 0;
+  const isStopped = params.status === 'STOPPED';
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.resultContent}>
         <View style={styles.completeMark}>
-          <Text style={styles.completeMarkText}>{'✓'}</Text>
+          <Text style={styles.completeMarkText}>{isStopped ? '!' : '✓'}</Text>
         </View>
-        <Text style={styles.resultTitle}>{'오늘의 러닝 완료!'}</Text>
+        <Text style={styles.resultTitle}>
+          {isStopped ? '러닝이 중단되었어요' : '오늘의 러닝 완료!'}
+        </Text>
         <Text style={styles.resultDescription}>
-          {'서버에 러닝 기록이 안전하게 저장되었습니다.'}
+          {isStopped
+            ? '현재까지의 러닝 기록이 저장되었습니다.'
+            : '서버에 러닝 기록이 안전하게 저장되었습니다.'}
         </Text>
 
         <View style={styles.resultCard}>

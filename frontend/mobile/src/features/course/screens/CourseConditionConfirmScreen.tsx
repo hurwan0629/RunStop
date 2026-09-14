@@ -40,6 +40,12 @@ const slopeLabels: Record<SlopePreference, string> = {
   NORMAL: '보통',
   ANY: '상관없음',
 };
+// 경사도 기준과 적용
+const maxSlopeByPreference: Record<SlopePreference, number | undefined> = {
+  GENTLE: 5,
+  NORMAL: 8,
+  ANY: undefined,
+};
 
 /** 입력한 러닝 조건과 우선순위를 최종 확인하는 3단계 화면입니다. */
 export default function CourseConditionConfirmScreen() {
@@ -83,6 +89,7 @@ export default function CourseConditionConfirmScreen() {
         endPoint: draft.endPoint ? toCoordinate(draft.endPoint) : undefined,
         elementConditions: {
           targetDistance: Math.round(draft.targetDistanceKm * 1000),
+          maxSlope: maxSlopeByPreference[draft.slopePreference],
           facilityPreferences: {
             toilet: draft.facilities.includes('TOILET') ? 'PREFER' : 'IGNORE',
             store: draft.facilities.includes('CONVENIENCE_STORE')

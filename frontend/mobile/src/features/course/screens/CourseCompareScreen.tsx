@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import {
-  ActivityIndicator,
   Pressable,
   ScrollView,
   Text,
@@ -9,10 +8,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useAuth } from '@/providers/AuthProvider';
-import { getApiErrorMessage } from '@/services/api/errors';
-
-import { selectCourse } from '../api/courseApi';
 import { useCourseDraft } from '../context/CourseDraftContext';
 import type {
   FacilityPreferenceMode,
@@ -22,7 +17,6 @@ import { courseFlowStyles as styles } from './CourseFlow.styles';
 
 export default function CourseCompareScreen() {
   const router = useRouter();
-  const { accessToken } = useAuth();
   const { draft, recommendationResult } = useCourseDraft();
   const recommendations = useMemo(
     () => recommendationResult?.recommendations ?? [],
@@ -40,37 +34,27 @@ export default function CourseCompareScreen() {
   const [selectedId, setSelectedId] = useState<number | null>(
     recommendations[0]?.idx ?? null,
   );
-  const [isSelecting, setIsSelecting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const selectedCourse = useMemo(
     () => recommendations.find((course) => course.idx === selectedId) ?? null,
     [recommendations, selectedId],
   );
 
-  const openSelectedCourse = async () => {
-    if (!accessToken || !recommendationResult || !selectedCourse) {
+  const openSelectedCourse = () => {
+    if (!recommendationResult || !selectedCourse) {
       setErrorMessage('선택할 수 있는 코스가 없습니다.');
       return;
     }
 
-    setIsSelecting(true);
     setErrorMessage('');
 
-    try {
-      await selectCourse(
-        accessToken,
-        recommendationResult.requestIdx,
-        selectedCourse.idx,
-      );
-      router.push({
-        pathname: '/course/[courseId]',
-        params: { courseId: String(selectedCourse.idx) },
-      });
-    } catch (error) {
-      setErrorMessage(getApiErrorMessage(error));
-    } finally {
-      setIsSelecting(false);
-    }
+    router.push({
+      pathname: '/course/[courseId]',
+      params: {
+        courseId: String(selectedCourse.idx),
+        requestId: String(recommendationResult.requestIdx),
+      },
+    });
   };
 
   return (
@@ -129,19 +113,14 @@ export default function CourseCompareScreen() {
         {selectedCourse ? (
           <Pressable
             accessibilityRole="button"
-            disabled={isSelecting}
-            onPress={() => void openSelectedCourse()}
+            onPress={openSelectedCourse}
             style={({ pressed }) => [
               styles.primaryButton,
               pressed && styles.pressed,
             ]}>
-            {isSelecting ? (
-              <ActivityIndicator color="#C8FF30" />
-            ) : (
-              <Text style={styles.primaryButtonText}>
-                {`코스 ${courseLabel(recommendations, selectedCourse.idx)} 선택하기`}
-              </Text>
-            )}
+            <Text style={styles.primaryButtonText}>
+              {'선택한 코스 상세 보기'}
+            </Text>
           </Pressable>
         ) : null}
       </ScrollView>
@@ -257,8 +236,7 @@ function CourseCard({
         </View>
         <View style={styles.courseCopy}>
           <View style={styles.courseNameRow}>
-            <Text style={styles.courseName}>{`코스 ${label}`}</Text>
-            {active ? <Text style={styles.recommendBadge}>{'추천'}</Text> : null}
+            <Text style={styles.courseName}>{course.name || `코스 ${label}`}</Text>
           </View>
           <Text style={styles.courseSummary}>{`${distanceKm}km · 예상 ${estimatedMinutes}분`}</Text>
         </View>
