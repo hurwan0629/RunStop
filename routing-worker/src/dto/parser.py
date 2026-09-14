@@ -21,30 +21,62 @@ def parse_node_request_to_python_recommendation(
 
     result["weights"] = node_req.elementConditions.weights
     result["requirements"] = node_req.elementConditions.requirements
+    result["facility_preferences"] = node_req.elementConditions.facilityPreferences
 
     return result
 
 def parse_python_recommendation_to_node_require(results):
-    return [{
-            "name": "임시 코스 명 (파이썬 parser.py 하드코딩)",
-            "score": result["condition_score"],
-            "path": [{ "lat": coord[0], "lng": coord[1]} for coord in result["coords"]],
-            "featureScores": result["sub_scores"],
-            "featureValues": result["facilities"],
-            "totalDistance": result["actual_distance_m"],
-            "totalAscent": result["slope"]["elevation_gain_m"],
-            "slopeStd": 999,
-            "points": [{
-                "sequence": 999,
-                "pointType": "END",
-                "lat": 90,
-                "lng": 180,
-                # "title": "END",
-                # "elevation": 9999,
-                # "slope": 9999,
-            }]
-            # for num,  waypoint in enumerate(result.waypoint)]
-        }
-        for result in results]
+    candidates = []
 
+    for result in results:
+        slope = result.get("slope") or {}
+
+        coords = result["coords"]
+        distance_km = result["actual_distance_m"] / 1000
+
+        feature_values = dict(result.get("facilities") or {})
+        feature_values["facilityStatus"] = result.get(
+            "facility_status",
+            {},
+        )
+
+        feature_values["slope"] = {
+            "avgSlopePct": slope.get("avg_slope_pct"),
+            "maxSlopePct": slope.get("max_slope_pct"),
+            "slopeStdPct": slope.get("slope_std_pct"),
+            "elevationGainM": slope.get("elevation_gain_m"),
+            "elevationLossM": slope.get("elevation_loss_m"),
+            "sampleCount": slope.get("sample_count"),
+        }
+
+        candidates.append({
+            "name": f"약 {distance_km:.1f}km 러닝 코스",
+            "score": result["condition_score"],
+            "path": [
+                {"lat": coord[0], "lng": coord[1]}
+                for coord in result["coords"]
+            ],
+            "featureScores": result["sub_scores"],
+            "featureValues": feature_values,
+            "totalDistance": result["actual_distance_m"],
+            "totalAscent": slope.get("elevation_gain_m"),
+            "slopeStd": slope.get("slope_std_pct"),
+            "points": [{
+                "sequence": 0,
+                "pointType": "START",
+                "lat": coords[0][0],
+                "lng": coords[0][1],
+                "title": "출발지",
+            },
+            {
+                "sequence": 1,
+                "pointType": "END",
+                "lat": coords[-1][0],
+                "lng": coords[-1][1],
+                "title": "도착지",
+            },
+            ],
+        })
+
+    return candidates
     

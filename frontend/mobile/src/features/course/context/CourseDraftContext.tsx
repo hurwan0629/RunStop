@@ -22,8 +22,6 @@ const initialCourseDraft: CourseDraft = {
   facilities: [],
   distanceImportance: 3,
   slopeImportance: 3,
-  toiletImportance: 3,
-  convenienceImportance: 3,
   nightImportance: 3,
 };
 

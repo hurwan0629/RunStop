@@ -14,7 +14,10 @@ import { getApiErrorMessage } from '@/services/api/errors';
 
 import { selectCourse } from '../api/courseApi';
 import { useCourseDraft } from '../context/CourseDraftContext';
-import type { RouteRecommendation } from '../types';
+import type {
+  FacilityPreferenceMode,
+  RouteRecommendation,
+} from '../types';
 import { courseFlowStyles as styles } from './CourseFlow.styles';
 
 export default function CourseCompareScreen() {
@@ -25,6 +28,15 @@ export default function CourseCompareScreen() {
     () => recommendationResult?.recommendations ?? [],
     [recommendationResult],
   );
+  const facilityPreferences: Record<
+    'toilet' | 'store',
+    FacilityPreferenceMode
+  > = {
+    toilet: draft.facilities.includes('TOILET') ? 'PREFER' : 'IGNORE',
+    store: draft.facilities.includes('CONVENIENCE_STORE')
+      ? 'PREFER'
+      : 'IGNORE',
+  };
   const [selectedId, setSelectedId] = useState<number | null>(
     recommendations[0]?.idx ?? null,
   );
@@ -99,9 +111,11 @@ export default function CourseCompareScreen() {
             <CourseCard
               active={selectedId === course.idx}
               course={course}
+              facilityPreferences={facilityPreferences}
               key={course.idx}
               label={String.fromCharCode(65 + index)}
               onPress={() => setSelectedId(course.idx)}
+              targetDistanceKm={draft.targetDistanceKm}
             />
           ))
         )}
@@ -134,17 +148,85 @@ export default function CourseCompareScreen() {
     </SafeAreaView>
   );
 }
+function buildRecommendationReasons(
+  course: RouteRecommendation,
+  {
+    targetDistanceKm,
+    facilityPreferences,
+  }: {
+    targetDistanceKm: number;
+    facilityPreferences: Record<'toilet' | 'store', FacilityPreferenceMode>;
+  },
+) {
+  const reasons: string[] = [];
+
+  const appendFacilityReason = (
+    facilityName: string,
+    preference: FacilityPreferenceMode,
+    facility?: { count: number; status: 'MET' | 'RELAXED' | 'IGNORE' },
+  ) => {
+    if (preference !== 'PREFER' || !facility) {
+      return;
+    }
+
+    if (facility.status === 'MET') {
+      reasons.push(`${facilityName} ${facility.count}개가 있는 경로예요.`);
+      return;
+    }
+
+    if (facility.status === 'RELAXED') {
+      reasons.push(
+        `${facilityName} 조건을 충족하는 후보가 부족해 대안 코스로 함께 제안했어요.`,
+      );
+    }
+  };
+
+  appendFacilityReason(
+    '화장실',
+    facilityPreferences.toilet,
+    course.facilities?.toilet,
+  );
+  appendFacilityReason(
+    '편의점',
+    facilityPreferences.store,
+    course.facilities?.store,
+  );
+
+  if (course.totalDistance !== null && targetDistanceKm > 0) {
+    const actualDistanceKm = course.totalDistance / 1000;
+    const differenceKm = Math.abs(actualDistanceKm - targetDistanceKm);
+
+    reasons.push(
+      `목표 거리 ${targetDistanceKm}km와 ${differenceKm.toFixed(1)}km 차이예요.`,
+    );
+  }
+
+  const maxSlope = course.slope?.maxSlopePct;
+  if (typeof maxSlope === 'number' && course.totalAscent !== null) {
+    reasons.push(
+      `최대 경사 ${maxSlope.toFixed(1)}%, 누적 오르막 ${Math.round(course.totalAscent)}m예요.`,
+    );
+  }
+
+  return reasons.length > 0
+    ? reasons
+    : ['입력한 거리와 조건을 기준으로 비교한 코스예요.'];
+}
 
 function CourseCard({
   active,
   course,
+  facilityPreferences,
   label,
   onPress,
+  targetDistanceKm,
 }: {
   active: boolean;
   course: RouteRecommendation;
+  facilityPreferences: Record<'toilet' | 'store', FacilityPreferenceMode>;
   label: string;
   onPress: () => void;
+  targetDistanceKm: number;
 }) {
   const distanceKm = course.totalDistance === null
     ? '--'
@@ -154,6 +236,10 @@ function CourseCard({
     : String(Math.round((course.totalDistance / 1000) * 6));
 
   const score = course.score === null ? null : Math.max(0, Math.min(100, Math.round(course.score)));
+  const reasons = buildRecommendationReasons(course, {
+    targetDistanceKm,
+    facilityPreferences,
+  });
 
   return (
     <Pressable
@@ -203,11 +289,13 @@ function CourseCard({
           <View style={styles.detailsDivider} />
           <View style={styles.reasonBox}>
             <Text style={styles.reasonTitle}>{'추천 이유'}</Text>
-            <Text style={styles.reasonText}>
-              {course.slopeStd === null
-                ? '입력한 조건을 기준으로 경로를 비교했습니다.'
-                : `입력한 목표에 맞춰 경사도 편차 ${course.slopeStd.toFixed(1)}인 경로를 우선 추천했어요.`}
-            </Text>
+            {reasons.map((reason, index) => (
+              <Text
+                key={`${index}-${reason}`}
+                style={styles.reasonText}>
+                {`• ${reason}`}
+              </Text>
+            ))}
           </View>
         </>
       ) : null}

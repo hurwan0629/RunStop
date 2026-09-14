@@ -45,6 +45,7 @@ def route_recommend(request: RouteRecommendRequestDTO):
         vias=recommend_args.get("vias", None),
         weights=recommend_args.get("weights", None), 
         requirements=recommend_args.get("requirements", None), 
+        facility_preferences=recommend_args.get("facility_preferences"),
         # 후보군을 만들 방위각 개수 (360 / n_directions)
         n_directions=12,
         # 뽑을 후보군 개수

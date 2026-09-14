@@ -25,20 +25,15 @@ import { courseFlowStyles as styles } from './CourseFlow.styles';
 type ImportanceKey =
   | 'distanceImportance'
   | 'slopeImportance'
-  | 'toiletImportance'
-  | 'convenienceImportance'
   | 'nightImportance';
 
 const importanceItems: {
   key: ImportanceKey;
   label: string;
 }[] = [
-  { key: 'distanceImportance', label: '거리' },
-  { key: 'slopeImportance', label: '경사도' },
-  { key: 'toiletImportance', label: '화장실' },
-  { key: 'convenienceImportance', label: '편의점' },
-  { key: 'nightImportance', label: '야간 인프라' },
-];
+    { key: 'distanceImportance', label: '거리' },
+    { key: 'slopeImportance', label: '경사도' },
+  ];
 
 const slopeLabels: Record<SlopePreference, string> = {
   GENTLE: '완만',
@@ -88,19 +83,20 @@ export default function CourseConditionConfirmScreen() {
         endPoint: draft.endPoint ? toCoordinate(draft.endPoint) : undefined,
         elementConditions: {
           targetDistance: Math.round(draft.targetDistanceKm * 1000),
-          facilityCount:
-            draft.facilities.length > 0 ? draft.facilities.length : undefined,
+          facilityPreferences: {
+            toilet: draft.facilities.includes('TOILET') ? 'PREFER' : 'IGNORE',
+            store: draft.facilities.includes('CONVENIENCE_STORE')
+              ? 'PREFER'
+              : 'IGNORE',
+          },
           weights: {
             distance: draft.distanceImportance,
             elevation: draft.slopeImportance,
-            toilet: draft.toiletImportance,
-            store: draft.convenienceImportance,
             night: draft.nightImportance,
           },
-          requirements: {
-            toilet: draft.facilities.includes('TOILET'),
-            store: draft.facilities.includes('CONVENIENCE_STORE'),
-          },
+          // 시설의 체크 여부는 facilityPreferences에서만 판단합니다.
+          // requirements에 true를 넣으면 시설이 없는 fallback 후보도 제외될 수 있어요.
+          requirements: {},
         },
       });
 
@@ -190,6 +186,26 @@ export default function CourseConditionConfirmScreen() {
               />
             </View>
           ))}
+          <FacilityStatusRow
+            label="화장실"
+            selected={draft.facilities.includes('TOILET')}
+          />
+          <FacilityStatusRow
+            label="편의점"
+            selected={draft.facilities.includes('CONVENIENCE_STORE')}
+          />
+          <View style={styles.importanceItem}>
+            <View style={styles.importanceLabelRow}>
+              <Text style={styles.importanceLabel}>{'야간 인프라'}</Text>
+              <Text style={styles.importanceValue}>
+                {`${draft.nightImportance} / 5`}
+              </Text>
+            </View>
+            <ImportanceSelector
+              onChange={(value) => setImportance('nightImportance', value)}
+              value={draft.nightImportance}
+            />
+          </View>
         </View>
 
         <View style={styles.buttonRow}>
@@ -232,6 +248,43 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
     <View style={styles.summaryRow}>
       <Text style={styles.summaryLabel}>{label}</Text>
       <Text style={styles.summaryValue}>{value}</Text>
+    </View>
+  );
+}
+
+function FacilityStatusRow({
+  label,
+  selected,
+}: {
+  label: string;
+  selected: boolean;
+}) {
+  return (
+    <View style={styles.importanceItem}>
+      <View style={styles.importanceLabelRow}>
+        <Text style={styles.importanceLabel}>{label}</Text>
+        <View
+          style={[
+            styles.facilityStatusBadge,
+            selected && styles.facilityStatusBadgeActive,
+          ]}>
+          {selected ? (
+            <Text style={styles.facilityStatusCheck}>{'✓'}</Text>
+          ) : null}
+          <Text
+            style={[
+              styles.facilityStatusText,
+              selected && styles.facilityStatusTextActive,
+            ]}>
+            {selected ? '선택함' : '선택 안 함'}
+          </Text>
+        </View>
+      </View>
+      <Text style={styles.importanceGuideText}>
+        {selected
+          ? `${label}이(가) 있는 코스를 우선 추천해요.`
+          : `${label} 유무를 코스 추천에 반영하지 않아요.`}
+      </Text>
     </View>
   );
 }

@@ -27,6 +27,9 @@ export type FacilityPreference =
   | 'TOILET'
   | 'CONVENIENCE_STORE';
 
+
+export type FacilityPreferenceMode = 'PREFER' | 'IGNORE';
+
 export type ImportanceLevel = 1 | 2 | 3 | 4 | 5;
 export type RouteType = 'LOOP' | 'ROUND_TRIP' | 'ONE_WAY';
 
@@ -41,8 +44,6 @@ export type CourseDraft = {
   facilities: FacilityPreference[];
   distanceImportance: ImportanceLevel;
   slopeImportance: ImportanceLevel;
-  toiletImportance: ImportanceLevel;
-  convenienceImportance: ImportanceLevel;
   nightImportance: ImportanceLevel;
 };
 
@@ -55,9 +56,34 @@ export type RouteRequest = {
   elementConditions: {
     targetDistance: number;
     maxSlope?: number;
-    facilityCount?: number;
     weights: Record<string, number>;
-    requirements: Record<string, boolean>;
+    requirements?: Record<string, boolean>;
+    facilityPreferences: {
+      toilet: FacilityPreferenceMode;
+      store: FacilityPreferenceMode;
+    };
+  };
+};
+
+export type RouteSlopeProfile = {
+  avgSlopePct: number | null;
+  maxSlopePct: number | null;
+  slopeStdPct: number | null;
+  elevationGainM: number | null;
+  elevationLossM: number | null;
+  sampleCount: number;
+};
+
+export type FacilityStatus = "MET" | "RELAXED" | "IGNORE";
+
+export type RouteFacilitySummary = {
+  toilet: {
+    count: number;
+    status: FacilityStatus;
+  };
+  store: {
+    count: number;
+    status: FacilityStatus;
   };
 };
 
@@ -68,6 +94,9 @@ export type RouteRecommendation = {
   totalDistance: number | null;
   totalAscent: number | null;
   slopeStd: number | null;
+  slope?: RouteSlopeProfile | null;
+  featureScores?: Record<string, number | null>;
+  facilities?: RouteFacilitySummary;
 };
 
 export type RouteRecommendResponse = {
@@ -86,6 +115,7 @@ export type RouteDetail = {
   totalDistance: number | null;
   totalAscent: number | null;
   slopeStd: number | null;
+  slope?: RouteSlopeProfile | null;
   isBookmarked: boolean;
   path: LocationPoint[];
   points: RoutePoint[];

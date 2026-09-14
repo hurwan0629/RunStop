@@ -4,6 +4,7 @@ import type { RouteDetailDTO } from "../dto/route/route-detail.dto.js";
 import type {
   RouteRecommendResponseDTO,
   RouteRecommendationDTO,
+  RouteSlopeProfileDTO,
 } from "../dto/route/route-recommendation.dto.js";
 import type { RouteRequestDTO } from "../dto/route/route-request.dto.js";
 import type {
@@ -31,6 +32,93 @@ import {
   findRoutePointsByRecommendationIdx,
 } from "../repositories/route-points.repository.js";
 
+
+function readSlopeProfile(
+  featureValues: Record<string, unknown> | null,
+): RouteSlopeProfileDTO | null {
+  const value = featureValues?.slope;
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const profile = value as Record<string, unknown>;
+
+  const numberOrNull = (field: string): number | null => {
+    const candidate = profile[field];
+
+    return typeof candidate === "number" && Number.isFinite(candidate)
+      ? candidate
+      : null;
+  };
+
+  const sampleCount = profile.sampleCount;
+
+  if (
+    typeof sampleCount !== "number"
+    || !Number.isInteger(sampleCount)
+    || sampleCount < 0
+  ) {
+    return null;
+  }
+
+  return {
+    avgSlopePct: numberOrNull("avgSlopePct"),
+    maxSlopePct: numberOrNull("maxSlopePct"),
+    slopeStdPct: numberOrNull("slopeStdPct"),
+    elevationGainM: numberOrNull("elevationGainM"),
+    elevationLossM: numberOrNull("elevationLossM"),
+    sampleCount,
+  };
+}
+
+type FacilityStatus = "MET" | "RELAXED" | "IGNORE";
+
+function readFacilityCount(
+  featureValues: Record<string, unknown> | null,
+  key: "toilet" | "store",
+) {
+  const value = featureValues?.[`${key}_count`];
+
+  return typeof value === "number"
+    && Number.isInteger(value)
+    && value >= 0
+    ? value
+    : 0;
+}
+
+function readFacilityStatus(
+  featureValues: Record<string, unknown> | null,
+  key: "toilet" | "store",
+): FacilityStatus {
+  const statusValues = featureValues?.facilityStatus;
+
+  if (!statusValues || typeof statusValues !== "object") {
+    return "IGNORE";
+  }
+
+  const value = (statusValues as Record<string, unknown>)[key];
+
+  return value === "MET" || value === "RELAXED" || value === "IGNORE"
+    ? value
+    : "IGNORE";
+}
+
+function readFacilitySummary(
+  featureValues: Record<string, unknown> | null,
+) {
+  return {
+    toilet: {
+      count: readFacilityCount(featureValues, "toilet"),
+      status: readFacilityStatus(featureValues, "toilet"),
+    },
+    store: {
+      count: readFacilityCount(featureValues, "store"),
+      status: readFacilityStatus(featureValues, "store"),
+    },
+  };
+}
+
 function toRouteRecommendationDTO(row: {
   idx: number;
   name: string;
@@ -38,6 +126,8 @@ function toRouteRecommendationDTO(row: {
   totalDistance: number | null;
   totalAscent: number | null;
   slopeStd: number | null;
+  featureValues: Record<string, unknown> | null;
+  featureScores: Record<string, number> | null;
 }): RouteRecommendationDTO {
   return {
     idx: row.idx,
@@ -46,6 +136,9 @@ function toRouteRecommendationDTO(row: {
     totalDistance: row.totalDistance,
     totalAscent: row.totalAscent,
     slopeStd: row.slopeStd,
+    slope: readSlopeProfile(row.featureValues),
+    featureScores: row.featureScores ?? {},
+    facilities: readFacilitySummary(row.featureValues),
   };
 }
 
@@ -116,8 +209,11 @@ async function applyLlmRouteConditions(dto: RouteRequestDTO): Promise<RouteReque
     ...dto,
     elementConditions: {
       ...dto.elementConditions,
-      weights: parsedConditions.weights,
-      requirements: parsedConditions.requirements,
+      weights: {
+        ...parsedConditions.weights,
+        ...dto.elementConditions.weights,
+      },
+      requirements: dto.elementConditions.requirements,
     },
   };
 }
@@ -255,22 +351,6 @@ export async function selectRouteRecommendation(
     });
   }
 
-  if (routeRequest.selectedRecommendationIdx !== null) {
-    logger.warn({
-      serviceName: "routes",
-      action: "selectRouteRecommendation",
-      userIdx,
-      routeRequestIdx,
-      selectedRecommendationIdx: routeRequest.selectedRecommendationIdx,
-    }, "service:route_request_already_selected");
-
-    throw new ApiError({
-      status: 409,
-      code: "ROUTE_REQUEST_ALREADY_SELECTED",
-      message: "이미 추천 코스를 선택한 요청입니다.",
-    });
-  }
-
   const recommendation = await findRouteRecommendationByIdxAndRequestIdx(
     dto.recommendationIdx,
     routeRequestIdx,
@@ -289,6 +369,38 @@ export async function selectRouteRecommendation(
       status: 404,
       code: "ROUTE_RECOMMENDATION_NOT_FOUND_IN_REQUEST",
       message: "해당 요청에 속한 추천 코스를 찾을 수 없습니다.",
+    });
+  }
+
+  if (routeRequest.selectedRecommendationIdx !== null) {
+    if (routeRequest.selectedRecommendationIdx === dto.recommendationIdx) {
+      logger.info({
+        serviceName: "routes",
+        action: "selectRouteRecommendation",
+        userIdx,
+        routeRequestIdx,
+        recommendationIdx: dto.recommendationIdx,
+      }, "service:already_selected_same_recommendation");
+
+      return {
+        requestIdx: routeRequest.idx,
+        selectedRecommendationIdx: dto.recommendationIdx,
+      };
+    }
+
+    logger.warn({
+      serviceName: "routes",
+      action: "selectRouteRecommendation",
+      userIdx,
+      routeRequestIdx,
+      selectedRecommendationIdx: routeRequest.selectedRecommendationIdx,
+      recommendationIdx: dto.recommendationIdx,
+    }, "service:route_request_already_selected");
+
+    throw new ApiError({
+      status: 409,
+      code: "ROUTE_REQUEST_ALREADY_SELECTED",
+      message: "이미 다른 추천 코스를 선택한 요청입니다.",
     });
   }
 
@@ -363,6 +475,7 @@ export async function getRouteDetail(
     totalDistance: route.totalDistance,
     totalAscent: route.totalAscent,
     slopeStd: route.slopeStd,
+    slope: readSlopeProfile(route.featureValues),
     isBookmarked,
     path: route.path ?? [],
     points,

@@ -5,7 +5,10 @@ import { routeCoordinateSchema } from "./route-coordinate.dto.js";
 export const routeElementConditionsSchema = z.object({
   targetDistance: z.number().positive(),
   maxSlope: z.number().nonnegative().optional(),
-  facilityCount: z.number().int().nonnegative().optional(),
+  facilityPreferences: z.object({
+    toilet: z.enum(['PREFER', 'IGNORE']),
+    store: z.enum(['PREFER', 'IGNORE']),
+  }),
   weights: z.record(z.string(), z.number().min(1).max(5)).default({}),
   requirements: z.record(z.string(), z.boolean()).default({})
 }).catchall(z.unknown());
@@ -24,7 +27,7 @@ export const routeRequestSchema = z.object({
   endPoint: routeCoordinateSchema.optional(),
   // 파이썬 쪽에서 받게될 환경 변수들
   elementConditions: routeElementConditionsSchema,
-}); 
+});
 
 export type RouteElementConditionsDTO =
   z.infer<typeof routeElementConditionsSchema>;

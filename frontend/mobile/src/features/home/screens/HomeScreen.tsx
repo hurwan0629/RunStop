@@ -26,6 +26,8 @@ import { getApiErrorMessage } from '@/services/api/errors';
 import { styles } from './HomeScreen.styles';
 
 const homeSectionIcons = {
+  logo: require('@/assets/images/homeSectionIcons/runstop_logo.png'),
+  rate: require('@/assets/images/homeSectionIcons/rate.png'),
   goal: require('@/assets/images/homeSectionIcons/target.png'),
   recentRunning: require('@/assets/images/homeSectionIcons/running.png'),
   bookmarks: require('@/assets/images/homeSectionIcons/star.png'),
@@ -100,16 +102,14 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
         <View style={styles.brandRow}>
-          <View style={styles.logoMark}>
-            <Text style={styles.logoLetter}>R</Text>
-          </View>
-          <Text style={styles.brandName}>RunStop</Text>
+          <Image
+            accessibilityLabel="RunStop"
+            source={homeSectionIcons.logo}
+            style={styles.brandLogo}
+          />
         </View>
 
         <Text style={styles.heading}>{'오늘도 달려볼까요?'}</Text>
-        <Text style={styles.subheading}>
-          {'오늘의 러닝 코스를 찾아드릴게요'}
-        </Text>
 
         <View style={styles.heroCard}>
           <Text style={styles.heroEyebrow}>오늘의 코스 만들기</Text>
@@ -151,9 +151,21 @@ export default function HomeScreen() {
         ) : null}
 
         <View style={styles.summaryRow}>
-          <DistanceCard label="오늘" meters={distances.today} />
-          <DistanceCard label="이번 주" meters={distances.week} />
-          <DistanceCard label="이번 달" meters={distances.month} />
+          <DistanceCard
+            color="#A8F500"
+            label="오늘"
+            meters={distances.today}
+          />
+          <DistanceCard
+            color="#C1F529"
+            label="이번 주"
+            meters={distances.week}
+          />
+          <DistanceCard
+            color="#72D69B"
+            label="이번 달"
+            meters={distances.month}
+          />
         </View>
 
         <SectionHeader
@@ -276,9 +288,21 @@ function LocationPinIcon() {
   );
 }
 
-function DistanceCard({ label, meters }: { label: string; meters: number }) {
+function DistanceCard({
+  label,
+  meters,
+  color,
+}: {
+  label: string;
+  meters: number;
+  color: string;
+}) {
   return (
     <View style={styles.summaryCard}>
+      <Image
+        source={homeSectionIcons.rate}
+        style={[styles.summaryGauge, { tintColor: color }]}
+      />
       <Text style={styles.summaryLabel}>{label}</Text>
       <Text style={styles.summaryValue}>{`${metersToKm(meters)} km`}</Text>
     </View>

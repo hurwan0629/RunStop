@@ -39,6 +39,7 @@ def recommend(
     vias: list[Coordinate] | None = None,
     weights: Weights | None = None,
     requirements: Requirements | None = None,
+    facility_preferences: dict[str, str] | None = None,
     n_directions: int = 12,
     top_k: int = 3,
 ) -> list[CandidateRoute]:
@@ -91,10 +92,15 @@ def recommend(
         c["surface"] = analyze_surface_profile(G, c["nodes"])
 
         # 누적한 slope, facilities, nature, surface를 기준으로 사용자 요청 값인 weights, requirements를 이용해서 비교해주기
-        score_candidate(c, weights, requirements)         # sub_scores + conditionScore
+        score_candidate(
+            c,
+            weights,
+            requirements,
+            facility_preferences,
+        )         # sub_scores + conditionScore
         c.pop("nodes", None)                              # 내부용, 응답엔 불필요
 
-    return select_candidates_with_ai(cands, weights, requirements, top_k)
+    return select_candidates_with_ai(cands, weights, requirements, facility_preferences, top_k)
 
 if __name__ == "__main__":
     from pathlib import Path

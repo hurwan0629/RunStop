@@ -326,6 +326,34 @@ export const courseFlowStyles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
   },
+  facilityStatusBadge: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#D9DCE5',
+    borderRadius: 12,
+    backgroundColor: '#F6F7FA',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  facilityStatusBadgeActive: {
+    borderColor: '#C8FF30',
+    backgroundColor: '#F0FFD5',
+  },
+  facilityStatusCheck: {
+    color: '#100078',
+    fontSize: 12,
+    fontWeight: '900',
+    marginRight: 4,
+  },
+  facilityStatusText: {
+    color: '#81899A',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  facilityStatusTextActive: {
+    color: '#100078',
+  },
   compareHelp: {
     color: '#7D8495',
     fontSize: 13,
