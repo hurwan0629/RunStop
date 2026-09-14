@@ -4,12 +4,16 @@ from ai.src.models.pairs import preference_pairs
 
 
 class RankNet(BaseRankingModel):
+    """간단한 MLP로 pairwise RankNet 손실을 학습합니다."""
     name = "ranknet"
 
     def fit(self, train, validation):
+        """utility 순서쌍을 BCEWithLogitsLoss로 학습합니다."""
         import torch
         from torch import nn
         p = self.params
+
+        # 입력 feature와 pairwise index를 torch tensor로 준비합니다.
         torch.manual_seed(self.seed)
         x = torch.tensor(self.prepare(train, fit=True), dtype=torch.float32)
         vx = torch.tensor(self.prepare(validation), dtype=torch.float32)
@@ -17,12 +21,16 @@ class RankNet(BaseRankingModel):
         vl, vr = preference_pairs(validation)
         if not len(left):
             raise ValueError("No unequal utility pairs in training requests")
+
+        # 작은 MLP와 optimizer/loss를 구성합니다.
         self.estimator = nn.Sequential(nn.Linear(x.shape[1], p["hidden_dim"]), nn.ReLU(), nn.Dropout(p["dropout"]), nn.Linear(p["hidden_dim"], 1))
         optimizer_cls = torch.optim.AdamW if p["optimizer"] == "adamw" else torch.optim.Adam
         optimizer = optimizer_cls(self.estimator.parameters(), lr=p["learning_rate"], weight_decay=p["weight_decay"])
         loss_fn = nn.BCEWithLogitsLoss()
         rng = np.random.default_rng(self.seed)
         self.history = {"train_pair_loss": [], "validation_pair_loss": []}
+
+        # epoch마다 순서쌍 batch를 섞어 학습하고 validation pair loss를 기록합니다.
         for _ in range(p["epochs"]):
             self.estimator.train()
             order = rng.permutation(len(left))
@@ -43,6 +51,7 @@ class RankNet(BaseRankingModel):
         return self
 
     def predict_scores(self, candidates):
+        """MLP 출력값을 후보 ranking 점수로 사용합니다."""
         import torch
         self.estimator.eval()
         with torch.no_grad():

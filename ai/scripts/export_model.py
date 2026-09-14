@@ -1,4 +1,4 @@
-"""Export a trusted completed experiment as a portable inference bundle."""
+"""완료된 신뢰 실험 artifact를 portable inference bundle로 내보냅니다."""
 import argparse
 import json
 import shutil
@@ -7,6 +7,8 @@ import _bootstrap
 
 
 def export_model(source, output):
+    """실험 모델, runtime, metadata, requirements, predict 스크립트를 복사합니다."""
+    # 완료된 실험 artifact만 export 대상으로 허용합니다.
     source, output = Path(source), Path(output)
     manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
     if manifest["status"] != "complete":
@@ -15,6 +17,7 @@ def export_model(source, output):
     shutil.copytree(source / "runtime" / "ai", output / "ai")
     for name in ("config.yaml", "environment.json", "dataset_reference.json", "manifest.json"):
         shutil.copy2(source / name, output / name)
+    # 모델 종류에 필요한 패키지만 골라 requirements.txt를 만듭니다.
     environment = json.loads((source / "environment.json").read_text(encoding="utf-8"))
     model_packages = {"lightgbm_ranker": "lightgbm", "xgboost_ranker": "xgboost", "catboost_ranker": "catboost", "ranknet": "torch"}
     required = {"numpy", "pandas", "pyarrow", "scikit-learn", "pydantic"}
@@ -22,6 +25,7 @@ def export_model(source, output):
         required.add(model_packages[manifest["model"]])
     pins = [f"{name}=={version}" for name, version in environment["packages"].items() if name.lower() in required]
     (output / "requirements.txt").write_text("\n".join(sorted(pins)) + "\n", encoding="utf-8")
+    # bundle 단독으로 parquet 예측을 실행할 수 있는 최소 predict 스크립트를 포함합니다.
     (output / "predict.py").write_text(
         'from pathlib import Path\nimport argparse\nimport pandas as pd\n'
         'from ai.src.models.base import BaseRankingModel\n'

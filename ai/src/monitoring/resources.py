@@ -1,11 +1,13 @@
+"""실험 프로세스의 간단한 CPU/메모리 사용량을 측정합니다."""
 import threading
 import time
 import psutil
 
 
 class ResourceMonitor:
-    """Sample current process RSS every 20ms; CPU seconds include process threads."""
+    """현재 프로세스 RSS를 20ms마다 샘플링합니다. CPU 시간은 스레드를 포함합니다."""
     def __enter__(self):
+        """측정을 시작하고 백그라운드 샘플링 스레드를 띄웁니다."""
         self.process = psutil.Process()
         self.started = time.perf_counter()
         cpu = self.process.cpu_times()
@@ -17,10 +19,12 @@ class ResourceMonitor:
         return self
 
     def _sample(self):
+        """stop 이벤트가 켜질 때까지 peak RSS를 갱신합니다."""
         while not self.stop.wait(0.02):
             self.peak = max(self.peak, self.process.memory_info().rss)
 
     def __exit__(self, *args):
+        """측정을 종료하고 result dict를 채웁니다."""
         self.stop.set()
         self.thread.join()
         cpu = self.process.cpu_times()

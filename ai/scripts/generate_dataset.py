@@ -1,4 +1,4 @@
-"""Generate only when invoked explicitly. --check never imports routing or writes datasets."""
+"""명시적으로 호출할 때만 데이터셋을 생성합니다. --check는 routing import나 파일 생성을 하지 않습니다."""
 import argparse
 import json
 import _bootstrap
@@ -8,6 +8,8 @@ from ai.src.generation.pipeline import generate_dataset, inspect_generation
 
 
 def main():
+    """CLI 인자를 읽고 generation 설정 점검 또는 데이터셋 생성을 실행합니다."""
+    # --check는 비용이 큰 routing-worker 호출 없이 입력 상태만 출력합니다.
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", required=True)
     parser.add_argument("--check", action="store_true", help="Validate JSON and list missing data without generation")

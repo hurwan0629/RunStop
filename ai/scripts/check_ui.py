@@ -1,4 +1,4 @@
-"""Developer smoke check: isolated temp configs, headless Edge, no routing or real training."""
+"""개발용 smoke check입니다. 임시 configs와 headless Edge만 쓰고 routing/학습은 실행하지 않습니다."""
 import argparse
 import tempfile
 import threading
@@ -8,18 +8,21 @@ from ai.src.web.server import make_server
 
 
 def main():
+    """설정 UI의 주요 입력, 저장, 로드, 반응형 화면을 빠르게 확인합니다."""
     from playwright.sync_api import sync_playwright
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--screenshot-dir', default='ai/artifacts/ui-check')
     args = parser.parse_args()
     screenshots=Path(args.screenshot_dir)
     screenshots.mkdir(parents=True,exist_ok=True)
+    # 실제 configs를 건드리지 않도록 임시 루트에서 서버를 띄웁니다.
     with tempfile.TemporaryDirectory(prefix='runstop-ui-') as temporary:
         server=make_server(0,Path(temporary))
         thread=threading.Thread(target=server.serve_forever,daemon=True)
         thread.start()
         try:
             with sync_playwright() as pw:
+                # 모델 파라미터 수정, 저장/로드, YAML 반영을 확인합니다.
                 browser=pw.chromium.launch(channel='msedge',headless=True)
                 page=browser.new_page(viewport={'width':1440,'height':1080},device_scale_factor=1)
                 errors=[]

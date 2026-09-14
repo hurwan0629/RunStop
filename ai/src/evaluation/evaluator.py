@@ -1,3 +1,4 @@
+"""모델과 baseline을 같은 split에서 평가하고 요청 단위 metric을 집계합니다."""
 import time
 import numpy as np
 import pandas as pd
@@ -5,11 +6,13 @@ from ai.src.metrics.ranking import request_metrics, confidence_interval
 
 
 def evaluate(model, parts, config, seed):
+    """warm/cold cohort별 예측, 요청별 metric, 전체 집계 metric을 반환합니다."""
+    # cohort별 후보에 모델 점수를 붙이고 실제 추론 시간을 측정합니다.
     predictions, request_rows = [], []
     inference_seconds = 0.0
     for cohort in ("warm_start", "cold_start"):
         frame = parts[cohort].copy()
-        # Measure actual per-request preprocessing+prediction, with explicit cold-first timing.
+        # 요청 단위 전처리+예측 시간을 실제 호출 기준으로 측정합니다.
         frame["model_score"] = np.nan
         for _, group in frame.groupby("request_id", sort=True):
             started = time.perf_counter()
@@ -17,6 +20,8 @@ def evaluate(model, parts, config, seed):
             inference_seconds += time.perf_counter() - started
             frame.loc[group.index, "model_score"] = scores
         frame["cohort"] = cohort
+
+        # model 점수와 condition_score baseline을 같은 방식으로 rank/metric 처리합니다.
         for request_id, group in frame.groupby("request_id", sort=True):
             for label, score_key in (("model", "model_score"), ("baseline", "condition_score")):
                 ordered = group.sort_values([score_key, "candidate_id"], ascending=[False, True], kind="stable")
@@ -24,6 +29,8 @@ def evaluate(model, parts, config, seed):
                 request_rows.append({"request_id": request_id, "user_id": group.user_id.iloc[0], "cohort": cohort,
                                      "predictor": label, **request_metrics(ordered.utility, ordered.relevance, config.top_k)})
         predictions.append(frame)
+
+    # 요청별 metric을 overall/warm/cold 단위로 평균과 신뢰구간으로 집계합니다.
     per_request = pd.DataFrame(request_rows)
     metrics = {}
     keys = [f"ndcg@{config.top_k}", "top1_best_utility", "utility_regret", "pairwise_accuracy"]
@@ -41,6 +48,8 @@ def evaluate(model, parts, config, seed):
         metrics[cohort]["model_minus_baseline"] = {
             key: metrics[cohort]["model"][key]["mean"] - metrics[cohort]["baseline"][key]["mean"]
             if metrics[cohort]["model"][key]["mean"] is not None and metrics[cohort]["baseline"][key]["mean"] is not None else None for key in keys}
+
+    # 추론 시간은 요청 1개당 한 번 호출하는 현재 운영 가정을 그대로 기록합니다.
     return pd.concat(predictions), per_request, metrics, {
         "inference_seconds": inference_seconds,
         "inference_ms_per_request": inference_seconds * 1000 / (len(per_request) / 2),

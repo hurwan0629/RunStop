@@ -1,4 +1,4 @@
-"""Generate a validated YAML template without running a dataset or experiment."""
+"""데이터 생성이나 실험 실행 없이 검증된 YAML 템플릿을 만듭니다."""
 import argparse
 from pathlib import Path
 import _bootstrap
@@ -7,6 +7,7 @@ from ai.src.config.loader import dump_config
 
 
 if __name__ == '__main__':
+    # kind/model 인자로 기본 설정 객체를 만들고 새 파일로 저장합니다.
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--kind',choices=['experiment','generation'],default='experiment')
     parser.add_argument('--model',choices=sorted(PARAM_SCHEMAS),default='lightgbm_ranker')
