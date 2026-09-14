@@ -14,7 +14,11 @@ class RankNet(BaseRankingModel):
         p = self.params
 
         # 입력 feature와 pairwise index를 torch tensor로 준비합니다.
+
+        # 시드 고정시키기
         torch.manual_seed(self.seed)
+
+        # 
         x = torch.tensor(self.prepare(train, fit=True), dtype=torch.float32)
         vx = torch.tensor(self.prepare(validation), dtype=torch.float32)
         left, right = preference_pairs(train)

@@ -52,6 +52,8 @@ def run_experiment(config: ExperimentConfig):
                    "model_bundle_bytes": (path / "model" / "model.pkl").stat().st_size})
         (path / "diagnostics").mkdir()
         write_json(path / "diagnostics" / "training_history.json", model.history)
+
+        # 피처 영향 출력
         importance = model.feature_importance()
         if importance is not None:
             write_json(path / "diagnostics" / "feature_importance.json", importance)

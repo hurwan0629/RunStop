@@ -1,6 +1,6 @@
 kind: experiment
 schema_version: 1
-name: lightgbm_compare
+name: lightgbm_ranker
 seed: 42
 dataset_path: datasets/2026-09-14_11h17m54s_runstop_users_1000_5000_requests_behavioral/candidates.parquet
 metadata_path: datasets/2026-09-14_11h17m54s_runstop_users_1000_5000_requests_behavioral/metadata.json

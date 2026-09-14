@@ -193,15 +193,18 @@ def request_vias(rng, raw):
 
     start = raw["start"]
     target_m = raw["target_km"] * 1000
+    points = []
 
     if raw["route_type"] == "ONE_WAY" and raw.get("end") is not None:
         end = raw["end"]
         midpoint = [(start[0] + end[0]) / 2, (start[1] + end[1]) / 2]
-        point = nearby_point(rng, midpoint, 80, max(250, target_m * 0.12))
+        for anchor in (start, midpoint):
+            points.append(nearby_point(rng, anchor, 80, max(250, target_m * 0.12)))
     else:
-        point = nearby_point(rng, start, 250, max(500, target_m * 0.28))
+        for _ in range(2):
+            points.append(nearby_point(rng, start, 250, max(500, target_m * 0.28)))
 
-    return [point] if point is not None else []
+    return points if all(points) else []
 
 
 def normalize_request(raw, weights, requirements, vias):

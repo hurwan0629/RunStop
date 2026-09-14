@@ -57,7 +57,10 @@ class BaseRankingModel:
             values = self.estimator.coef_.reshape(-1)
         if values is None:
             return None
+        values = np.asarray(values, dtype=float).reshape(-1)
         names = self.preprocessor.get_feature_names_out(self.columns)
+        if len(values) != len(names):
+            return None
         return [{"feature": str(name), "value": float(value)} for name, value in zip(names, values)]
 
     def save(self, directory):

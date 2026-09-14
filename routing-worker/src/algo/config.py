@@ -34,10 +34,10 @@ PREFERENCE_LEVEL_MIN     = 0.0
 PREFERENCE_LEVEL_MAX     = 5.0
 PREFERENCE_LEVEL_DEFAULT = 3.0
 
-EDGE_COST_SCALE_ELEVATION = 1.2
-EDGE_COST_SCALE_SAFETY    = 0.8
-EDGE_COST_SCALE_NATURE    = 0.6
-EDGE_COST_SCALE_SURFACE   = 0.8
-EDGE_COST_SCALE_FLOW      = 0.5
-EDGE_SLOPE_GOOD_PCT       = 2.0
-EDGE_SLOPE_BAD_PCT        = 10.0
+EDGE_COST_SCALE_ELEVATION = 1.2    # [참고자료 검증] Valhalla는 경사를 factor가 아닌 grade-bucket 비용으로 처리해 직접 대응값 없음 — 러닝 특성상 최우선 유지
+EDGE_COST_SCALE_SAFETY    = 0.8    # [참고자료 검증] Valhalla use_lit(0~1)은 다이얼만 있고 배율 미문서화 — 유지
+EDGE_COST_SCALE_NATURE    = 0.6    # [참고자료 검증] Valhalla 보행 costing엔 자연환경 선호 개념 자체가 없음 — 유지
+EDGE_COST_SCALE_SURFACE   = 1.0    # [참고자료 튜닝] Valhalla alley_factor(2.0)/driveway_factor(5.0)가 문서상 가장 공격적인 회피 계수 — elevation과 동급으로 상향(0.8→1.0)
+EDGE_COST_SCALE_FLOW      = 0.5    # [참고자료 검증] 대응 Valhalla 수치 없음, RunStop 내에서도 최하위 우선순위가 합리적 — 유지
+EDGE_SLOPE_GOOD_PCT       = 2.0    # [참고자료 검증] Valhalla 최저 grade bucket(0~2%) 상한과 일치 — 유지
+EDGE_SLOPE_BAD_PCT        = 10.0   # [참고자료 검증] Valhalla grade 비용 급등 구간과 대략 일치 — 유지
