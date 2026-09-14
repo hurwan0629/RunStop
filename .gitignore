@@ -91,7 +91,7 @@ htmlcov/
 routes_map.html
 map_*.html
 .venv/
-
+*.dump
 
 # =========================================================
 # Python Virtual Environment
@@ -101,6 +101,11 @@ venv/
 .venv/
 env/
 .envdir/
+.venv/
+.venv-win/
+venv/
+__pycache__/
+*.pyc
 
 ENV/
 env.bak/
