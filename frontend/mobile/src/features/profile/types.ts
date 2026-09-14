@@ -35,3 +35,15 @@ export interface MyPageSummary {
 export interface WithdrawResponse {
   withdrawn: true;
 }
+
+export interface UpdateProfileRequest {
+  nickname?: string;
+  weightKg?: number;
+  heightCm?: number;
+  runningSettings?: Record<string, unknown>;
+}
+
+export interface UpdateProfileResponse {
+  user: { idx: number; nickname: string };
+  profile: NonNullable<MyPageSummary['profile']>;
+}

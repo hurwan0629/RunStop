@@ -12,7 +12,7 @@ import type { RunningStartDTO } from "../dto/running/running-start.dto.js";
 import type { RunningTrackpointsDTO } from "../dto/running/running-trackpoint.dto.js";
 import { logger } from "../logging/logger.js";
 import { ApiError } from "../middleware/error.js";
-import { findRouteRecommendationByIdx } from "../repositories/route-recommendations.repository.js";
+import { findRouteRecommendationByIdx, findRouteRecommendationEndContext, } from "../repositories/route-recommendations.repository.js";
 import {
   createRunningSession,
   findInProgressSessionByUserIdx,
@@ -24,10 +24,35 @@ import {
   calculateRunningTrackpointStats,
   createRunningTrackpoints,
   findProjectedTrackpointsBySessionIdx,
+  findLatestValidTrackpointBySessionIdx,
   type RunningTrackpointProjectedRow,
 } from "../repositories/running-trackpoints.repository.js";
+import type { RunningEndResponseDTO } from "../dto/running/running-response.dto.js";
 
 const SEGMENT_DISTANCE_M = 1000;
+
+const ARRIVAL_RADIUS_METERS = 50;
+const LOOP_MIN_COMPLETION_RATIO = 0.7;
+
+function calculateCoordinateDistanceMeters(
+  from: { lat: number; lng: number },
+  to: { lat: number; lng: number },
+): number {
+  const earthRadius = 6371000;
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+  const latitudeDelta = toRadians(to.lat - from.lat);
+  const longitudeDelta = toRadians(to.lng - from.lng);
+  const fromLatitude = toRadians(from.lat);
+  const toLatitude = toRadians(to.lat);
+
+  const value =
+    Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(fromLatitude)
+      * Math.cos(toLatitude)
+      * Math.sin(longitudeDelta / 2) ** 2;
+
+  return 2 * earthRadius * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+}
 
 function calculateAveragePaceSecPerKm(
   startedAt: Date,
@@ -179,7 +204,12 @@ export async function listRunningHistory(
   return {
     items: sessions.map((session) => ({
       idx: session.idx,
-      status: session.status === "IN_PROGRESS" ? "FAILED" : session.status,
+      // CANCELLED는 repository 조회에서 제외된다. 혹시 남은 과거 데이터가
+      // 섞이더라도 앱의 기록 상태 계약에는 노출하지 않는다.
+      status:
+        session.status === "IN_PROGRESS" || session.status === "CANCELLED"
+          ? "FAILED"
+          : session.status,
       startedAt: session.startedAt.toISOString(),
       finishedAt: session.finishedAt?.toISOString() ?? null,
       distance: session.distance,
@@ -444,6 +474,112 @@ export async function finishRunningSession(
   return {
     sessionIdx: updatedSession.idx,
     status: "COMPLETED",
+    distance,
+    averagePace,
+  };
+}
+
+/**
+ * 사용자가 러닝을 종료할 때 GPS 기록과 도착 조건으로 상태를 결정합니다.
+ *
+ * GPS가 2개 미만이면 기록으로 남기지 않는 CANCELLED,
+ * 도착 조건을 만족하지 못하면 STOPPED,
+ * 그 외에는 COMPLETED로 처리합니다.
+ */
+export async function endRunningSession(
+  userIdx: number,
+  sessionIdx: number,
+  dto: RunningFinishDTO,
+): Promise<RunningEndResponseDTO> {
+  const session = await findRunningSessionByIdxAndUserIdx(sessionIdx, userIdx);
+
+  if (!session) {
+    throw new ApiError({
+      status: 404,
+      code: "RUNNING_SESSION_NOT_FOUND",
+      message: "러닝 세션을 찾을 수 없습니다.",
+    });
+  }
+
+  if (session.status !== "IN_PROGRESS") {
+    throw new ApiError({
+      status: 409,
+      code: "RUNNING_SESSION_NOT_IN_PROGRESS",
+      message: "진행 중인 러닝 세션만 종료할 수 있습니다.",
+    });
+  }
+
+  const finishedAt = new Date(dto.finishedAt);
+
+  if (finishedAt.getTime() <= session.startedAt.getTime()) {
+    throw new ApiError({
+      status: 400,
+      code: "INVALID_RUNNING_FINISH_TIME",
+      message: "종료 시각은 시작 시각 이후여야 합니다.",
+    });
+  }
+
+  const trackpointStats = await calculateRunningTrackpointStats(sessionIdx);
+  let status: "COMPLETED" | "STOPPED" | "CANCELLED";
+  let distance = 0;
+  let averagePace: number | null = null;
+
+  if (trackpointStats.trackpointCount < 2) {
+    status = "CANCELLED";
+  } else {
+    distance = trackpointStats.distance;
+    averagePace = calculateAveragePaceSecPerKm(
+      session.startedAt,
+      finishedAt,
+      distance,
+    );
+
+    const [lastTrackpoint, routeContext] = await Promise.all([
+      findLatestValidTrackpointBySessionIdx(sessionIdx),
+      findRouteRecommendationEndContext(session.routeRecommendationIdx),
+    ]);
+
+    const isNearDestination =
+      lastTrackpoint !== null
+      && routeContext !== null
+      && calculateCoordinateDistanceMeters(lastTrackpoint, routeContext.destination)
+        <= ARRIVAL_RADIUS_METERS;
+
+    const isLoopLike =
+      routeContext?.routeType === "LOOP"
+      || routeContext?.routeType === "ROUND_TRIP";
+
+    const hasEnoughLoopProgress =
+      !isLoopLike
+      || (
+        routeContext?.totalDistance !== null
+        && distance >= routeContext.totalDistance * LOOP_MIN_COMPLETION_RATIO
+      );
+
+    status = isNearDestination && hasEnoughLoopProgress && distance > 0
+      ? "COMPLETED"
+      : "STOPPED";
+  }
+
+  const updatedSession = await updateRunningSessionResult({
+    sessionIdx,
+    status,
+    finishedAt: dto.finishedAt,
+    distance,
+    averagePace,
+  });
+
+  if (!updatedSession) {
+    throw new ApiError({
+      status: 409,
+      code: "RUNNING_SESSION_END_FAILED",
+      message: "러닝 종료 처리에 실패했습니다.",
+    });
+  }
+
+  return {
+    sessionIdx: updatedSession.idx,
+    status,
     distance,
     averagePace,
   };

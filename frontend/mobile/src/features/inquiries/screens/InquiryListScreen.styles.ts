@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
   },
   screenTitle: {
     color: '#0A145A',
-    fontSize: 23,
+    fontSize: 22,
     fontWeight: '800',
     marginLeft: 8,
   },

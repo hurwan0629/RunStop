@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { routeCoordinateSchema } from "./route-coordinate.dto.js";
 
-export type RouteRequirementValue = boolean | number;
+export type RouteRequirementValue = boolean;
 
 export const ROUTE_WEIGHT_KEYS = new Set([
   "distance",
@@ -22,12 +22,6 @@ export const ROUTE_BOOLEAN_REQUIREMENT_KEYS = new Set([
   "store",
   "park",
   "no_stairs",
-]);
-
-export const ROUTE_NUMBER_REQUIREMENT_KEYS = new Set([
-  "max_slope_pct",
-  "max_slope",
-  "maxSlope",
 ]);
 
 /**
@@ -68,12 +62,6 @@ export function sanitizeRouteRequirements(
       continue;
     }
 
-    if (ROUTE_NUMBER_REQUIREMENT_KEYS.has(key)) {
-      const numberValue = Number(raw);
-      if (Number.isFinite(numberValue)) {
-        out[key] = numberValue;
-      }
-    }
   }
 
   return out;
@@ -82,7 +70,10 @@ export function sanitizeRouteRequirements(
 export const routeElementConditionsSchema = z.object({
   targetDistance: z.number().positive(),
   maxSlope: z.number().nonnegative().optional(),
-  facilityCount: z.number().int().nonnegative().optional(),
+  facilityPreferences: z.object({
+    toilet: z.enum(["PREFER", "IGNORE"]),
+    store: z.enum(["PREFER", "IGNORE"]),
+  }),
   weights: z.record(z.string(), z.unknown()).default({}).transform(sanitizeRouteWeights),
   requirements: z.record(z.string(), z.unknown()).default({}).transform(sanitizeRouteRequirements),
 }).catchall(z.unknown());

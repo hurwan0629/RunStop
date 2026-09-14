@@ -6,6 +6,8 @@ import type {
   ParsedRouteConditions,
   RouteConditionLlmClient,
   RouteConditionParseInput,
+  RouteNamingInput,
+  RouteNamingResult,
 } from "./types.js";
 
 export type {
@@ -13,6 +15,8 @@ export type {
   ParsedRouteConditions,
   RouteConditionLlmClient,
   RouteConditionParseInput,
+  RouteNamingInput,
+  RouteNamingResult,
 } from "./types.js";
 
 export function createRouteConditionLlmClient(
@@ -36,4 +40,14 @@ export async function parseRouteConditions(
   input: RouteConditionParseInput,
 ): Promise<ParsedRouteConditions> {
   return llmClient.parseRouteConditions(input);
+}
+
+// llm 코스명 만들기
+/**
+ * 검증된 후보 코스 정보를 바탕으로 코스 이름을 생성합니다.
+ */
+export async function generateRouteNames(
+  input: RouteNamingInput,
+): Promise<RouteNamingResult> {
+  return llmClient.generateRouteNames(input);
 }

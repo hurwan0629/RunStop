@@ -188,6 +188,35 @@ export async function calculateRunningTrackpointStats(
   };
 }
 
+export type RunningTrackpointLocationRow = {
+  lat: number;
+  lng: number;
+};
+
+export async function findLatestValidTrackpointBySessionIdx(
+  sessionIdx: number,
+  client?: QueryClient,
+): Promise<RunningTrackpointLocationRow | null> {
+  const result = await getQueryClient(client).query<{
+    lat: number;
+    lng: number;
+  }>(
+    `
+      SELECT
+        ST_Y(point)::float8 AS lat,
+        ST_X(point)::float8 AS lng
+      FROM service.running_trackpoints
+      WHERE running_sessions_idx = $1
+        AND (accuracy IS NULL OR accuracy <= 50)
+      ORDER BY recorded_at DESC, idx DESC
+      LIMIT 1
+    `,
+    [sessionIdx],
+  );
+
+  return result.rows[0] ?? null;
+}
+
 /**
  * 페이스 구간 계산을 위해 유효 트랙포인트를 5179 좌표계 x/y로 조회합니다.
  */

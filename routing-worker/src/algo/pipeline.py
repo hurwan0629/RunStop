@@ -17,7 +17,7 @@ from src.algo.ai.candidate_selector import select_candidates_with_ai
 from src.algo.types import CandidateRoute, Coordinate, Requirements, RouteType, Weights
 from src.algo.routing.candidates import generate_candidates, generate_candidates_via
 from src.algo.features.elevation import analyze_elevation_profile
-from src.algo.features.facilities import analyze_nearby_facilities
+from src.algo.features.facilities import analyze_nearby_facilities, get_facility_status
 from src.algo.features.nature import analyze_nature_adjacency
 from src.algo.features.surface import analyze_surface_profile
 from src.algo.scoring.weighting import score_candidate
@@ -39,6 +39,7 @@ def recommend(
     vias: list[Coordinate] | None = None,
     weights: Weights | None = None,
     requirements: Requirements | None = None,
+    facility_preferences: dict[str, str] | None = None,
     n_directions: int = 12,
     top_k: int = 3,
 ) -> list[CandidateRoute]:
@@ -77,6 +78,7 @@ def recommend(
         # - f"{key}_per_km:  
         # - f"{key}_nearest_m 를 가져와주기
         c["facilities"] = analyze_nearby_facilities(c["coords"])
+        c["facility_status"] = get_facility_status(c, facility_preferences)
 
         # 녹지·하천 인접률 (OSM 폴리곤)       
         # f"{nature_type}_ratio": dict[str, float] 반환
@@ -93,11 +95,15 @@ def recommend(
         c["surface"] = analyze_surface_profile(G, c["nodes"])
 
         # 누적한 slope, facilities, nature, surface를 기준으로 사용자 요청 값인 weights, requirements를 이용해서 비교해주기
-        score_candidate(c, weights, requirements)         # sub_scores + conditionScore
+        score_candidate(
+            c,
+            weights,
+            requirements,
+            facility_preferences,
+        )         # sub_scores + conditionScore
         c.pop("nodes", None)                              # 내부용, 응답엔 불필요
 
-    # print("cands_count:", len(cands))
-    return select_candidates_with_ai(cands, weights, requirements, top_k)
+    return select_candidates_with_ai(cands, weights, requirements, facility_preferences, top_k)
 
 if __name__ == "__main__":
     from pathlib import Path

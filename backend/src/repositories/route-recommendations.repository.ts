@@ -2,6 +2,7 @@ import type { Pool, PoolClient } from "pg";
 import { getPool } from "../infra/db/pool.js";
 import type { RouteCoordinateDTO } from "../dto/route/route-coordinate.dto.js";
 import type { WorkerRouteCandidateDTO } from "../dto/worker/worker-route-response.dto.js";
+import type { RouteRequestDTO } from "../dto/route/route-request.dto.js";
 
 type QueryClient = Pool | PoolClient;
 
@@ -310,5 +311,56 @@ export async function findRouteDetailByIdx(
   return {
     ...mapRecommendationRow(row),
     path: parseLineStringGeoJson(row.route_geojson),
+  };
+}
+
+export type RouteRecommendationEndContext = {
+  routeType: RouteRequestDTO["routeType"] | null;
+  totalDistance: number | null;
+  destination: RouteCoordinateDTO;
+};
+
+export async function findRouteRecommendationEndContext(
+  routeRecommendationIdx: number,
+  client?: QueryClient,
+): Promise<RouteRecommendationEndContext | null> {
+  const result = await getQueryClient(client).query<{
+    route_type: RouteRequestDTO["routeType"] | null;
+    total_distance: number | null;
+    destination_lat: number | null;
+    destination_lng: number | null;
+  }>(
+    `
+      SELECT
+        requests.route_type,
+        recommendations.total_distance,
+        ST_Y(ST_EndPoint(recommendations.route))::float8 AS destination_lat,
+        ST_X(ST_EndPoint(recommendations.route))::float8 AS destination_lng
+      FROM service.route_recommendations AS recommendations
+      INNER JOIN service.route_requests AS requests
+        ON requests.idx = recommendations.route_requests_idx
+      WHERE recommendations.idx = $1
+      LIMIT 1
+    `,
+    [routeRecommendationIdx],
+  );
+
+  const row = result.rows[0];
+
+  if (
+    !row
+    || row.destination_lat === null
+    || row.destination_lng === null
+  ) {
+    return null;
+  }
+
+  return {
+    routeType: row.route_type,
+    totalDistance: row.total_distance,
+    destination: {
+      lat: row.destination_lat,
+      lng: row.destination_lng,
+    },
   };
 }

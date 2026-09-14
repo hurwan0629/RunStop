@@ -36,6 +36,10 @@ const envSchema = z.object({
     .preprocess((value) => value === "true" || value === true, z.boolean())
     .default(false),
 
+  NAVER_API_HUB_CLIENT_ID: z.string().min(1).optional(),
+
+  NAVER_API_HUB_CLIENT_SECRET: z.string().min(1).optional(),
+
   DATABASE_URL: z
     .string()
     .min(1),

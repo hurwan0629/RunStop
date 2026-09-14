@@ -163,15 +163,31 @@ _DEFAULT_W = {"distance": 3, "elevation": 3, "toilet": 3, "store": 3,
               "park": 3, "night": 3, "surface": 2, "flow": 2, "overlap": 2}
 
 
-def compute_condition_score(subs: SubScores, weights: Weights | None = None) -> float:
+def compute_condition_score(
+    subs: SubScores,
+    weights: Weights | None = None,
+    facility_preferences: dict[str, str] | None = None,
+) -> float:
     w = {**_DEFAULT_W, **(weights or {})}
+    preferences = facility_preferences or {}
+
     num = den = 0.0
+
     for name, score in subs.items():
         if score is None:
             continue
+
+        # 체크하지 않은 시설은 점수 계산에서 완전히 제외
+        if name == "toilet" and preferences.get("toilet", "IGNORE") != "PREFER":
+            continue
+
+        if name == "store" and preferences.get("store", "IGNORE") != "PREFER":
+            continue
+
         wt = w.get(_WEIGHT_KEY.get(name, name), DEFAULT_WEIGHT)
         num += score * wt
         den += wt
+
     return round(num / den, 1) if den else 0.0
 
 
@@ -204,14 +220,23 @@ def score_candidate(
     cand: CandidateRoute,
     weights: Weights | None = None,
     requirements: Requirements | None = None,
+    facility_preferences: dict[str, str] | None = None,
 ) -> CandidateRoute:
     # pipeline에서  scoring의 모듈들을 이용해서 누적한 점수들을 한곳에서 처리하는 코드
     subs = compute_sub_scores(cand)
-    
+
     failed, exact = check_requirements(cand, requirements)
+
     cand["sub_scores"] = subs
-    cand["condition_score"] = compute_condition_score(subs, weights)
+    cand["condition_score"] = compute_condition_score(
+        subs,
+        weights,
+        facility_preferences,
+    )
     cand["failed_conditions"] = failed
     cand["exact_match"] = exact
-    cand["estimated_minutes"] = round(cand["actual_distance_m"] / 1000 * PACE_MIN_PER_KM)
+    cand["estimated_minutes"] = round(
+        cand["actual_distance_m"] / 1000 * PACE_MIN_PER_KM,
+    )
+
     return cand

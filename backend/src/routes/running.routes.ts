@@ -5,6 +5,7 @@ import {
   listRunningSessions,
   saveRunningTrackpoints,
   startRunningSession,
+  endRunningSession,
 } from "../controllers/running.controller.js";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { authenticate } from "../middleware/auth.js";
@@ -31,6 +32,11 @@ export function registerRunningRoutes(router: Router): void {
   router.post("/api/running-sessions/:sessionIdx/trackpoints", authenticate, asyncHandler(saveRunningTrackpoints));
   // 2026-09-02 15:15:19 검수 [x] (종료)
   router.post("/api/running-sessions/:sessionIdx/finish", authenticate, asyncHandler(finishRunningSession));
+
+  router.post(
+  "/api/running-sessions/:sessionIdx/end",
+  authenticate,
+  asyncHandler(endRunningSession));
   
   // // // // // // // // // [     조회     ] // // // // // // // // // 
   // 2026-09-02 15:43:59 검수 [x] 사용자 러닝 기록(세션) 목록

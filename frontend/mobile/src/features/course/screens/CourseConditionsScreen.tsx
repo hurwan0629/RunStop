@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import {
   Pressable,
@@ -7,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 
 import { useCourseDraft } from '../context/CourseDraftContext';
 import type {
@@ -16,19 +18,20 @@ import type {
 } from '../types';
 import { courseFlowStyles as styles } from './CourseFlow.styles';
 
-const slopeOptions: Array<{
+const slopeOptions: {
   label: string;
+  description: string;
   value: SlopePreference;
-}> = [
-  { label: '완만', value: 'GENTLE' },
-  { label: '보통', value: 'NORMAL' },
-  { label: '상관없음', value: 'ANY' },
+}[] = [
+  { label: '완만', description: '경사 최소화', value: 'GENTLE' },
+  { label: '보통', description: '일반 코스', value: 'NORMAL' },
+  { label: '상관없음', description: '모든 경사', value: 'ANY' },
 ];
 
-const facilityOptions: Array<{
+const facilityOptions: {
   label: string;
   value: FacilityPreference;
-}> = [
+}[] = [
   { label: '화장실', value: 'TOILET' },
   { label: '편의점', value: 'CONVENIENCE_STORE' },
 ];
@@ -37,6 +40,9 @@ const facilityOptions: Array<{
 export default function CourseConditionsScreen() {
   const router = useRouter();
   const { draft, updateDraft } = useCourseDraft();
+  const [distanceText, setDistanceText] = useState(
+    String(draft.targetDistanceKm),
+  );
 
   const toggleFacility = (facility: FacilityPreference) => {
     const isSelected = draft.facilities.includes(facility);
@@ -72,6 +78,36 @@ export default function CourseConditionsScreen() {
         <Text style={styles.introText}>
           {'원하는 조건을 고르면 비교하기 쉬운 코스를 준비할게요.'}
         </Text>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{'목표 거리'}</Text>
+          <View style={styles.distanceInputRow}>
+            <TextInput
+              keyboardType="decimal-pad"
+              maxLength={6}
+              onChangeText={(value) => {
+                if (!/^\d*(\.\d*)?$/.test(value)) {
+                  return;
+                }
+
+                setDistanceText(value);
+                const distance = Number(value);
+                updateDraft({
+                  targetDistanceKm:
+                    value && Number.isFinite(distance) ? distance : 0,
+                });
+              }}
+              placeholder="5"
+              placeholderTextColor="#A1A7B3"
+              style={styles.distanceInput}
+              value={distanceText}
+            />
+            <Text style={styles.distanceUnit}>{'km'}</Text>
+          </View>
+          <Text style={styles.sectionHelp}>
+            {'입력한 거리와 최대한 비슷한 코스를 추천해요.'}
+          </Text>
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{'원하는 러닝 조건'}</Text>
@@ -112,6 +148,13 @@ export default function CourseConditionsScreen() {
                       active && styles.optionTextActive,
                     ]}>
                     {option.label}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.optionDescription,
+                      active && styles.optionDescriptionActive,
+                    ]}>
+                    {option.description}
                   </Text>
                 </Pressable>
               );
@@ -194,35 +237,49 @@ export function ImportanceSelector({
     <>
       <View style={styles.importanceRow}>
         {levels.map((level) => {
-          const active = value === level;
+          const active = value >= level;
 
           return (
             <Pressable
-              accessibilityLabel={`중요도 ${level}`}
+              accessibilityLabel={`중요도 ${level}점`}
               accessibilityRole="button"
-              accessibilityState={{ selected: active }}
+              accessibilityState={{ selected: value === level }}
               key={level}
               onPress={() => onChange(level)}
               style={({ pressed }) => [
-                styles.importanceButton,
-                active && styles.importanceButtonActive,
+                styles.starButton,
                 pressed && styles.pressed,
               ]}>
-              <Text
-                style={[
-                  styles.importanceText,
-                  active && styles.importanceTextActive,
-                ]}>
-                {level}
-              </Text>
+              <RatingStar active={active} />
             </Pressable>
           );
         })}
       </View>
       <View style={styles.importanceGuide}>
-        <Text style={styles.importanceGuideText}>{'낮음'}</Text>
-        <Text style={styles.importanceGuideText}>{'높음'}</Text>
+        <Text style={styles.importanceGuideText}>
+          {importanceDescription(value)}
+        </Text>
       </View>
     </>
   );
+}
+
+function RatingStar({ active }: { active: boolean }) {
+  return (
+    <Svg height={34} viewBox="0 0 24 24" width={34}>
+      <Path
+        d="M12 2.6l2.88 5.83 6.43.94-4.65 4.53 1.1 6.4L12 17.28 6.24 20.3l1.1-6.4-4.65-4.53 6.43-.94L12 2.6z"
+        fill={active ? '#B9FA3C' : '#ECEEF5'}
+        stroke={active ? '#04045E' : '#CBD1DC'}
+        strokeLinejoin="round"
+        strokeWidth={1.45}
+      />
+    </Svg>
+  );
+}
+
+function importanceDescription(value: ImportanceLevel) {
+  return ['중요하지 않아요', '조금 중요해요', '보통이에요', '중요해요', '매우 중요해요'][
+    value - 1
+  ];
 }

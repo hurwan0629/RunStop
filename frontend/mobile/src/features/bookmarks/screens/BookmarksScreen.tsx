@@ -1,33 +1,107 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useCourseDraft } from '@/features/course/context/CourseDraftContext';
+import { useAuth } from '@/providers/AuthProvider';
+import { getApiErrorMessage } from '@/services/api/errors';
 
 import {
-  mockCourseBookmarks,
-  mockPlaceBookmarks,
-} from '../mocks/mockBookmarks';
-import type {
-  CourseBookmarkPreview,
-  PlaceBookmarkPreview,
-} from '../types';
+  deletePointBookmark,
+  deleteRouteBookmark,
+  getPointBookmarks,
+  getRouteBookmarks,
+} from '../api/bookmarksApi';
+import type { CourseBookmark, PointBookmark } from '../types';
 import { styles } from './BookmarksScreen.styles';
 
 type BookmarkTab = 'COURSE' | 'PLACE';
 
-/** 저장한 코스와 장소를 나누어 표시하는 즐겨찾기 화면입니다. */
 export default function BookmarksScreen() {
   const router = useRouter();
+  const { accessToken } = useAuth();
   const { updateDraft } = useCourseDraft();
   const [activeTab, setActiveTab] = useState<BookmarkTab>('COURSE');
-  const [courses, setCourses] = useState(mockCourseBookmarks);
-  const [places, setPlaces] = useState(mockPlaceBookmarks);
+  const [courses, setCourses] = useState<CourseBookmark[]>([]);
+  const [places, setPlaces] = useState<PointBookmark[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const usePlaceAsStart = (place: PlaceBookmarkPreview) => {
-    updateDraft({ startPoint: place });
+  const loadBookmarks = useCallback(async () => {
+    if (!accessToken) {
+      setCourses([]);
+      setPlaces([]);
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const [routeResponse, pointResponse] = await Promise.all([
+        getRouteBookmarks(accessToken),
+        getPointBookmarks(accessToken),
+      ]);
+      setCourses(routeResponse.items);
+      setPlaces(pointResponse.items);
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [accessToken]);
+
+  useEffect(() => {
+    void loadBookmarks();
+  }, [loadBookmarks]);
+
+  const setPlaceAsStart = (place: PointBookmark) => {
+    updateDraft({
+      startPoint: {
+        id: String(place.bookmarkIdx),
+        name: place.name,
+        lat: place.point.latitude,
+        lng: place.point.longitude,
+      },
+    });
     router.push('/course');
+  };
+
+  const removeCourse = async (course: CourseBookmark) => {
+    if (!accessToken) {
+      return;
+    }
+
+    try {
+      await deleteRouteBookmark(accessToken, course.bookmarkIdx);
+      setCourses((current) =>
+        current.filter((item) => item.bookmarkIdx !== course.bookmarkIdx),
+      );
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error));
+    }
+  };
+
+  const removePlace = async (place: PointBookmark) => {
+    if (!accessToken) {
+      return;
+    }
+
+    try {
+      await deletePointBookmark(accessToken, place.bookmarkIdx);
+      setPlaces((current) =>
+        current.filter((item) => item.bookmarkIdx !== place.bookmarkIdx),
+      );
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error));
+    }
   };
 
   return (
@@ -59,48 +133,57 @@ export default function BookmarksScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
-        <Text style={styles.mockNotice}>
-          {'현재는 백엔드 연결 전이라 화면 확인용 즐겨찾기가 표시됩니다.'}
-        </Text>
+        {!accessToken ? (
+          <Text style={styles.mockNotice}>
+            {'로그인 후 즐겨찾기를 확인할 수 있어요.'}
+          </Text>
+        ) : null}
+        {isLoading ? <ActivityIndicator color="#100078" /> : null}
+        {errorMessage ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyDescription}>{errorMessage}</Text>
+            <Pressable onPress={() => void loadBookmarks()}>
+              <Text style={styles.outlineButtonText}>{'다시 불러오기'}</Text>
+            </Pressable>
+          </View>
+        ) : null}
 
-        {activeTab === 'COURSE' ? (
+        {!isLoading && !errorMessage && activeTab === 'COURSE' ? (
           courses.length > 0 ? (
             courses.map((course) => (
               <CourseBookmarkCard
                 course={course}
-                key={course.id}
+                key={course.bookmarkIdx}
                 onOpen={() =>
                   router.push({
                     pathname: '/course/[courseId]',
-                    params: { courseId: course.courseId },
+                    params: {
+                      courseId: String(course.routeRecommendationIdx),
+                    },
                   })
                 }
-                onRemove={() =>
-                  setCourses((current) =>
-                    current.filter((item) => item.id !== course.id),
-                  )
-                }
+                onRemove={() => void removeCourse(course)}
               />
             ))
           ) : (
             <EmptyBookmarks type="코스" />
           )
-        ) : places.length > 0 ? (
-          places.map((place) => (
-            <PlaceBookmarkCard
-              key={place.id}
-              onRemove={() =>
-                setPlaces((current) =>
-                  current.filter((item) => item.id !== place.id),
-                )
-              }
-              onUse={() => usePlaceAsStart(place)}
-              place={place}
-            />
-          ))
-        ) : (
-          <EmptyBookmarks type="장소" />
-        )}
+        ) : null}
+
+        {!isLoading && !errorMessage && activeTab === 'PLACE' ? (
+          places.length > 0 ? (
+            places.map((place) => (
+              <PlaceBookmarkCard
+                key={place.bookmarkIdx}
+                onRemove={() => void removePlace(place)}
+                onUse={() => setPlaceAsStart(place)}
+                place={place}
+              />
+            ))
+          ) : (
+            <EmptyBookmarks type="장소" />
+          )
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -133,7 +216,7 @@ function CourseBookmarkCard({
   onOpen,
   onRemove,
 }: {
-  course: CourseBookmarkPreview;
+  course: CourseBookmark;
   onOpen: () => void;
   onRemove: () => void;
 }) {
@@ -146,7 +229,7 @@ function CourseBookmarkCard({
         <View style={styles.cardCopy}>
           <Text style={styles.cardTitle}>{course.name}</Text>
           <Text style={styles.cardSubtitle}>
-            {`${course.distanceKm}km · 오르막 ${course.totalAscentM}m · ${course.slopeLabel}`}
+            {formatCourseDescription(course)}
           </Text>
         </View>
         <Pressable
@@ -156,14 +239,6 @@ function CourseBookmarkCard({
           onPress={onRemove}>
           <Text style={styles.bookmarkButton}>{'★'}</Text>
         </Pressable>
-      </View>
-
-      <View style={styles.tagRow}>
-        {course.tags.map((tag) => (
-          <View key={tag} style={styles.tag}>
-            <Text style={styles.tagText}>{tag}</Text>
-          </View>
-        ))}
       </View>
 
       <Pressable
@@ -186,7 +261,7 @@ function PlaceBookmarkCard({
 }: {
   onRemove: () => void;
   onUse: () => void;
-  place: PlaceBookmarkPreview;
+  place: PointBookmark;
 }) {
   return (
     <View style={styles.card}>
@@ -196,8 +271,9 @@ function PlaceBookmarkCard({
         </View>
         <View style={styles.cardCopy}>
           <Text style={styles.cardTitle}>{place.name}</Text>
-          <Text style={styles.categoryText}>{place.category}</Text>
-          <Text style={styles.cardSubtitle}>{place.address}</Text>
+          <Text style={styles.cardSubtitle}>
+            {`${place.point.latitude.toFixed(5)}, ${place.point.longitude.toFixed(5)}`}
+          </Text>
         </View>
         <Pressable
           accessibilityLabel={`${place.name} 즐겨찾기 해제`}
@@ -231,4 +307,15 @@ function EmptyBookmarks({ type }: { type: string }) {
       </Text>
     </View>
   );
+}
+
+function formatCourseDescription(course: CourseBookmark) {
+  const distance = course.totalDistance === null
+    ? '거리 정보 없음'
+    : `${(course.totalDistance / 1000).toFixed(1)}km`;
+  const ascent = course.totalAscent === null
+    ? '오르막 정보 없음'
+    : `오르막 ${Math.round(course.totalAscent)}m`;
+
+  return `${distance} · ${ascent}`;
 }

@@ -10,7 +10,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   backButton: { width: 36, color: '#0A145A', fontSize: 38, lineHeight: 40 },
-  screenTitle: { color: '#0A145A', fontSize: 23, fontWeight: '900', marginLeft: 6 },
+  screenTitle: { color: '#0A145A', fontSize: 22, fontWeight: '900', marginLeft: 6 },
   tabRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
