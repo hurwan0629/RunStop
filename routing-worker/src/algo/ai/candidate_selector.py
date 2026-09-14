@@ -1,20 +1,5 @@
 from src.algo.types import CandidateRoute, Requirements, Weights
-
-
-def _to_ai_requirements(
-    requirements: Requirements | None,
-    facility_preferences: dict[str, str] | None,
-) -> Requirements:
-    ai_requirements = dict(requirements or {})
-    preferences = facility_preferences or {}
-
-    if preferences.get("toilet") == "PREFER":
-        ai_requirements["toilet"] = True
-
-    if preferences.get("store") == "PREFER":
-        ai_requirements["store"] = True
-
-    return ai_requirements
+from src.algo.ai.artifact_ranker import score_candidates_with_artifact
 
 
 def select_candidates_with_ai(
@@ -27,10 +12,28 @@ def select_candidates_with_ai(
     """
     AI candidate selection layer.
 
-    The current fallback keeps the existing condition_score ordering.
-    facility_preferences are converted to AI-compatible requirements only at
-    the AI boundary so the routing contract stays unchanged.
+    The bundled artifact is allowed to reorder candidates only after the
+    routing/scoring pipeline has produced complete candidate features.
     """
+    try:
+        scores = score_candidates_with_artifact(
+            candidates,
+            weights,
+            requirements,
+            facility_preferences,
+        )
+        ranked = [
+            candidate
+            for _, candidate in sorted(
+                zip(scores, candidates),
+                key=lambda item: item[0],
+                reverse=True,
+            )
+        ]
+        return ranked[:top_k]
+    except Exception as error:
+        print(f"[AI] artifact ranking fallback: {error}")
+
     return sorted(
         candidates,
         key=lambda candidate: candidate["condition_score"],

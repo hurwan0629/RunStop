@@ -1,4 +1,5 @@
 import { getRouteConditionLlmClient, generateRouteNames } from "../adapters/llm/llm.client.js";
+import type { ParsedRouteConditions } from "../adapters/llm/llm.client.js";
 import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
 import type { RouteDetailDTO } from "../dto/route/route-detail.dto.js";
 import type {
@@ -251,10 +252,25 @@ async function applyLlmRouteConditions(dto: RouteRequestDTO): Promise<RouteReque
   }
 
   // lmm에 
-  const parsedConditions = await getRouteConditionLlmClient().parseRouteConditions({
-    prompt: dto.prompt,
-    targetDistance: dto.elementConditions.targetDistance,
-  });
+  let parsedConditions: ParsedRouteConditions;
+
+  try {
+    parsedConditions = await getRouteConditionLlmClient().parseRouteConditions({
+      prompt: dto.prompt,
+      targetDistance: dto.elementConditions.targetDistance,
+    });
+  } catch (error) {
+    logger.warn(
+      {
+        serviceName: "routes",
+        action: "applyLlmRouteConditions",
+        err: error,
+      },
+      "service:llm_condition_parse_failed",
+    );
+
+    return dto;
+  }
 
   return {
     ...dto,

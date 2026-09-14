@@ -1,6 +1,7 @@
 import { ApiLlmClient } from "./implements/llm.api.js";
 import { LocalLlmClient } from "./implements/llm.local.js";
 import { MockLlmClient } from "./implements/llm.mock.js";
+import { env } from "../../config/env.js";
 import type {
   LlmMode,
   ParsedRouteConditions,
@@ -20,7 +21,7 @@ export type {
 } from "./types.js";
 
 export function createRouteConditionLlmClient(
-  mode: LlmMode = (process.env.LLM_MODE as LlmMode | undefined) ?? "mock",
+  mode: LlmMode = env.LLM_MODE,
 ): RouteConditionLlmClient {
   if (mode === "api") return new ApiLlmClient();
   if (mode === "local") return new LocalLlmClient();
