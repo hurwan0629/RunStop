@@ -4,10 +4,16 @@ preference_v1은 관측된 사용자 정답이 아니라 명시적으로 설정�
 누락 feature는 설정된 기본 만족도로 처리하고, 최종 점수는 [0, 1] 범위로 자릅니다.
 """
 import math
+from typing import Any
 from ai.src.config.schema import UtilityConfig
 
 
-def utility_score(candidate, profile_weights, request, config: UtilityConfig):
+def utility_score(
+    candidate: dict[str, Any],
+    profile_weights: dict[str, float],
+    request: dict[str, Any],
+    config: UtilityConfig,
+) -> float:
     """후보 경로 하나가 사용자/요청 선호에 얼마나 맞는지 0~1 utility로 계산합니다."""
     p = config.params
     missing = p.missing_satisfaction
@@ -82,7 +88,7 @@ def utility_score(candidate, profile_weights, request, config: UtilityConfig):
     return round(max(0.0, min(1.0, score - violations * p.requirement_violation_penalty)), config.tie_decimals)
 
 
-def label_candidates(candidates, job, config):
+def label_candidates(candidates: list[dict[str, Any]], job: dict[str, Any], config: UtilityConfig) -> list[dict[str, float]]:
     """후보 목록에 utility, ground_truth_rank, relevance label을 붙입니다."""
     # 후보별 utility를 계산하고, 같은 점수는 같은 dense rank를 부여합니다.
     values = [utility_score(c, job["profile"]["weights"], job["args"], config) for c in candidates]

@@ -1,8 +1,10 @@
 """저장 가능한 학습 모델 번들입니다. 입력 schema, 전처리기, estimator를 함께 보관합니다."""
+from collections.abc import Sequence
 from pathlib import Path
 import json
 import pickle
 import numpy as np
+import pandas as pd
 from ai.src.dataset.features import build_model_input
 
 
@@ -10,7 +12,7 @@ class BaseRankingModel:
     """모든 ranking 모델 구현체가 따르는 최소 인터페이스입니다."""
     name = "base"
 
-    def __init__(self, columns, params=None, seed=42):
+    def __init__(self, columns: Sequence[str], params: dict | None = None, seed: int = 42):
         """입력 컬럼 순서와 모델 파라미터를 저장합니다."""
         self.columns = list(columns)
         self.params = params or {}
@@ -19,15 +21,15 @@ class BaseRankingModel:
         self.estimator = None
         self.history = {}
 
-    def fit(self, train, validation):
+    def fit(self, train: pd.DataFrame, validation: pd.DataFrame):
         """구현체에서 학습 로직을 제공합니다."""
         raise NotImplementedError
 
-    def predict_scores(self, candidates):
+    def predict_scores(self, candidates: pd.DataFrame):
         """구현체에서 후보별 점수 예측 로직을 제공합니다."""
         raise NotImplementedError
 
-    def prepare(self, frame, fit=False):
+    def prepare(self, frame: pd.DataFrame, fit: bool = False) -> np.ndarray:
         """선택된 feature를 숫자 행렬로 바꾸고 결측/스케일 전처리를 적용합니다."""
         from sklearn.impute import SimpleImputer
         from sklearn.pipeline import make_pipeline
@@ -41,14 +43,14 @@ class BaseRankingModel:
             return self.preprocessor.fit_transform(x)
         return self.preprocessor.transform(x)
 
-    def check_scores(self, scores, length):
+    def check_scores(self, scores, length: int) -> np.ndarray:
         """예측 결과가 입력 행 수와 같은 finite 1차원 점수인지 확인합니다."""
         values = np.asarray(scores, dtype=float)
         if values.shape != (length,) or not np.isfinite(values).all():
             raise ValueError("predict_scores must return one finite score per input row")
         return values
 
-    def feature_importance(self):
+    def feature_importance(self) -> list[dict[str, float | str]] | None:
         """지원되는 estimator에서 feature importance 또는 계수를 꺼냅니다."""
         if self.estimator is None or self.preprocessor is None:
             return None
@@ -63,20 +65,21 @@ class BaseRankingModel:
             return None
         return [{"feature": str(name), "value": float(value)} for name, value in zip(names, values)]
 
-    def save(self, directory):
+    def save(self, directory: str | Path) -> None:
         """모델 pickle과 입력 schema 설명을 디렉터리에 저장합니다."""
         path = Path(directory)
         path.mkdir(parents=True, exist_ok=False)
         with (path / "model.pkl").open("wb") as stream:
             pickle.dump(self, stream, protocol=pickle.HIGHEST_PROTOCOL)
         schema = {"schema_version": 1, "model_name": self.name, "columns": self.columns,
-                  "dtype": "float64", "missing": "train median; all-missing column = 0; indicators; StandardScaler" if self.preprocessor else "not applicable",
+                  "dtype": "float64", 
+                  "missing": "train median; all-missing column = 0; indicators; StandardScaler" if self.preprocessor else "not applicable",
                   "output": "one finite float per input row; higher ranks first within request",
                   "bundle": "model.pkl includes fitted preprocessing and estimator"}
         (path / "input_schema.json").write_text(json.dumps(schema, ensure_ascii=False, indent=2), encoding="utf-8")
 
     @staticmethod
-    def load(directory):
+    def load(directory: str | Path):
         """신뢰한 실험 artifact만 로드합니다. pickle은 코드 실행이 가능합니다."""
         with (Path(directory) / "model.pkl").open("rb") as stream:
             model = pickle.load(stream)
@@ -87,7 +90,7 @@ class BaseRankingModel:
 
 class TreeRanker(BaseRankingModel):
     """LightGBM/XGBoost/CatBoost 계열 ranker의 공통 학습 흐름입니다."""
-    def fit(self, train, validation):
+    def fit(self, train: pd.DataFrame, validation: pd.DataFrame):
         """요청별 group 정보를 유지한 채 tree ranker를 학습합니다."""
         # group 기반 ranker는 request_id/candidate_id 정렬을 고정해야 재현성이 좋아집니다.
         train = train.sort_values(["request_id", "candidate_id"])
@@ -123,6 +126,6 @@ class TreeRanker(BaseRankingModel):
             self.history = self.estimator.get_evals_result()
         return self
 
-    def predict_scores(self, candidates):
+    def predict_scores(self, candidates: pd.DataFrame) -> np.ndarray:
         """tree estimator의 예측값을 후보 ranking 점수로 사용합니다."""
         return self.check_scores(self.estimator.predict(self.prepare(candidates)), len(candidates))

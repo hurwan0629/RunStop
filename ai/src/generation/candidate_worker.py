@@ -14,12 +14,13 @@ import sys
 import types
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
+from typing import Any
 
 # 각 worker 프로세스에서 한 번만 초기화해 재사용할 전역 객체
 _GRAPH = _INDEX = _RECOMMEND = _CONFIG = None
 
 
-def spatial_paths(config):
+def spatial_paths(config: dict[str, Any]) -> list[Path]:
     """routing-worker 실행에 필요한 공간 데이터 파일 경로 목록을 만듭니다."""
 
     root = Path(config["data_root"])
@@ -35,7 +36,7 @@ def spatial_paths(config):
     return [Path(config["graph_path"]), dem / "query_elevation.py", dem / "서울_DEM_10m.npy", dem / "서울_DEM_10m_meta.json", facility, root / "osm" / "out" / "서울_공원.geojson", root / "osm" / "out" / "서울_하천_polygon.geojson"]
 
 
-def preflight(config):
+def preflight(config: dict[str, Any]) -> list[str]:
     """worker 코드와 공간 데이터 파일이 모두 있는지 확인합니다."""
 
     # routing pipeline 코드 + 공간 데이터 파일 존재 여부 검사
@@ -45,7 +46,7 @@ def preflight(config):
     return [str(p) for p in paths if not p.is_file()]
 
 
-def initialize(config):
+def initialize(config: dict[str, Any]) -> None:
     """프로세스 풀 worker마다 graph, node index, recommend 함수를 한 번만 로드합니다."""
 
     global _GRAPH, _INDEX, _RECOMMEND, _CONFIG
@@ -87,7 +88,7 @@ def initialize(config):
     _RECOMMEND = recommend
 
 
-def candidate_identity(candidate):
+def candidate_identity(candidate: dict[str, Any]) -> str:
     """좌표열 기준으로 후보 경로의 안정적인 중복 제거 키를 만듭니다."""
 
     # 경로 좌표를 동일한 JSON 문자열로 직렬화
@@ -97,7 +98,12 @@ def candidate_identity(candidate):
     return hashlib.sha256(encoded.encode()).hexdigest()
 
 
-def select_pool(candidates, policy, seed, request_id):
+def select_pool(
+    candidates: list[dict[str, Any]],
+    policy: dict[str, Any],
+    seed: int,
+    request_id: str,
+) -> list[dict[str, Any]]:
     """중복 후보를 제거하고 정책 maximum을 넘으면 seed 기반으로 샘플링합니다."""
 
     # 같은 좌표열 경로는 하나만 남김
@@ -113,7 +119,7 @@ def select_pool(candidates, policy, seed, request_id):
     return [{**unique[key], "candidate_id": key[:24]} for key in identities]
 
 
-def run_job(job):
+def run_job(job: dict[str, Any]) -> dict[str, Any]:
     """단일 요청에 대해 후보 경로를 만들고 부족하면 재시도합니다."""
 
     policy = _CONFIG["candidates"]

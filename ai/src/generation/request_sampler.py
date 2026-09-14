@@ -1,9 +1,10 @@
 """snake_case 예전 입력과 Node DTO camelCase 입력을 하나의 요청 계약으로 맞춥니다."""
 
+from typing import Any
 from ai.src.generation.user_sampler import check_weights, numeric, REQUIREMENTS
 
 
-def coordinate(value):
+def coordinate(value: Any) -> list[float]:
     """좌표를 [lat, lng] 리스트로 표준화하고 범위를 검증합니다."""
 
     # {lat, lng} 형식을 [lat, lng] 형식으로 변환
@@ -72,7 +73,7 @@ users 스키마 예시:
 ]
 ▲ ▲ users 스키마 예시 ▲ ▲
 """
-def normalize_requests(users):
+def normalize_requests(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """사용자별 요청 배열을 worker가 받을 job 목록으로 변환합니다."""
 
     jobs = []
@@ -154,7 +155,7 @@ def normalize_requests(users):
     return jobs
 
 
-def request_features(job):
+def request_features(job: dict[str, Any]) -> dict[str, Any]:
     """job의 사용자/요청 조건을 후보 행에 붙일 context feature로 펼칩니다."""
 
     args = job["args"]

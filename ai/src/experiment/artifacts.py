@@ -9,10 +9,12 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
+from ai.src.config.schema import ExperimentConfig
 from ai.src.config.loader import AI_ROOT, dump_config
 
 
-def sha256_file(path):
+def sha256_file(path: str | Path) -> str:
     """파일을 chunk 단위로 읽어 SHA-256 해시를 계산합니다."""
     digest = hashlib.sha256()
     with Path(path).open("rb") as stream:
@@ -21,7 +23,7 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
-def write_json(path, data):
+def write_json(path: str | Path, data: Any) -> None:
     """NaN을 허용하지 않는 UTF-8 JSON 파일을 씁니다."""
     Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
 
@@ -45,7 +47,7 @@ def environment_snapshot():
             "git_commit": commit, "ai_worktree_changes": dirty, "ai_source_sha256": code_hash.hexdigest()}
 
 
-def begin_run(output, config):
+def begin_run(output: str | Path, config: ExperimentConfig) -> tuple[Path, dict[str, Any]]:
     """새 실험 artifact 디렉터리를 만들고 실행 시점 runtime을 복사합니다."""
     # 중복을 피하기 위해 UTC 시각과 짧은 uuid를 디렉터리명에 포함합니다.
     path = Path(output) / (datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S") + "_" + config.name + "_" + uuid.uuid4().hex[:8])
@@ -66,7 +68,7 @@ def begin_run(output, config):
     return path, manifest
 
 
-def finish_run(path, manifest, error=None):
+def finish_run(path: str | Path, manifest: dict[str, Any], error: Exception | None = None) -> None:
     """manifest 상태와 artifact 파일 목록/해시를 최종 기록합니다."""
     manifest.update(status="failed" if error else "complete", finished_at=datetime.now(timezone.utc).isoformat())
     if error:

@@ -1,13 +1,17 @@
 """저장된 후보 데이터셋과 metadata를 함께 검증해서 로드합니다."""
 import json
+from pathlib import Path
+from typing import Any
 import pandas as pd
 from ai.src.dataset.schema import validate_dataset
 from ai.src.experiment.artifacts import sha256_file
 
 
-def load_dataset(path, metadata_path):
+def load_dataset(path: str | Path, metadata_path: str | Path) -> tuple[pd.DataFrame, dict[str, Any], str]:
     """metadata와 해시가 일치하는 완료된 schema v1 데이터셋만 읽습니다."""
     # metadata가 완료된 v1 스냅샷인지 먼저 확인합니다.
+    path = Path(path)
+    metadata_path = Path(metadata_path)
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     if metadata.get("schema_version") != 1 or metadata.get("status") != "complete":
         raise ValueError("Dataset metadata must describe a complete schema_version=1 snapshot")

@@ -2,19 +2,20 @@
 import json
 import math
 from pathlib import Path
+from typing import Any
 
 WEIGHTS = ("distance", "elevation", "toilet", "store", "night", "park", "flow", "surface", "overlap", "safety", "nature")
 REQUIREMENTS = ("toilet", "store", "park", "no_stairs", "max_slope_pct")
 
 
-def numeric(value, label, low, high):
+def numeric(value: Any, label: str, low: float, high: float) -> float:
     """값이 지정 범위 안의 유한한 숫자인지 확인합니다."""
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not low <= value <= high:
         raise ValueError(f"{label}: {low}..{high} 범위의 유한 숫자가 필요합니다")
     return value
 
 
-def check_weights(weights):
+def check_weights(weights: dict[str, Any]) -> dict[str, float]:
     """사용자/요청 weight dict가 지원하는 키와 값 범위를 지키는지 확인합니다."""
     if not isinstance(weights, dict) or not weights or set(weights) - set(WEIGHTS):
         raise ValueError(f"지원하지 않는 가중치: {weights}")
@@ -25,7 +26,11 @@ def check_weights(weights):
     return dict(weights)
 
 
-def load_users(path, expected_users=None, expected_requests=None):
+def load_users(
+    path: str | Path,
+    expected_users: int | None = None,
+    expected_requests: int | None = None,
+) -> list[dict[str, Any]]:
     """사용자 JSON을 읽고 내부 생성 파이프라인에서 쓰는 표준 구조로 바꿉니다."""
     data = json.loads(Path(path).read_text(encoding="utf-8-sig"))
     users = data.get("users")

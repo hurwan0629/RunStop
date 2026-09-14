@@ -5,6 +5,8 @@ import sys
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
+from ai.src.config.schema import GenerationConfig
 from ai.src.config.loader import resolve_path, dump_config
 from ai.src.generation.user_sampler import load_users
 from ai.src.generation.request_sampler import normalize_requests, request_features
@@ -12,7 +14,7 @@ from ai.src.generation.candidate_worker import preflight, spatial_paths
 from ai.src.experiment.artifacts import write_json, sha256_file, environment_snapshot
 
 
-def resolved_worker_config(config):
+def resolved_worker_config(config: GenerationConfig) -> dict[str, Any]:
     """서브프로세스로 넘길 worker 경로 설정을 절대 경로 문자열로 바꿉니다."""
     result = config.model_dump()
 
@@ -23,7 +25,7 @@ def resolved_worker_config(config):
     return result
 
 
-def inspect_generation(config):
+def inspect_generation(config: GenerationConfig) -> dict[str, Any]:
     """데이터를 만들지 않고 생성 입력과 실행 예정 상태만 확인합니다."""
     # routing-worker를 건드리지 않고 사용자 요청 원본만 읽고 표준 형태로 바꿉니다.
     users = load_users(resolve_path(config.source_json), config.expected_users, config.expected_requests)
@@ -57,7 +59,7 @@ GenerationConfig(
 )
 ▲ ▲ config 인자 ▲ ▲
 """
-def generate_dataset(config):
+def generate_dataset(config: GenerationConfig) -> Path:
     """고정된 사용자 요청과 worker 결과로 후보 경로 parquet 스냅샷을 만듭니다."""
 
     import pandas as pd
@@ -217,7 +219,7 @@ def generate_dataset(config):
     return output
 
 
-def run_worker(command, cwd, timeout):
+def run_worker(command: list[str], cwd: str | Path, timeout: int) -> None:
     """timeout/중단 시 Windows pool 자식까지 포함해 실행한 프로세스 트리를 종료합니다."""
     import psutil
     process = subprocess.Popen(command, cwd=cwd)

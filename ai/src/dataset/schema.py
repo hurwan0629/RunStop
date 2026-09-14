@@ -1,4 +1,5 @@
 """후보 경로 테이블 v1 스키마입니다. 식별자, 숫자 feature, 고정 label만 허용합니다."""
+from typing import Any
 import numpy as np
 import pandas as pd
 
@@ -16,7 +17,7 @@ CANDIDATE_COLUMNS = {f"candidate_{key}" for key in CANDIDATE_SCALARS} | {
     f"candidate_{section}_{key}" for section, keys in CANDIDATE_SECTIONS.items() for key in keys}
 
 
-def flatten_candidate(candidate):
+def flatten_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
     """worker 후보 dict를 학습용 1행 컬럼 구조로 펼칩니다."""
     row = {}
 
@@ -36,7 +37,7 @@ def flatten_candidate(candidate):
     return row
 
 
-def validate_dataset(df, relevance_levels=5):
+def validate_dataset(df: pd.DataFrame, relevance_levels: int = 5) -> pd.DataFrame:
     """데이터셋 전체가 학습 가능한 schema v1 형태인지 검증합니다."""
     # 필수 컬럼과 알 수 없는 candidate feature를 먼저 검사합니다.
     missing = REQUIRED - set(df.columns)

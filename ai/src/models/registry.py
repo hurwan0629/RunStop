@@ -1,6 +1,8 @@
 """모델 이름과 구현체 클래스를 연결하는 registry입니다."""
+from collections.abc import Sequence
 from importlib import import_module, util
 from ai.src.config.schema import PARAM_SCHEMAS, ModelConfig
+from ai.src.models.base import BaseRankingModel
 
 MODELS = {
     "condition_score_baseline": ("Condition score", None, "condition_score_baseline", "ConditionScoreBaseline", "기존 점수 정렬 · 학습 없음"),
@@ -21,7 +23,7 @@ def catalog():
             for name, entry in MODELS.items()]
 
 
-def create_model(config, columns, seed=42):
+def create_model(config: ModelConfig, columns: Sequence[str], seed: int = 42) -> BaseRankingModel:
     """설정된 모델 이름으로 구현체를 import하고 인스턴스를 생성합니다."""
     # config를 다시 검증해 params가 해당 모델 schema를 통과했는지 보장합니다.
     config = ModelConfig.model_validate(config.model_dump())

@@ -27,22 +27,45 @@ def run_experiment(config: ExperimentConfig):
         write_json(path / "dataset_reference.json", {"path": str(dataset_path), "sha256": dataset_hash,
                    "metadata_path": str(metadata_path), "metadata_sha256": sha256_file(metadata_path), "metadata": metadata})
 
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        #                 Data Split                          #
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
         # 사용자 단위/시간순 split을 만들고 재현용 assignment를 저장합니다.
         parts, assignments = split_user_temporal_holdout(df, config.split)
         assignments = assignments.sort_values(["user_id", "request_sequence", "request_id"])
         assignments.to_parquet(path / "split_assignments.parquet", index=False)
 
+
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        #                 Model 준비                           #
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # 모델 입력 컬럼과 구현체를 준비합니다.
         columns = ["condition_score"] if config.model.name == "condition_score_baseline" else select_feature_columns(df, config.features)
         model = create_model(config.model, columns, config.seed)
 
+
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        #                 Resource 측정                        #
+        #                       +                             #
+        #                 model fit + eval                    #
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # 학습과 평가 시간을 resource monitor 범위 안에서 측정합니다.
         with ResourceMonitor() as monitor:
+
+            # # # # # # 
+            # 측정 시간 # 
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
             started = time.perf_counter()
+            # 학습 # 
             model.fit(parts["train"], parts["validation"])
             train_seconds = time.perf_counter() - started
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+            # 평가 3 
             predictions, per_request, metrics, inference = evaluate(model, parts, config.evaluation, config.seed)
 
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+        #                 결과 저장                             #
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # 모델, 예측, metric, resource 사용량을 artifact로 저장합니다.
         model.save(path / "model")
         predictions.to_parquet(path / "predictions.parquet", index=False)
