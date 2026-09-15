@@ -1,6 +1,7 @@
 import { apiRequest } from '@/services/api/client';
 
 import type {
+  RunningActiveSession,
   RunningEndResponse,
   RunningFinishResponse,
   RunningPaceResponse,
@@ -11,15 +12,23 @@ import type {
 export function startRunningSession(
   accessToken: string,
   routeRecommendationIdx: number,
+  startedAt: string = new Date().toISOString(),
 ) {
   return apiRequest<RunningStartResponse>('/api/running-sessions', {
     method: 'POST',
     accessToken,
     body: {
       routeRecommendationIdx,
-      startedAt: new Date().toISOString(),
+      startedAt,
     },
   });
+}
+
+export function getActiveRunningSession(accessToken: string) {
+  return apiRequest<RunningActiveSession | null>(
+    '/api/running-sessions/active',
+    { accessToken },
+  );
 }
 
 export function saveRunningTrackpoints(

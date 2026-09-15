@@ -7,13 +7,16 @@ import { Stack } from 'expo-router';
 
 import { AuthProvider } from '@/providers/AuthProvider';
 import { CourseDraftProvider } from '@/features/course/context/CourseDraftContext';
+import { RunningSessionRecoveryProvider } from '@/providers/RunningSessionRecoveryProvider';
 
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <CourseDraftProvider>
-        <Stack screenOptions={{ headerShown: false }} />
-      </CourseDraftProvider>
+      <RunningSessionRecoveryProvider>
+        <CourseDraftProvider>
+          <Stack screenOptions={{ headerShown: false }} />
+        </CourseDraftProvider>
+      </RunningSessionRecoveryProvider>
     </AuthProvider>
   );
 }

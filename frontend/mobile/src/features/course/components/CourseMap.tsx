@@ -2,6 +2,7 @@ import {
   NaverMapMarkerOverlay,
   NaverMapPathOverlay,
   NaverMapView,
+  NaverMapArrowheadPathOverlay,
 } from '@mj-studio/react-native-naver-map';
 import {
   StyleProp,
@@ -21,6 +22,7 @@ type CourseMapProps = {
   currentLocation?: LocationPoint;
   followCurrentLocation?: boolean;
   style?: StyleProp<ViewStyle>;
+  showStartDirection?: boolean;
 };
 
 const DEFAULT_LOCATION: LocationPoint = {
@@ -47,11 +49,16 @@ export function CourseMap({
   trackedRoutePath = [],
   currentLocation,
   followCurrentLocation = false,
+  showStartDirection = false,
   style,
 }: CourseMapProps) {
   const focusPoint = followCurrentLocation
     ? currentLocation ?? startPoint ?? DEFAULT_LOCATION
     : startPoint ?? currentLocation ?? DEFAULT_LOCATION;
+
+  const startDirectionPath = showStartDirection
+    ? getStartDirectionPath(routePath, 80)
+    : [];
 
   return (
     <View style={[styles.container, style]}>
@@ -73,6 +80,16 @@ export function CourseMap({
             outlineColor="#FFFFFF"
             outlineWidth={1}
             width={5}
+          />
+        ) : null}
+        {startDirectionPath.length >= 2 ? (
+          <NaverMapArrowheadPathOverlay
+            color="#A8F500"
+            coords={startDirectionPath.map(toMapCoordinate)}
+            headSizeRatio={3}
+            outlineColor="#FFFFFF"
+            outlineWidth={1}
+            width={8}
           />
         ) : null}
 
@@ -124,6 +141,57 @@ export function CourseMap({
         ) : null}
       </NaverMapView>
     </View>
+  );
+}
+
+// 지도에 표시할 화살표를 그릴 구간을 뽑기
+function getStartDirectionPath(
+  routePath: LocationPoint[],
+  targetDistanceMeters: number,
+) : LocationPoint[] {
+  if (routePath.length < 2) {
+    return [];
+  }
+
+  const directionPath = [routePath[0]];
+  let accumulatedDistance = 0;
+
+  for (let index = 1; index < routePath.length; index += 1) {
+    const previousPoint = routePath[index - 1];
+    const currentPoint = routePath[index];
+
+    accumulatedDistance += getDistanceMeters(previousPoint, currentPoint);
+    directionPath.push(currentPoint);
+
+    if (accumulatedDistance >= targetDistanceMeters) {
+      break;
+    }
+  }
+  return directionPath;
+}
+
+// getDistanceMeters
+function getDistanceMeters(
+  from: LocationPoint,
+  to: LocationPoint,
+): number {
+  const earthRadius = 6371000;
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 100;
+
+  const latitudeDelta = toRadians(to.lat - from.lat);
+  const longitudeDelta = toRadians(to.lng - from.lng);
+  const fromLatitude = toRadians(from.lat);
+  const toLatitude = toRadians(to.lat);
+
+  const a =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(fromLatitude) *
+      Math.cos(toLatitude) *
+      Math.sin(longitudeDelta / 2) ** 2;
+
+  return 2 * earthRadius * Math.atan2(
+    Math.sqrt(a),
+    Math.sqrt(1 - a),
   );
 }
 

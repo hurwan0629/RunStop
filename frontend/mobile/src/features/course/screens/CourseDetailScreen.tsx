@@ -14,7 +14,10 @@ import {
   deleteRouteBookmark,
   getRouteBookmarks,
 } from '@/features/bookmarks/api/bookmarksApi';
-import { startRunningSession } from '@/features/running/api/runningApi';
+import {
+  getActiveRunningSession,
+  startRunningSession,
+} from '@/features/running/api/runningApi';
 import { useAuth } from '@/providers/AuthProvider';
 import { getApiErrorMessage } from '@/services/api/errors';
 
@@ -22,6 +25,7 @@ import { getCourseDetail, selectCourse } from '../api/courseApi';
 import { CourseMap } from '../components/CourseMap';
 import type { LocationPoint, RouteDetail } from '../types';
 import { styles } from './CourseDetailScreen.styles';
+import { saveActiveRunningSession } from '@/storage/runningSessionStorage';
 
 export default function CourseDetailScreen() {
   const router = useRouter();
@@ -100,36 +104,79 @@ export default function CourseDetailScreen() {
   };
 
   const startRunning = async () => {
-    if (!accessToken || !course || isWorking) {
+  if (!accessToken || !course || isWorking) {
+    return;
+  }
+
+  setIsWorking(true);
+  setErrorMessage('');
+
+  try {
+    // 1. 이미 서버에 진행 중인 러닝이 있으면 새 세션을 만들지 않고 복귀
+    const activeSession = await getActiveRunningSession(accessToken);
+
+    if (activeSession) {
+      try {
+        await saveActiveRunningSession({
+          sessionId: activeSession.sessionIdx,
+          courseId: activeSession.routeRecommendationIdx,
+          startedAt: activeSession.startedAt,
+        });
+      } catch {
+        // 로컬 저장에 실패해도 서버의 IN_PROGRESS 세션은 남아 있으므로
+        // 다음 실행 시 서버 조회로 복구할 수 있음
+      }
+
+      router.replace({
+        pathname: '/running/active',
+        params: {
+          courseId: String(activeSession.routeRecommendationIdx),
+          sessionId: String(activeSession.sessionIdx),
+          startedAt: activeSession.startedAt,
+          recovery: 'true',
+        },
+      });
+
       return;
     }
 
-    setIsWorking(true);
-    setErrorMessage('');
+    // 2. 아직 선택하지 않은 추천 코스라면, 러닝 시작 직전에 최종 선택 처리
+    if (hasRouteRequestId) {
+      await selectCourse(accessToken, requestId, course.idx);
+    }
+
+    // 3. 서버와 로컬 저장소에 같은 시작 시각을 기록
+    const startedAt = new Date().toISOString();
+    const session = await startRunningSession(
+      accessToken,
+      course.idx,
+      startedAt,
+    );
 
     try {
-      if (hasRouteRequestId) {
-        await selectCourse(
-          accessToken,
-          requestId,
-          course.idx,
-        );
-      }
-
-      const session = await startRunningSession(accessToken, course.idx);
-      router.push({
-        pathname: '/running/active',
-        params: {
-          courseId: String(course.idx),
-          sessionId: String(session.sessionIdx),
-        },
+      await saveActiveRunningSession({
+        sessionId: session.sessionIdx,
+        courseId: course.idx,
+        startedAt,
       });
-    } catch (error) {
-      setErrorMessage(getApiErrorMessage(error));
-    } finally {
-      setIsWorking(false);
+    } catch {
+      // 저장소 오류가 러닝 시작 자체를 막으면 안 됨
     }
-  };
+
+    // 4. 새 러닝 화면으로 이동
+    router.push({
+      pathname: '/running/active',
+      params: {
+        courseId: String(course.idx),
+        sessionId: String(session.sessionIdx),
+      },
+    });
+  } catch (error) {
+    setErrorMessage(getApiErrorMessage(error));
+  } finally {
+    setIsWorking(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -162,6 +209,7 @@ export default function CourseDetailScreen() {
           <CourseMap
             endPoint={points.endPoint}
             routePath={course.path}
+            showStartDirection
             startPoint={points.startPoint}
             style={styles.map}
             waypoints={points.waypoints}

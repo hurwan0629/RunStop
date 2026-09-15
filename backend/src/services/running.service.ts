@@ -27,7 +27,7 @@ import {
   findLatestValidTrackpointBySessionIdx,
   type RunningTrackpointProjectedRow,
 } from "../repositories/running-trackpoints.repository.js";
-import type { RunningEndResponseDTO } from "../dto/running/running-response.dto.js";
+import type { RunningEndResponseDTO, RunningActiveSessionResponseDTO, } from "../dto/running/running-response.dto.js";
 
 const SEGMENT_DISTANCE_M = 1000;
 
@@ -217,6 +217,27 @@ export async function listRunningHistory(
     })),
     page: query.page,
     limit: query.limit,
+  };
+}
+
+/**
+ * 현재 사용자의 진행 중 러닝 세션을 반환
+ * 진행 중 세션이 없으면 null을 반환하기
+ */
+export async function getActiveRunningSession(
+  userIdx: number,
+): Promise<RunningActiveSessionResponseDTO> {
+  const session = await findInProgressSessionByUserIdx(userIdx);
+
+  if (!session) {
+    return null;
+  }
+
+  return {
+    sessionIdx: session.idx,
+    routeRecommendationIdx: session.routeRecommendationIdx,
+    startedAt: session.startedAt.toISOString(),
+    status: "IN_PROGRESS",
   };
 }
 

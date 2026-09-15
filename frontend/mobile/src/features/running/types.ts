@@ -11,6 +11,13 @@ export type RunningStartResponse = {
   status: 'IN_PROGRESS';
 };
 
+export type RunningActiveSession = {
+  sessionIdx: number;
+  routeRecommendationIdx: number;
+  startedAt: string;
+  status: 'IN_PROGRESS';
+};
+
 export type RunningFinishResponse = {
   sessionIdx: number;
   status: 'COMPLETED';

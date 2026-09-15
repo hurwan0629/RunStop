@@ -23,6 +23,16 @@ export const runningEndResponseSchema = z.object({
   averagePace: z.number().int().positive().nullable(),
 });
 
+export const runningActiveSessionResponseSchema = z.object({
+  sessionIdx: z.number().int().positive(),
+  routeRecommendationIdx: z.number().int().positive(),
+  startedAt: z.string().datetime(),
+  status: z.literal("IN_PROGRESS"),
+}).nullable();
+
+export type RunningActiveSessionResponseDTO =
+  z.infer<typeof runningActiveSessionResponseSchema>;
+
 export type RunningEndResponseDTO = z.infer<typeof runningEndResponseSchema>;
 
 export const runningPaceSegmentSchema = z.object({
