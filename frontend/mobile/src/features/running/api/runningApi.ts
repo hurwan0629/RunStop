@@ -7,6 +7,7 @@ import type {
   RunningPaceResponse,
   RunningStartResponse,
   RunningTrackpoint,
+  RunningTrackpointsSaveResponse,
 } from '../types';
 
 export function startRunningSession(
@@ -36,7 +37,7 @@ export function saveRunningTrackpoints(
   sessionIdx: number,
   trackpoints: RunningTrackpoint[],
 ) {
-  return apiRequest<{ savedCount: number }>(
+  return apiRequest<RunningTrackpointsSaveResponse>(
     `/api/running-sessions/${sessionIdx}/trackpoints`,
     {
       method: 'POST',

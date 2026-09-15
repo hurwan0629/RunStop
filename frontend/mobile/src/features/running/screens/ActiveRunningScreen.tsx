@@ -88,7 +88,11 @@ export default function ActiveRunningScreen() {
     );
 
     const request = saveRunningTrackpoints(accessToken, sessionId, batch)
-      .then(() => undefined)
+      .then((result) => {
+        setDistanceMeters((current) =>
+          Math.max(current, result.distance),
+        );
+      })
       .catch((error) => {
         pendingTrackpoints.current.unshift(...batch);
         setErrorMessage(getApiErrorMessage(error));
@@ -161,16 +165,18 @@ export default function ActiveRunningScreen() {
               recordedAt: new Date(location.timestamp).toISOString(),
             };
 
+            const previousPoint = lastPoint.current;
+            lastPoint.current = point;
+
             setCurrentLocation(point);
             setTrackedPath((current) => [...current, point]);
             setIsLocating(false);
 
-            if (lastPoint.current) {
+            if (previousPoint) {
               setDistanceMeters(
-                (current) => current + getDistanceMeters(lastPoint.current!, point),
+                (current) => current + getDistanceMeters(previousPoint, point),
               );
             }
-            lastPoint.current = point;
             pendingTrackpoints.current.push(trackpoint);
 
             if (pendingTrackpoints.current.length >= 5) {
