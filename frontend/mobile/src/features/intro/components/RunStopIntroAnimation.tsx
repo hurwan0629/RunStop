@@ -8,14 +8,24 @@ import Animated, {
     useSharedValue,
     withDelay,
     withRepeat,
+    withSequence,
     withTiming,
 } from 'react-native-reanimated';
+
+const SHOE_REST = require(
+  '../../../../assets/images/intro/shoe1.png',
+);
+
+const SHOE_STEP = require(
+  '../../../../assets/images/intro/shoe2.png',
+);
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 const NAVY = '#08056B';
 const RING_NAVY = '#24296A';
 const LIME = '#D5FF1A';
+const ORBIT_COLOR = '#ABBEEB';
 
 type RunStopIntroAnimationProps = {
     onFinished: () => void;
@@ -28,12 +38,11 @@ export function RunStopIntroAnimation({
     const circumference = 2 * Math.PI * outerRadius;
     const orbitProgress = useSharedValue(0);
 
-    const titleProgress = useSharedValue(0);
     const subtitleProgress = useSharedValue(0);
-    const rProgress = useSharedValue(0);
+    const shoeFrameProgress = useSharedValue(0);
 
     useEffect(() => {
-        // 라임 선분이 바깥 원을 계속 도는 효과
+        // 바깥 원을 계속 도는 효과
         orbitProgress.value = withRepeat(
             withTiming(circumference, {
                 duration: 1350,
@@ -43,61 +52,61 @@ export function RunStopIntroAnimation({
             false,
         );
 
-        // R 글자를 왼쪽부터 차례로 드러내, 써지는 듯한 인상을 만듭니다.
-        rProgress.value = withDelay(
-            450,
-            withTiming(1, {
-                duration: 850,
-                easing: Easing.out(Easing.cubic),
-            }),
+        // 이미지 두 번씩 반복
+        shoeFrameProgress.value = withSequence(
+            withDelay(
+                450,
+                withTiming(1, {
+                    duration: 220,
+                    easing: Easing.linear,
+                }),
+            ),
+            withDelay(
+                450,
+                withTiming(0, {
+                    duration: 220,
+                    easing: Easing.linear,
+                }),
+            ),
+            withDelay(
+                450,
+                withTiming(1, {
+                    duration: 220,
+                    easing: Easing.linear,
+                }),
+            ),
         );
 
-        // R 완성 후 브랜드명과 소개 문구 등장
-        titleProgress.value = withDelay(
-            1550,
+        subtitleProgress.value = withDelay(
+            2050,
             withTiming(1, {
                 duration: 350,
                 easing: Easing.out(Easing.cubic),
             }),
         );
 
-        subtitleProgress.value = withDelay(
-            1780,
-            withTiming(1, {
-                duration: 300,
-                easing: Easing.out(Easing.cubic),
-            }),
-        );
-
         // 전체 인트로 종료 후 다음 화면으로 이동
-        const timer = setTimeout(onFinished, 3000);
+        const timer = setTimeout(onFinished, 2800);
 
         return () => clearTimeout(timer);
     }, [
         circumference,
         onFinished,
         orbitProgress,
-        rProgress,
+        shoeFrameProgress,
         subtitleProgress,
-        titleProgress,
     ]);
 
     const orbitAnimatedProps = useAnimatedProps(() => ({
         strokeDashoffset: -orbitProgress.value,
     }));
 
-    const rRevealStyle = useAnimatedStyle(() => ({
-        width: 190 * rProgress.value,
-        opacity: rProgress.value === 0 ? 0 : 1,
+    const shoeRestStyle = useAnimatedStyle(() => ({
+        opacity: 1 - shoeFrameProgress.value,
     }));
 
-    const titleStyle = useAnimatedStyle(() => ({
-        opacity: titleProgress.value,
-        transform: [
-            {
-                translateY: 22 * (1 - titleProgress.value),
-            },
-        ],
+    const shoeStepStyle = useAnimatedStyle(() => ({
+        opacity: shoeFrameProgress.value,
     }));
 
     const subtitleStyle = useAnimatedStyle(() => ({
@@ -113,7 +122,6 @@ export function RunStopIntroAnimation({
         <View style={styles.container}>
             <View style={styles.trackArea}>
                 <Svg viewBox="0 0 360 360" style={styles.svg}>
-                    {/* 어두운 남색 동심원 트랙 */}
                     <Circle
                         cx="180"
                         cy="180"
@@ -147,13 +155,12 @@ export function RunStopIntroAnimation({
                         strokeWidth="16"
                     />
 
-                    {/* 원을 따라 달리는 라임색 선분 */}
                     <AnimatedCircle
                         cx="180"
                         cy="180"
                         r={outerRadius}
                         fill="none"
-                        stroke={LIME}
+                        stroke={ORBIT_COLOR}
                         strokeWidth="7"
                         strokeLinecap="round"
                         strokeDasharray={`142 ${circumference - 142}`}
@@ -163,18 +170,21 @@ export function RunStopIntroAnimation({
 
                 </Svg>
 
-                <View pointerEvents="none" style={styles.rClip}>
-                    <Animated.View style={[styles.rReveal, rRevealStyle]}>
-                        <Text style={styles.rText}>R</Text>
-                    </Animated.View>
+                <View pointerEvents="none" style={styles.shoeStage}>
+                    <Animated.Image
+                        source={SHOE_REST}
+                        resizeMode="contain"
+                        style={[styles.shoeFrame, shoeRestStyle]}
+                    />
+                    <Animated.Image
+                        source={SHOE_STEP}
+                        resizeMode="contain"
+                        style={[styles.shoeFrame, shoeStepStyle]}
+                    />
                 </View>
             </View>
 
-            <Animated.View style={[styles.brandArea, titleStyle]}>
-                <Text style={styles.brandName}>RunStop</Text>
-            </Animated.View>
-
-            <Animated.View style={subtitleStyle}>
+            <Animated.View style={[styles.subtitleArea, subtitleStyle]}>
                 <Text style={styles.brandSubtitle}>나만의 러닝 코스</Text>
             </Animated.View>
         </View>
@@ -193,52 +203,39 @@ const styles = StyleSheet.create({
         width: '100%',
         maxWidth: 360,
         aspectRatio: 1,
-        marginTop: -80,
+        marginTop: -100,
         position: 'relative',
     },
     svg: {
         width: '100%',
         height: '100%',
     },
-    brandArea: {
-        marginTop: 32,
+    shoeStage: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
-    brandName: {
-        color: LIME,
-        fontSize: 54,
-        fontWeight: '900',
-        fontStyle: 'italic',
-        letterSpacing: -5,
-        transform: [{ scaleX: 0.86 }],
+    shoeFrame: {
+        position: 'absolute',
+        width: '84%',
+        height: '84%',
+
+        transform: [
+            { translateX: 4 },
+            { translateY: -21 },
+        ],
+    },
+    subtitleArea: {
+        marginTop: 36,
     },
     brandSubtitle: {
-        marginTop: 8,
-        color: '#8C9263',
-        fontSize: 22,
-        fontWeight: '700',
-        letterSpacing: -1,
-    },
-    rClip: {
-        position: 'absolute',
-        top: '24%',
-        width: 190,
-        height: 190,
-        alignSelf: 'center',
-        overflow: 'hidden',
-    },
-    rReveal: {
-        height: 190,
-        overflow: 'hidden',
-    },
-    rText: {
-        width: 190,
         color: LIME,
-        fontSize: 178,
-        fontWeight: '900',
-        fontStyle: 'italic',
-        letterSpacing: -12,
-        lineHeight: 190,
-        textAlign: 'center',
-        includeFontPadding: false,
+        fontSize: 34,
+        fontWeight: '700',
+        letterSpacing: -1.5,
     },
 });

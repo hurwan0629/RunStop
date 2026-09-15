@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { nonnegative, z } from "zod";
 
 export const runningStartResponseSchema = z.object({
   sessionIdx: z.number().int().positive(),
@@ -7,6 +7,8 @@ export const runningStartResponseSchema = z.object({
 
 export const runningTrackpointsResponseSchema = z.object({
   savedCount: z.number().int().nonnegative(),
+  trackpointCount: z.number().int().nonnegative(),
+  distance: z.number().int().nonnegative(),
 });
 
 export const runningFinishResponseSchema = z.object({

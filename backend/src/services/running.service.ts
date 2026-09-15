@@ -361,6 +361,8 @@ export async function saveRunningTrackpoints(
   // clientTrackpointId UNIQUE 제약으로 재전송 중복을 DB에서 무시합니다.
   const savedCount = await createRunningTrackpoints(sessionIdx, dto.trackpoints);
 
+  const trackpointStats = await calculateRunningTrackpointStats(sessionIdx);
+
   logger.info({
     serviceName: "running",
     action: "saveRunningTrackpoints",
@@ -368,10 +370,14 @@ export async function saveRunningTrackpoints(
     sessionIdx,
     requestedCount: dto.trackpoints.length,
     savedCount,
+    trackpointCount: trackpointStats.trackpointCount,
+    distance: trackpointStats.distance,
   }, "service:success");
 
   return {
     savedCount,
+    trackpointCount: trackpointStats.trackpointCount,
+    distance: trackpointStats.distance,
   };
 }
 

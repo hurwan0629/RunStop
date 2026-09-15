@@ -18,6 +18,12 @@ export type RunningActiveSession = {
   status: 'IN_PROGRESS';
 };
 
+export type RunningTrackpointsSaveResponse = {
+  savedCount: number;
+  trackpointCount: number;
+  distance: number;
+};
+
 export type RunningFinishResponse = {
   sessionIdx: number;
   status: 'COMPLETED';
