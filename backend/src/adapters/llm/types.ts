@@ -28,14 +28,46 @@ export type RouteNamingCandidateInput = {
   candidateIndex: number;
   routeType: "LOOP" | "ONE_WAY" | "ROUND_TRIP";
   distanceKm: number;
+  featureScores: Record<string, number | null>;
   verifiedLandmarks: string[];
+  nature: {
+    parkRatio: number | null;
+    waterRatio: number | null;
+    parkNames: string[];
+    waterNames: string[];
+  };
+  facilities: {
+    toilet: {
+      count: number;
+      status: "MET" | "RELAXED" | "IGNORE";
+    };
+    store: {
+      count: number;
+      status: "MET" | "RELAXED" | "IGNORE";
+    };
+  };
+  surface: {
+    walkableRatio: number | null;
+    bigroadRatio: number | null;
+    stairsCount: number | null;
+    signalPerKm: number | null;
+    crossingPerKm: number | null;
+  };
   nightRequested: boolean;
   nightScore: number | null;
   elevationGainM: number | null;
   maxSlopePct: number | null;
+  slopeConstraint: {
+    requestedMaxSlopePct: number | null;
+    appliedMaxSlopePct: number | null;
+    status: "MET" | "RELAXED" | "IGNORE";
+  };
 };
 
 export type RouteNamingInput = {
+  prompt: string | null;
+  weights: Record<string, number>;
+  facilityPreferences: Record<string, string>;
   candidates: RouteNamingCandidateInput[];
 };
 

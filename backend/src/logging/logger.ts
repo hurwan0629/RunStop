@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 import pino, { type LoggerOptions } from "pino";
 import { pinoHttp } from "pino-http";
 import { env } from "../config/env.js";
@@ -13,6 +14,12 @@ const REDACT_PATHS = [
   "req.body.refreshToken",
   "req.body.code",
   "req.body.verificationCode",
+  "responseBody.password",
+  "responseBody.newPassword",
+  "responseBody.accessToken",
+  "responseBody.refreshToken",
+  "responseBody.code",
+  "responseBody.verificationCode",
   "password",
   "newPassword",
   "accessToken",
@@ -27,6 +34,56 @@ type RequestWithUser = IncomingMessage & {
     role: string;
   };
 };
+
+type RequestForLog = IncomingMessage & Partial<Request> & {
+  id?: string;
+  raw?: IncomingMessage & Partial<Request>;
+};
+
+type ResponseForLog = ServerResponse & Partial<Response> & {
+  raw?: ServerResponse & Partial<Response>;
+};
+
+let healthRequestLogCount = 0;
+
+function shouldSkipHealthRequestLog(req: IncomingMessage): boolean {
+  if (req.url?.split("?")[0] !== "/health") {
+    return false;
+  }
+
+  healthRequestLogCount += 1;
+
+  return healthRequestLogCount % 20 !== 0;
+}
+
+function serializeRequest(req: RequestForLog) {
+  const raw = req.raw ?? req;
+
+  return {
+    id: req.id,
+    method: req.method,
+    url: req.url,
+    params: raw.params ?? req.params ?? {},
+    query: raw.query ?? req.query ?? {},
+    body: raw.body ?? req.body ?? {},
+  };
+}
+
+function serializeResponse(res: ServerResponse) {
+  return {
+    statusCode: res.statusCode,
+  };
+}
+
+function captureResponseBody(res: Response): void {
+  const originalJson = res.json.bind(res);
+
+  res.json = ((body: unknown) => {
+    res.locals.responseBody = body;
+
+    return originalJson(body);
+  }) as Response["json"];
+}
 
 /**
  * 애플리케이션 로거 인스턴스를 생성합니다.
@@ -65,8 +122,15 @@ export const logger = createLogger();
  * 익스프레스 요청 로깅 미들웨어를 생성합니다.
  */
 export function createRequestLogger() {
-  return pinoHttp({
+  const requestLogger = pinoHttp({
     logger,
+    autoLogging: {
+      ignore: shouldSkipHealthRequestLog,
+    },
+    serializers: {
+      req: serializeRequest,
+      res: serializeResponse,
+    },
     genReqId: (req: IncomingMessage, res: ServerResponse) => {
       const headerRequestId = req.headers["x-request-id"];
       const requestId = Array.isArray(headerRequestId)
@@ -78,12 +142,14 @@ export function createRequestLogger() {
 
       return resolvedRequestId;
     },
-    customProps: (req: IncomingMessage) => {
+    customProps: (req: IncomingMessage, res: ServerResponse) => {
       const request = req as RequestWithUser;
+      const response = (res as ResponseForLog).raw ?? res as ResponseForLog;
 
       return {
         userIdx: request.user?.idx,
         userRole: request.user?.role,
+        responseBody: response.locals?.responseBody ?? null,
       };
     },
     customSuccessMessage: (req: IncomingMessage, res: ServerResponse) => (
@@ -104,4 +170,9 @@ export function createRequestLogger() {
       return "info";
     },
   });
+
+  return ((req: Request, res: Response, next: NextFunction) => {
+    captureResponseBody(res);
+    requestLogger(req, res, next);
+  }) satisfies RequestHandler;
 }

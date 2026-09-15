@@ -42,6 +42,7 @@ def recommend(
     facility_preferences: dict[str, str] | None = None,
     n_directions: int = 12,
     top_k: int = 3,
+    request_id: str | None = None,
 ) -> list[CandidateRoute]:
     mode = _MODE.get(route_type)
     if mode is None:
@@ -103,7 +104,14 @@ def recommend(
         )         # sub_scores + conditionScore
         c.pop("nodes", None)                              # 내부용, 응답엔 불필요
 
-    return select_candidates_with_ai(cands, weights, requirements, facility_preferences, top_k)
+    return select_candidates_with_ai(
+        cands,
+        weights,
+        requirements,
+        facility_preferences,
+        top_k,
+        request_id=request_id,
+    )
 
 if __name__ == "__main__":
     from pathlib import Path

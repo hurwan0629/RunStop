@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import { registerRouters } from "./routes/index.routes.js";
@@ -31,9 +31,9 @@ export function createApp() {
   // 헬멧을 통해서 XSS, 스니핑 등 방지
   app.use(helmet());
   // 요청별 requestId, 응답 상태, 처리 시간을 로그로 남기기
-  app.use(createRequestLogger());
   // json 타입 요청 받아주기
   app.use(express.json());
+  app.use(createRequestLogger());
 
   // 도메인별 라우터 등록
   const router = express.Router();

@@ -63,6 +63,7 @@ def parse_python_recommendation_to_node_require(results):
             "parkNames": nature.get("park_names", []),
             "waterNames": nature.get("water_names", []),
         }
+        feature_values["surface"] = result.get("surface") or {}
 
         candidates.append({
             "name": f"약 {distance_km:.1f}km 러닝 코스",

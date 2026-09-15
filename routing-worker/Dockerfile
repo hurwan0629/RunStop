@@ -6,9 +6,11 @@ WORKDIR /app
 
 # 의존성 파일 빌드 컨테이너 `app/`에 복사
 COPY requirements.txt ./
+COPY requirements.development.txt ./
 
 # 패키지 받기 (--no-cache-dir은 pip에서 캐싱 폴더를 만들지 않게 하기)
 RUN pip install --no-cache-dir -r requirements.txt
+# RUN pip install --no-cache-dir -r requirements.development.txt
 
 # 파이썬 코드 및 필요한 내용들 모두 받기
 COPY . .

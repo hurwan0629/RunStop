@@ -1,62 +1,58 @@
 {
   "schema_version": 1,
   "status": "complete",
-  "started_at": "2026-09-15T08:07:28.673088+00:00",
-  "name": "sweep_lightgbm_more_trees",
-  "model": "lightgbm_ranker",
-  "finished_at": "2026-09-15T08:07:43.479153+00:00",
+  "started_at": "2026-09-15T08:10:50.459914+00:00",
+  "name": "sweep_ranknet_depth_2",
+  "model": "ranknet",
+  "finished_at": "2026-09-15T08:11:11.630943+00:00",
   "files": {
     "config.yaml": {
-      "bytes": 930,
-      "sha256": "96a327e250edef751c4ed4914d5c62a49878d45c58bea3d8f8c4c5a6ced68ea5"
+      "bytes": 929,
+      "sha256": "55a68e25025dbfab876df1937788ccf3406f1ee91878a3e6f4860e4a47acfa8e"
     },
     "dataset_reference.json": {
       "bytes": 129354,
       "sha256": "798341eaf25dc2bcde5fb07e70316fa7f8dac9ee1c7e0ab7b65a509fe251d187"
-    },
-    "diagnostics/feature_importance.json": {
-      "bytes": 6590,
-      "sha256": "2648b614fe3899dc14c1c31340701148e6cd366a616df5e164622ea9be32c39e"
     },
     "diagnostics/split_summary.json": {
       "bytes": 107,
       "sha256": "53b57e11ea6f31db655e28edb84a957fcde3e524ad5fd238787319f6686c8772"
     },
     "diagnostics/training_history.json": {
-      "bytes": 67182,
-      "sha256": "0ff01f1292d394f2db7cc0052acf29ef1780cd6732fde9a708166a3da18cc0c5"
+      "bytes": 1611,
+      "sha256": "ab62f725e1dd00c59e2cefb22ae10a0582c0360de25c6a6267ea04b7f176032c"
     },
     "environment.json": {
       "bytes": 3111,
-      "sha256": "559e008d634200e14632657b700d557d2c6d8bd3847324ad6e0bf099f51b9296"
+      "sha256": "2452aa587c4884c539c015de9abd11563d5bd2c718e2e64c0e339b2283fa7c48"
     },
     "metrics.json": {
-      "bytes": 5501,
-      "sha256": "924f17831110775b5c8013e2e2f5fbf0a6810426f92bd2bafabcfe3e3107c310"
+      "bytes": 5504,
+      "sha256": "cfdca4049668c417b623a18b84672847cfca680a07439fd653fc081a5db5637b"
     },
     "model/input_schema.json": {
-      "bytes": 3011,
-      "sha256": "9df72e5ed875bb89f08f127c0ae98ab244d754c260d448b3aa8ba01f45fa57f7"
+      "bytes": 3003,
+      "sha256": "d36652600a0e68fcdc6a4eaa8ff5c9ba0e0c86243e7cef91b21cd4f954a3a625"
     },
     "model/model.pkl": {
-      "bytes": 1898543,
-      "sha256": "6e860df6f59c000e8487dc209e826476850cba57c167eb777ae41f66a4b16fa2"
+      "bytes": 51656,
+      "sha256": "57cce2dd5520586f971faef2498396fa4ca0d16946c9b2507122519726f745d2"
     },
     "plots/ranking_metrics.png": {
-      "bytes": 39205,
-      "sha256": "366c78becef4d1ac908f7a69fc07f7bbebbafa2dda5137acc4b5d0b66f32ba52"
+      "bytes": 39168,
+      "sha256": "026b6a69391fb8b8cb29af978802ed4ded3ae265fe07f705e01d737f4d2e4b8d"
     },
     "predictions.parquet": {
-      "bytes": 1341251,
-      "sha256": "24569996defbe282f7c06311f9eccfad7a0246e8fc0e55997e1545595265d993"
+      "bytes": 1319142,
+      "sha256": "0093e3b3a99ccdd8a165e442ee53f953b9ed8fa0b6c22fafdfada9efe6cd06c5"
     },
     "request_metrics.parquet": {
-      "bytes": 36942,
-      "sha256": "9a414c61c9e031125f4e02ffb2b4c1b68b9e319d588dced1d37ba6a7acaa467a"
+      "bytes": 34925,
+      "sha256": "e4fa1001fd44e39e903b9250f6894fc1306e8f9ed9b94043f2ff4e11101a0ef0"
     },
     "resource_usage.json": {
-      "bytes": 543,
-      "sha256": "0f9ce45410a5b015df5c8dde525c78a9a32f5b2c4f4055ed436719702e7c8587"
+      "bytes": 540,
+      "sha256": "9b8018d3ef756f80f80bf409fef4ae920c774d5ab2c8c3cfd13632d5cdba4118"
     },
     "run.log": {
       "bytes": 22,

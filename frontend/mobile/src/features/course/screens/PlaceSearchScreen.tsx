@@ -30,6 +30,18 @@ import { styles } from './PlaceSearchScreen.styles';
 
 type PlaceTarget = 'start' | 'end' | 'waypoint';
 
+const isValidPlaceSearchItem = (item: PlaceSearchItem) =>
+  Number.isFinite(item.latitude) && Number.isFinite(item.longitude);
+
+const getPlaceItemId = (item: PlaceSearchItem, index: number) =>
+  [
+    item.latitude,
+    item.longitude,
+    item.name,
+    item.roadAddress || item.address,
+    index,
+  ].join(':');
+
 export default function PlaceSearchScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -134,9 +146,11 @@ export default function PlaceSearchScreen() {
 
     try {
       const response = await searchPlaces(accessToken, trimmedQuery);
-      setResults(response.items);
+      const validItems = response.items.filter(isValidPlaceSearchItem);
 
-      if (response.items.length === 0) {
+      setResults(validItems);
+
+      if (validItems.length === 0) {
         setMessage('검색 결과가 없어요. 다른 검색어로 다시 시도해 주세요.');
       }
     } catch (error) {
@@ -290,8 +304,8 @@ export default function PlaceSearchScreen() {
             </Text>
           ) : null}
 
-          {results.map((item) => {
-            const itemId = `${item.latitude}:${item.longitude}`;
+          {results.map((item, index) => {
+            const itemId = getPlaceItemId(item, index);
             const saved = isSaved(item);
 
             return (

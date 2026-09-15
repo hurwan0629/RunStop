@@ -9,6 +9,18 @@ function getRequestLogger(req: RequestWithLogger) {
   return req.log ?? logger;
 }
 
+let healthControllerLogCount = 0;
+
+function shouldLogController(req: Request): boolean {
+  if (req.originalUrl.split("?")[0] !== "/health") {
+    return true;
+  }
+
+  healthControllerLogCount += 1;
+
+  return healthControllerLogCount % 20 === 0;
+}
+
 /**
  * 비동기 컨트롤러에서 발생한 에러를 Express next로 전달합니다.
  */
@@ -21,24 +33,29 @@ export function asyncHandler(
     const controller = handler.name || "anonymousController";
     const startedAt = Date.now();
     const requestLogger = getRequestLogger(req);
+    const shouldLogSuccess = shouldLogController(req);
 
-    requestLogger.info({
-      controller,
-      method: req.method,
-      url: req.originalUrl,
-      userIdx: req.user?.idx,
-    }, "controller:start");
+    if (shouldLogSuccess) {
+      requestLogger.info({
+        controller,
+        method: req.method,
+        url: req.originalUrl,
+        userIdx: req.user?.idx,
+      }, "controller:start");
+    }
 
     Promise.resolve(handler(req, res, next))
       .then(() => {
-        requestLogger.info({
-          controller,
-          method: req.method,
-          url: req.originalUrl,
-          statusCode: res.statusCode,
-          durationMs: Date.now() - startedAt,
-          userIdx: req.user?.idx,
-        }, "controller:success");
+        if (shouldLogSuccess) {
+          requestLogger.info({
+            controller,
+            method: req.method,
+            url: req.originalUrl,
+            statusCode: res.statusCode,
+            durationMs: Date.now() - startedAt,
+            userIdx: req.user?.idx,
+          }, "controller:success");
+        }
       })
       .catch((error: unknown) => {
         requestLogger.error({

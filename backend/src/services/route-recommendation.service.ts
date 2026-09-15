@@ -167,6 +167,71 @@ function readVerifiedLandmarks(
   return [...new Set(landmarks)];
 }
 
+function readRecord(
+  featureValues: Record<string, unknown> | null,
+  key: string,
+): Record<string, unknown> {
+  const value = featureValues?.[key];
+
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
+}
+
+function readNatureSummary(
+  featureValues: Record<string, unknown> | null,
+) {
+  const nature = readRecord(featureValues, "nature");
+
+  return {
+    parkRatio: readNumber(nature.parkRatio),
+    waterRatio: readNumber(nature.waterRatio),
+    parkNames: readStringArray(nature.parkNames).slice(0, 2),
+    waterNames: readStringArray(nature.waterNames).slice(0, 2),
+  };
+}
+
+function readSurfaceSummary(
+  featureValues: Record<string, unknown> | null,
+) {
+  const surface = readRecord(featureValues, "surface");
+
+  return {
+    walkableRatio: readNumber(surface.walkable_ratio),
+    bigroadRatio: readNumber(surface.bigroad_ratio),
+    stairsCount: readNumber(surface.stairs_count),
+    signalPerKm: readNumber(surface.signal_per_km),
+    crossingPerKm: readNumber(surface.crossing_per_km),
+  };
+}
+
+function readSlopeConstraint(
+  featureValues: Record<string, unknown> | null,
+) {
+  const slopeConstraint = readRecord(featureValues, "slopeConstraint");
+  const status = slopeConstraint.status;
+  const normalizedStatus: FacilityStatus =
+    status === "MET" || status === "RELAXED" || status === "IGNORE"
+      ? status
+      : "IGNORE";
+
+  return {
+    requestedMaxSlopePct: readNumber(slopeConstraint.requestedMaxSlopePct),
+    appliedMaxSlopePct: readNumber(slopeConstraint.appliedMaxSlopePct),
+    status: normalizedStatus,
+  };
+}
+
+function readFeatureScores(
+  featureScores: Record<string, number | null>,
+): Record<string, number | null> {
+  return Object.fromEntries(
+    Object.entries(featureScores)
+      .filter(([, value]) => value === null || Number.isFinite(value))
+      .sort(([left], [right]) => left.localeCompare(right)),
+  );
+}
+
 function toRouteRecommendationDTO(row: {
   idx: number;
   name: string;
@@ -364,7 +429,33 @@ export async function recommendRoutes(
   // // // // // // // // // // // // // // // // //
   //       1. LLM으로 요청 조건을 보강합니다.         //
   // // // // // // // // // // // // // // // // //
+  const llmConditionStartedAt = Date.now();
+  if (dto.prompt) {
+    logger.info({
+      serviceName: "routes",
+      action: "recommendRoutes",
+      userIdx,
+      promptLength: dto.prompt.length,
+      targetDistance: dto.elementConditions.targetDistance,
+    }, "service:llm_condition_parse:start");
+  } else {
+    logger.info({
+      serviceName: "routes",
+      action: "recommendRoutes",
+      userIdx,
+    }, "service:llm_condition_parse:skip");
+  }
+
   const routeRequest = await applyLlmRouteConditions(dto);
+  
+  if (dto.prompt) {
+    logger.info({
+      serviceName: "routes",
+      action: "recommendRoutes",
+      userIdx,
+      durationMs: Date.now() - llmConditionStartedAt,
+    }, "service:llm_condition_parse:success");
+  }
 
   // // // // // // // // // // // // // // // // //
   //       2. Python routing-worker를 호출합니다.   //
@@ -376,22 +467,32 @@ export async function recommendRoutes(
   const seenCandidateKeys = new Set<string>();
 
   try {
+    // 경사도 조건을 완화하면서 필요한 후보 수까지 반복 요청
     for (const appliedMaxSlope of slopeFallbackLimits) {
       if (collectedCandidates.length >= MAX_RECOMMENDATION_COUNT) {
         break;
       }
 
+      const workerRequestStartedAt = Date.now();
+      const collectedBeforeRequest = collectedCandidates.length;
+      const attemptNumber = slopeFallbackLimits.indexOf(appliedMaxSlope) + 1;
+
+      // 워커 요청 시작 로그
       logger.info(
         {
           serviceName: "routes",
           action: "recommendRoutes",
           userIdx,
+          attemptNumber,
+          attemptCount: slopeFallbackLimits.length,
           requestedMaxSlope: requestedMaxSlope ?? null,
           appliedMaxSlope: appliedMaxSlope ?? null,
+          collectedCandidateCount: collectedBeforeRequest,
         },
         "service:worker_request:start",
       );
 
+      // 현재 경사도 조건으로 경로 후보 생성 요청
       const phaseResponse = await requestRouteRecommendations({
         startPoint: routeRequest.startPoint,
         waypoints: routeRequest.waypoints,
@@ -405,6 +506,23 @@ export async function recommendRoutes(
         maxCandidates: MAX_RECOMMENDATION_COUNT,
       });
 
+      // 워커 응답 시간과 후보 수 기록
+      logger.info(
+        {
+          serviceName: "routes",
+          action: "recommendRoutes",
+          userIdx,
+          attemptNumber,
+          attemptCount: slopeFallbackLimits.length,
+          requestedMaxSlope: requestedMaxSlope ?? null,
+          appliedMaxSlope: appliedMaxSlope ?? null,
+          responseCandidateCount: phaseResponse.candidates.length,
+          durationMs: Date.now() - workerRequestStartedAt,
+        },
+        "service:worker_response:received",
+      );
+
+      // 중복 후보를 제거한 뒤 최종 후보 목록에 추가
       for (const candidate of phaseResponse.candidates) {
         const candidateKey = getCandidateFingerprint(candidate);
 
@@ -413,6 +531,7 @@ export async function recommendRoutes(
         }
 
         seenCandidateKeys.add(candidateKey);
+
         collectedCandidates.push(
           withSlopeFallbackStatus(
             candidate,
@@ -426,19 +545,26 @@ export async function recommendRoutes(
         }
       }
 
+      // 이번 요청에서 실제 추가된 후보 수 기록
       logger.info(
         {
           serviceName: "routes",
           action: "recommendRoutes",
           userIdx,
+          attemptNumber,
+          attemptCount: slopeFallbackLimits.length,
           requestedMaxSlope: requestedMaxSlope ?? null,
           appliedMaxSlope: appliedMaxSlope ?? null,
+          responseCandidateCount: phaseResponse.candidates.length,
+          addedCandidateCount:
+            collectedCandidates.length - collectedBeforeRequest,
           collectedCandidateCount: collectedCandidates.length,
         },
         "service:worker_request:success",
       );
     }
   } catch (error) {
+    // 워커 요청 중 발생한 오류 기록 후 상위로 전달
     logger.error(
       {
         serviceName: "routes",
@@ -448,9 +574,11 @@ export async function recommendRoutes(
       },
       "service:worker_request:error",
     );
+
     throw error;
   }
 
+  // 모든 시도 후에도 후보가 없으면 추천 실패 처리
   if (collectedCandidates.length === 0) {
     throw new ApiError({
       status: 422,
@@ -465,11 +593,26 @@ export async function recommendRoutes(
 
   let candidatesForSave = workerResponse.candidates;
 
+  // // // // // // // // // // // // // // // // //
+  //       3. LLM으로 추천 경로명을 생성합니다.      //
+  // // // // // // // // // // // // // // // // //
   try {
+    const routeNameStartedAt = Date.now();
+    logger.info({
+      serviceName: "routes",
+      action: "recommendRoutes",
+      userIdx,
+      candidateCount: workerResponse.candidates.length,
+    }, "service:route_name_generation:start");
+
     const nightRequested =
       (routeRequest.elementConditions.weights.night ?? 0) >= 4;
 
+    // 실제로 llm 을 호출하는 부분입니다.
     const namingResult = await generateRouteNames({
+      prompt: routeRequest.prompt ?? null,
+      weights: routeRequest.elementConditions.weights,
+      facilityPreferences: routeRequest.elementConditions.facilityPreferences,
       candidates: workerResponse.candidates.map(
         (candidate, candidateIndex) => {
           const slope = readSlopeProfile(candidate.featureValues);
@@ -482,13 +625,18 @@ export async function recommendRoutes(
               candidate.totalDistance !== null
                 ? candidate.totalDistance / 1000
                 : routeRequest.elementConditions.targetDistance / 1000,
+            featureScores: readFeatureScores(candidate.featureScores),
             verifiedLandmarks: readVerifiedLandmarks(
               candidate.featureValues,
             ),
+            nature: readNatureSummary(candidate.featureValues),
+            facilities: readFacilitySummary(candidate.featureValues),
+            surface: readSurfaceSummary(candidate.featureValues),
             nightRequested,
             nightScore,
             elevationGainM: slope?.elevationGainM ?? null,
             maxSlopePct: slope?.maxSlopePct ?? null,
+            slopeConstraint: readSlopeConstraint(candidate.featureValues),
           };
         },
       ),
@@ -508,6 +656,14 @@ export async function recommendRoutes(
           nameByCandidateIndex.get(candidateIndex) ?? candidate.name,
       }),
     );
+
+    logger.info({
+      serviceName: "routes",
+      action: "recommendRoutes",
+      userIdx,
+      generatedNameCount: namingResult.names.length,
+      durationMs: Date.now() - routeNameStartedAt,
+    }, "service:route_name_generation:success");
   } catch (error) {
     logger.warn(
       {
@@ -518,15 +674,14 @@ export async function recommendRoutes(
       "service:route_name_generation_failed",
     );
   }
-
-
-  // // // // // // // // // // // // // // // // // // // // // // // // // // 
-  // //               [Database] 사용자 요청부터 응답 결과까지 저장            // //
-  // // // // // // // // // // // // // // // // // // // // // // // // // // 
+  // // // // // // // // // // // // // // // // //
+  //       4. Database에 추천 결과를 저장합니다.    //
+  // // // // // // // // // // // // // // // // //
   // 워커로부터 응답이 문제 없이 받아졋다면 그대로 다음 3각지 요소를 저장합니다.
   // 1. 사용자 요청
   // 2. 사용자 요청에 포함된 주요 route_points
   // 3. 파이썬 워커의 응답
+  const dbSaveStartedAt = Date.now();
   const saved = await withTransaction(async (client) => {
     const savedRouteRequest = await createRouteRequest({
       userIdx,
@@ -557,6 +712,15 @@ export async function recommendRoutes(
       recommendations,
     };
   });
+
+  logger.info({
+    serviceName: "routes",
+    action: "recommendRoutes",
+    userIdx,
+    routeRequestIdx: saved.routeRequest.idx,
+    recommendationCount: saved.recommendations.length,
+    durationMs: Date.now() - dbSaveStartedAt,
+  }, "service:database_save:success");
 
   logger.info({
     serviceName: "routes",
