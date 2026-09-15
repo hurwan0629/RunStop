@@ -19,6 +19,7 @@ def evaluate(
     predictions, request_rows = [], []
     # 평가에 걸리는 시간 설정
     inference_seconds = 0.0
+
     # 2번에 걸쳐서 테스트해주기 (기존 사용자, 새로운 사용자)
     for cohort in ("warm_start", "cold_start"):
         # parts에는 trian, validate, warm_start, cold_start 데이터들이 존재함.
@@ -39,8 +40,11 @@ def evaluate(
         # model 점수와 condition_score baseline을 같은 방식으로 rank/metric 처리합니다.
         for request_id, group in frame.groupby("request_id", sort=True):
             for label, score_key in (("model", "model_score"), ("baseline", "condition_score")):
+                
                 ordered = group.sort_values([score_key, "candidate_id"], ascending=[False, True], kind="stable")
-                frame.loc[ordered.index, f"{label}_rank"] = np.arange(1, len(ordered) + 1)
+
+                frame.loc[ordered.index, f"{label}_rank"] = np. arange(1, len(ordered) + 1)
+
                 request_rows.append({"request_id": request_id, "user_id": group.user_id.iloc[0], "cohort": cohort,
                                      "predictor": label, **request_metrics(ordered.utility, ordered.relevance, config.top_k)})
         predictions.append(frame)

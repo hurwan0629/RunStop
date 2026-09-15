@@ -7,7 +7,7 @@ AI_ROOT = Path(__file__).resolve().parents[2]
 
 
 def resolve_path(value: str | Path, root: Path = AI_ROOT) -> Path:
-    """All relative paths in config are relative to ai/, never the process cwd."""
+    """상대경로는 모두 ai/ 폴더 루트를 기반으로 이루어집니다. 이를 절대 경로로 만들어줍니다."""
     path = Path(value).expanduser()
     return (path if path.is_absolute() else root / path).resolve()
 

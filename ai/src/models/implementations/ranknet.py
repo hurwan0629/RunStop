@@ -27,11 +27,22 @@ class RankNet(BaseRankingModel):
             raise ValueError("No unequal utility pairs in training requests")
 
         # 작은 MLP와 optimizer/loss를 구성합니다.
-        self.estimator = nn.Sequential(nn.Linear(x.shape[1], p["hidden_dim"]), nn.ReLU(), nn.Dropout(p["dropout"]), nn.Linear(p["hidden_dim"], 1))
+        self.estimator = nn.Sequential(
+            nn.Linear(x.shape[1], p["hidden_dim"]), 
+            nn.ReLU(), 
+            nn.Dropout(p["dropout"]), 
+            nn.Linear(p["hidden_dim"], 1)
+        )
+
+        # 옵티마이저
         optimizer_cls = torch.optim.AdamW if p["optimizer"] == "adamw" else torch.optim.Adam
+        # lr과 weight_decay 설정
         optimizer = optimizer_cls(self.estimator.parameters(), lr=p["learning_rate"], weight_decay=p["weight_decay"])
+        # 손실함수는 BCE로 고정
         loss_fn = nn.BCEWithLogitsLoss()
+        # 난수 생성기 고정
         rng = np.random.default_rng(self.seed)
+        # 학습 과정 기록
         self.history = {"train_pair_loss": [], "validation_pair_loss": []}
 
         # epoch마다 순서쌍 batch를 섞어 학습하고 validation pair loss를 기록합니다.

@@ -79,17 +79,22 @@ def normalize_requests(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
     jobs = []
 
     # 사용자 JSON 순서를 request_sequence로 사용
+    # 사용자들한테는 각각 U001: {profile: [], requests: []} 가 존재합니다.
     for user in users:
+        # 한명의 사용자에 대한 요청 번호와 그 요청 내용 (가중치, 요구사항, 시작점, 끝점을 만들어줍니다.)
         for sequence, raw in enumerate(user["requests"], 1):
 
-            # Node DTO camelCase 입력
+            # Node DTO camelCase 입력을 recommend에 넣을 수 있는 규격으로 변환해주기 parser 역할
+            # routeType 형태로 존재한다면 node 방식의 스키마로 인식
             if "routeType" in raw:
                 conditions = raw["elementConditions"]
 
                 # 현재 worker에서 직접 전달하지 않는 값은 막음
+                # 보통 max_slope_pct 또는 requirements(2026-09-15 11:05:38 기준 facility_perferences로 변경됨 - 하지만 의미는 같아서 로직은 수정 x)
                 if conditions.get("maxSlope") is not None or conditions.get("facilityCount") is not None:
                     raise ValueError("maxSlope/facilityCount는 현재 worker에서 전달되지 않습니다. requirements 규격을 사용하세요")
 
+                # 요청에 들어가는 값들을 모두 꺼내주기
                 args = {
                     "route_type": raw["routeType"],
                     "start": coordinate(raw["startPoint"]),
@@ -99,10 +104,10 @@ def normalize_requests(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "requirements": conditions.get("requirements", {}),
                     "vias": [coordinate(p) for p in raw.get("waypoints", [])],
                 }
-
+                # 반드시 들어가지 않을 수 있는 값 설정
                 end = raw.get("endPoint")
 
-            # 기존 snake_case 입력
+            # 기존 routeType가 아니면 route_type를 기대하고 작업
             else:
                 args = {
                     "route_type": raw["route_type"],
@@ -116,7 +121,7 @@ def normalize_requests(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
                 end = raw.get("end")
 
-            # 지원하는 경로 유형인지 검사
+            # 지원하는 경로 유형인지 검사. 여기에서 잘못된 형식의 스키마도 걸러줄 수 있음
             if args["route_type"] not in {"LOOP", "ONE_WAY", "ROUND_TRIP"}:
                 raise ValueError(f"알 수 없는 경로 유형: {args['route_type']}")
 
@@ -144,9 +149,10 @@ def normalize_requests(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     raise ValueError(f"{key}: boolean이어야 합니다")
 
             # routing-worker가 처리할 하나의 job으로 저장
+            # job에는 어떤 사용자의 어떤 요청인지, `U001:0001` 과 같이 만들어지게 됩니다.
             jobs.append({
                 "user_id": user["user_id"],
-                "request_id": f"{user['user_id']}:{sequence:04d}",
+                "request_id": f"{ ['user_id']}:{sequence:04d}",
                 "request_sequence": sequence,
                 "profile": user["profile"],
                 "args": args,

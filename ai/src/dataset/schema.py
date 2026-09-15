@@ -3,16 +3,22 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+# candidates.parquet에 반드시 있어야하는 내용입니다.
 REQUIRED = {"user_id", "request_id", "candidate_id", "request_sequence", "condition_score", "utility", "ground_truth_rank", "relevance"}
+# 정답 지표들에 대한 값들입니다.
 LABELS = {"utility", "ground_truth_rank", "relevance", "selected", "model_score", "model_rank"}
+# 식별자 계열 [사용자 id, 요청 id, 생성된 후보 id, 요청 순서]
 IDENTIFIERS = {"user_id", "request_id", "candidate_id", "request_sequence"}
+# edge 관련 데이터들
 CANDIDATE_SCALARS = {"actual_distance_m", "target_distance_m", "distance_error_pct", "overlap_ratio", "estimated_minutes", "exact_match"}
+# 알고리즘의 scoring 관련에서 꺼낸 값들
 CANDIDATE_SECTIONS = {
     "slope": {"avg_slope_pct", "max_slope_pct", "slope_std_pct", "elevation_gain_m", "elevation_loss_m", "sample_count"},
     "nature": {"park_ratio", "water_ratio"},
     "surface": {"length_m", "walkable_ratio", "bigroad_ratio", "stairs_count", "signal_per_km", "crossing_per_km"},
     "facilities": {"route_length_km", "buffer_m"} | {f"{kind}_{metric}" for kind in ("toilet", "store", "park", "light", "security", "walklight", "cctv") for metric in ("count", "per_km", "nearest_m")},
 }
+# 후보에 들어있는 점수들을 모두 병합한 컬럼들
 CANDIDATE_COLUMNS = {f"candidate_{key}" for key in CANDIDATE_SCALARS} | {
     f"candidate_{section}_{key}" for section, keys in CANDIDATE_SECTIONS.items() for key in keys}
 
@@ -41,8 +47,12 @@ def validate_dataset(df: pd.DataFrame, relevance_levels: int = 5) -> pd.DataFram
     """데이터셋 전체가 학습 가능한 schema v1 형태인지 검증합니다."""
     # 필수 컬럼과 알 수 없는 candidate feature를 먼저 검사합니다.
     missing = REQUIRED - set(df.columns)
+
+    # 필수 데이터가 없거나 컬럼이 없는 경우에는 종료시켜주기
     if missing or df.empty:
         raise ValueError(f"Empty dataset or missing columns: {sorted(missing)}")
+
+    # 학습할 수 없는 데이터 (df의 컬럼에 있는 candidate_ 계열)에 등록되지 않은 컬럼이 존재하면 멈춰주기
     unknown = {c for c in df if c.startswith("candidate_")} - CANDIDATE_COLUMNS - {"candidate_id"}
     if unknown:
         raise ValueError(f"Unknown candidate features (possible label leakage): {sorted(unknown)}")
@@ -57,11 +67,15 @@ def validate_dataset(df: pd.DataFrame, relevance_levels: int = 5) -> pd.DataFram
     for key in IDENTIFIERS:
         if df[key].isna().any():
             raise ValueError(f"Null identifier: {key}")
+    # 식별값이 비어있으면 에러
     for key in ("user_id", "request_id", "candidate_id"):
         if not df[key].map(lambda v: isinstance(v, str) and bool(v.strip())).all():
             raise ValueError(f"{key} must contain nonempty strings")
+
+    # 하나의 요청에 대해 동일한 요청 2개가 있으면 에러
     if df.duplicated(["request_id", "candidate_id"]).any():
         raise ValueError("Duplicate candidate within request")
+    # 하나의 request_id가 2개 이상이면 에러
     if (df.groupby("request_id").size() < 2).any():
         raise ValueError("Each request needs at least two candidates")
     if (df.groupby("request_id")[["user_id", "request_sequence"]].nunique() != 1).any().any():

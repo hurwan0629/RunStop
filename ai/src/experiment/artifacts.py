@@ -49,13 +49,19 @@ def environment_snapshot():
 
 def begin_run(output: str | Path, config: ExperimentConfig) -> tuple[Path, dict[str, Any]]:
     """새 실험 artifact 디렉터리를 만들고 실행 시점 runtime을 복사합니다."""
+
     # 중복을 피하기 위해 UTC 시각과 짧은 uuid를 디렉터리명에 포함합니다.
     path = Path(output) / (datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S") + "_" + config.name + "_" + uuid.uuid4().hex[:8])
+
+    # 해당 디렉토리를 생성합니다
     path.mkdir(parents=True, exist_ok=False)
+    # 내부에 experiment/*.yaml에 대한 정보를 그대로 복사합니다.
     (path / "config.yaml").write_text(dump_config(config), encoding="utf-8")
+    # 그냥 시점의 파이썬 라이브러리, 깃 상태 등을 받아옵니다
     write_json(path / "environment.json", environment_snapshot())
 
     # 나중에 pickle 모델을 같은 코드로 읽을 수 있도록 현재 ai runtime을 복사합니다.
+    # 여기에서 모든 코드를 복사해버립니다. artifacts의 경우에는 git에 업로드 되지 않습니다.
     runtime = path / "runtime" / "ai"
     runtime.mkdir(parents=True)
     shutil.copy2(AI_ROOT / "__init__.py", runtime / "__init__.py")
@@ -63,6 +69,7 @@ def begin_run(output: str | Path, config: ExperimentConfig) -> tuple[Path, dict[
         target = runtime / source.relative_to(AI_ROOT)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+    
     manifest = {"schema_version": 1, "status": "running", "started_at": datetime.now(timezone.utc).isoformat(), "name": config.name, "model": config.model.name}
     write_json(path / "manifest.json", manifest)
     return path, manifest

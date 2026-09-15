@@ -113,7 +113,9 @@ class UtilityParams(Strict):
 
 class UtilityConfig(Strict):
     """합성 label 생성 방식과 relevance 변환 규칙입니다."""
+    # 라벨에 대한 생성 방식을 의미합니다.
     name: Literal["preference_v1"] = "preference_v1"
+    # 데이터를 만든 버전
     version: str = Field("utility_v001", pattern=r"^[A-Za-z0-9_-]+$")
     params: UtilityParams = Field(default_factory=UtilityParams)
     relevance_levels: int = Field(5, ge=2, le=16, description="Utility [0,1]을 고정 폭 정수 등급으로 변환")

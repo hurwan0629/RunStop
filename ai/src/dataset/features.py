@@ -11,16 +11,21 @@ def select_feature_columns(df: pd.DataFrame, config: FeatureConfig) -> list[str]
     prefixes = []
 
     # 사용자 프로필, 요청값, 요구조건 중 켜진 그룹만 후보 prefix로 모읍니다.
-    if config.use_profile:
+    # 예를 들어서 prefixes.append("appended_") 가 된다면 df에서 appended_* 컬럼만 사용하는 형태입니다.
+    if config.use_profile: # 프로필을 사용한다면 사용할 요소중에 추가해줍니다
         prefixes.append("user_weight_")
-    if config.use_request:
+    if config.use_request: # request 데이터중에서 사용할 요소를 추가해줍니다
         prefixes.extend(["request_weight_", "request_target_", "request_type_", "request_via_"])
-    if config.use_requirements:
+    if config.use_requirements: # 사용자 요구사항을 추가해줍니다
         prefixes.append("requirements_")
 
     # prefix 기반 context feature와 후보 경로 feature를 합칩니다.
+    # candidate_id같은 식별자 요소는 모두 걸러내어 주었습니다.
     columns = sorted(c for c in df if c.startswith(tuple(prefixes)) and c != "candidate_id")
+
+    # 후보의 feature을 사용하는 경우에는 정의되어있는 컬럼만 사용하게 해줍니다.
     if config.use_candidate_features:
+        # router-worker 알고리즘의 응답 값에 맞는 데이터를 추가시켜주기
         columns = sorted(set(columns) | (set(df) & CANDIDATE_COLUMNS))
     if config.use_condition_score:
         columns.append("condition_score")
@@ -40,6 +45,7 @@ def build_model_input(df: pd.DataFrame, columns: Sequence[str]) -> pd.DataFrame:
         raise ValueError(f"Missing model inputs: {sorted(missing)}")
 
     # 문자열이나 깨진 값을 결측치로 숨기지 않고 바로 실패시킵니다.
+    # numeric를 통해 bool 등이 모두 float로 변경되게 됩니다.
     frame = df[columns].apply(pd.to_numeric, errors="raise").astype(float)
     if np.isinf(frame.to_numpy()).any():
         raise ValueError("Infinite feature value")

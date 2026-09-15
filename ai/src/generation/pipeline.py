@@ -28,10 +28,21 @@ def resolved_worker_config(config: GenerationConfig) -> dict[str, Any]:
 def inspect_generation(config: GenerationConfig) -> dict[str, Any]:
     """데이터를 만들지 않고 생성 입력과 실행 예정 상태만 확인합니다."""
     # routing-worker를 건드리지 않고 사용자 요청 원본만 읽고 표준 형태로 바꿉니다.
+    # 실제로 데이터가 잘 존재하는지 확인하고, 0-5 정수 정규화를 해줍니다.
     users = load_users(resolve_path(config.source_json), config.expected_users, config.expected_requests)
+
+    # 사용자의 id와 요청 번호, 요청에 쓰인 인자 가중치, 요구사항 등을 보내주는 데이터
+    # jobs.append({
+    #     "user_id": user["user_id"],
+    #     "request_id": f"{ ['user_id']}:{sequence:04d}",
+    #     "request_sequence": sequence,
+    #     "profile": user["profile"],
+    #     "args": args,
+    # })
     jobs = normalize_requests(users)
 
     # CLI/UI에서 사전 점검에 쓰는 최소 상태값만 반환합니다.
+    # 사용자 순서, 사용자가 요청을 보낸 시간 순서 등
     return {"users": len(users), "requests": len(jobs), "request_order": "JSON array order (not observed timestamps)",
             "missing_spatial_files": preflight(resolved_worker_config(config)),
             "output_exists": resolve_path(config.output_dir).exists()}
@@ -59,6 +70,7 @@ GenerationConfig(
 )
 ▲ ▲ config 인자 ▲ ▲
 """
+# 실제로 데이터를 만들 때 
 def generate_dataset(config: GenerationConfig) -> Path:
     """고정된 사용자 요청과 worker 결과로 후보 경로 parquet 스냅샷을 만듭니다."""
 
@@ -68,6 +80,7 @@ def generate_dataset(config: GenerationConfig) -> Path:
 
     # 1. 원본 사용자/요청 데이터를 읽고 정규화
     source = resolve_path(config.source_json)
+    # json 파일 경로와 json 상단 메타데이터의 users와 requests를 기반으로 데이터를 확인해주고 정규화해줍니다. (weight를 0-5 범위로)
     users = load_users(source, config.expected_users, config.expected_requests)
     jobs = normalize_requests(users)
 
@@ -82,26 +95,29 @@ def generate_dataset(config: GenerationConfig) -> Path:
     output.mkdir(parents=True, exist_ok=False)
 
     # 4. 생성 과정의 기본 metadata 기록
+    # 일단 작성해두고 나중에 진행이 완료되면 또 갱신하는 방식으로 쓸 예정
     metadata = {
         "schema_version": 1,
         "status": "running",
         "version": config.version,
         "seed": config.seed,
         "source_json": str(source),
-        "source_sha256": sha256_file(source),
-        "source_users": len(users),
-        "source_requests": len(jobs),
-        "utility": config.utility.model_dump(),
+        "source_sha256": sha256_file(source), # 파일 자체를 해싱
+        "source_users": len(users), # 사용자 수
+        "source_requests": len(jobs), # 요청 총 수 
+        "utility": config.utility.model_dump(), # utility 전체 반환
         "request_order": "JSON array order, assumed chronology",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "generation_config": config.model_dump(),
     }
 
+    # 시작 전에 메타데이터와 yaml 만들어주기
     write_json(output / "metadata.json", metadata)
     (output / "config.yaml").write_text(dump_config(config), encoding="utf-8")
 
     try:
         # 5. 사용한 공간 데이터와 routing-worker 코드 hash 기록
+
         spatial = {str(p): sha256_file(p) for p in spatial_paths(worker_config)}
         metadata["spatial_files_sha256"] = spatial
         metadata["environment"] = environment_snapshot()
@@ -114,9 +130,11 @@ def generate_dataset(config: GenerationConfig) -> Path:
         }
 
         # 6. worker와 주고받는 중간 파일은 임시 디렉터리에 저장
+        # AppData\Local\Temp 같은데에 생성되는 방식으로 이루어짐
         with tempfile.TemporaryDirectory(prefix="runstop-routing-") as temporary:
             temp = Path(temporary)
 
+            # 각자 꺼내갈 내용 또는 작업 미리 저장해두기
             write_json(temp / "config.json", worker_config)
             write_json(temp / "jobs.json", jobs)
 
@@ -222,24 +240,31 @@ def generate_dataset(config: GenerationConfig) -> Path:
 def run_worker(command: list[str], cwd: str | Path, timeout: int) -> None:
     """timeout/중단 시 Windows pool 자식까지 포함해 실행한 프로세스 트리를 종료합니다."""
     import psutil
+    # 새로운 프로세스 생성하기
     process = subprocess.Popen(command, cwd=cwd)
 
     try:
+        # 부모 프로세스가 워커가 끝날때까지 기다리게 하기 (동기식)
         returncode = process.wait(timeout=timeout)
         if returncode:
             raise subprocess.CalledProcessError(returncode, command)
         
     except (subprocess.TimeoutExpired, KeyboardInterrupt):
         # 부모만 죽이면 자식 process pool이 남을 수 있어 recursive child까지 정리합니다.
+        # 부모가 인터럽트되거나 타임아웃되면 나머지들 정리해주기
         try:
+            # 모든 자식 프로세스 가져오기
             children = psutil.Process(process.pid).children(recursive=True)
         except psutil.NoSuchProcess:
             children = []
+        # 재귀적으로 종료해주기
         for child in children:
             try:
                 child.kill()
             except psutil.NoSuchProcess:
                 pass
+        # 프로세스가 완전히 끝났는지 확인.
+        # None이면 아직 실행중이라는 의미 -> 강제종료
         if process.poll() is None:
             process.kill()
         process.wait()

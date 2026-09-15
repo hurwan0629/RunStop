@@ -5,16 +5,20 @@ from ai.src.config.schema import SplitConfig
 
 
 def split_user_temporal_holdout(
-    df: pd.DataFrame,
-    config: SplitConfig,
+    df: pd.DataFrame,    # parquet parsed DataFrame
+    config: SplitConfig, # 나누는 방식
 ) -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
     """Split request rows into train/validation/warm_start/cold_start."""
+    # 데이터프레임에서 식별자 형식 (요청별로) 에 맞춰서 DF를 새로 만들어주기
     requests = df[["user_id", "request_id", "request_sequence"]].drop_duplicates().copy()
+    # 사용자 총 명수 뽑기
     users = sorted(requests.user_id.unique())
 
-    if len(users) < 2:
+    # 사용자가 2명 이하면 멈추기
+    if len(users) < 2:  
         raise ValueError("At least two users are required for Warm/Cold splitting")
 
+    # 
     shuffled = np.random.default_rng(config.seed).permutation(users)
     n_cold = max(1, min(len(users) - 1, int(len(users) * config.cold_user_ratio)))
     cold = set(shuffled[:n_cold])
