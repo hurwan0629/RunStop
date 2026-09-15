@@ -70,6 +70,7 @@ class CatBoostParams(Strict):
 class RankNetParams(Strict):
     """RankNet 파라미터입니다."""
     hidden_dim: int = Field(64, ge=4, le=2048)
+    depth: int = Field(1, ge=1, le=16, description="은닉층 개수. 1이면 기존 단일 hidden layer 구조와 같다.")
     dropout: float = Field(0.1, ge=0, lt=1)
     epochs: int = Field(30, ge=1, le=10000)
     batch_size: int = Field(256, ge=1, le=65536, description="후보 쌍 단위 배치 크기")
@@ -222,6 +223,10 @@ class SplitConfig(Strict):
 class EvaluationConfig(Strict):
     """평가 top-k와 bootstrap 신뢰구간 설정입니다."""
     # NDCG@K 등 랭킹 평가에서 사용할 K 값
+    # MRR은 현재 제외한다. 이 데이터셋은 실제 사용자의 단일 선택 로그가 아니라
+    # synthetic utility로 후보 전체 순위를 만든다. ground_truth_rank == 1을 relevant로
+    # 두면 MRR은 top1_best_utility와 해석이 많이 겹치므로, 현재 설정은 NDCG,
+    # top1 적중, regret, pairwise 정확도를 우선 사용한다.
     top_k: int = Field(3, ge=1, le=100)
     # bootstrap 신뢰구간 계산 반복 횟수, 0이면 bootstrap 미사용
     bootstrap_samples: int = Field(1000, ge=0, le=10000)

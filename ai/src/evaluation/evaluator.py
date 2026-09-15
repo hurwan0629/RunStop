@@ -52,6 +52,10 @@ def evaluate(
     # 요청별 metric을 overall/warm/cold 단위로 평균과 신뢰구간으로 집계합니다.
     per_request = pd.DataFrame(request_rows)
     metrics = {}
+    # MRR은 현재 제외한다. 실제 선택 로그의 "첫 번째 relevant item"을 평가하는 대신
+    # synthetic utility로 후보 전체 순위를 만들고 있어서 relevant 기준을 별도로 정해야 한다.
+    # ground_truth_rank == 1을 relevant로 두면 top1_best_utility와 역할이 겹치므로,
+    # 여기서는 Top-K 순서 품질, 1위 적중, regret, pairwise 순서 정확도만 집계한다.
     keys = [f"ndcg@{config.top_k}", "top1_best_utility", "utility_regret", "pairwise_accuracy"]
     for cohort in ("overall", "warm_start", "cold_start"):
         data = per_request if cohort == "overall" else per_request[per_request.cohort == cohort]

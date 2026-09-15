@@ -1,6 +1,6 @@
 kind: experiment
 schema_version: 1
-name: ranknet
+name: sweep_logistic_balanced
 seed: 42
 dataset_path: datasets/2026-09-14_11h17m54s_runstop_users_1000_5000_requests_behavioral/candidates.parquet
 metadata_path: datasets/2026-09-14_11h17m54s_runstop_users_1000_5000_requests_behavioral/metadata.json
@@ -20,16 +20,12 @@ split:
   min_train_requests: 1
   insufficient_user: exclude
 model:
-  name: ranknet
+  name: logistic_regression
   params:
-    hidden_dim: 64
-    depth: 1
-    dropout: 0.1
-    epochs: 30
-    batch_size: 256
-    learning_rate: 0.001
-    weight_decay: 0.01
-    optimizer: adamw
+    C: 1.0
+    max_iter: 1000
+    solver: lbfgs
+    class_weight: balanced
 evaluation:
   top_k: 3
   bootstrap_samples: 1000

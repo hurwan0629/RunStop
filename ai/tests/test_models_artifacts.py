@@ -18,7 +18,7 @@ from ai.src.experiment.runner import run_experiment
     ('lightgbm_ranker',{'n_estimators':5,'min_child_samples':2},'lightgbm'),
     ('xgboost_ranker',{'n_estimators':5},'xgboost'),
     ('catboost_ranker',{'iterations':5},'catboost'),
-    ('ranknet',{'epochs':12,'hidden_dim':8,'learning_rate':0.01},'torch')])
+    ('ranknet',{'epochs':12,'hidden_dim':8,'depth':2,'learning_rate':0.01},'torch')])
 def test_tiny_fit_predict_roundtrip(candidates,tmp_path,name,params,library):
     if library and importlib.util.find_spec(library) is None:
         pytest.skip(f'Optional library {library} not installed')

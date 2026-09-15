@@ -1,6 +1,6 @@
 kind: experiment
 schema_version: 1
-name: ranknet
+name: sweep_ranknet_depth_2
 seed: 42
 dataset_path: datasets/2026-09-14_11h17m54s_runstop_users_1000_5000_requests_behavioral/candidates.parquet
 metadata_path: datasets/2026-09-14_11h17m54s_runstop_users_1000_5000_requests_behavioral/metadata.json
@@ -23,7 +23,7 @@ model:
   name: ranknet
   params:
     hidden_dim: 64
-    depth: 1
+    depth: 2
     dropout: 0.1
     epochs: 30
     batch_size: 256

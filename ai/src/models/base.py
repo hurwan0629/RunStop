@@ -135,6 +135,12 @@ class TreeRanker(BaseRankingModel):
         # 구현체별 fit 인자 차이만 분기하고 외부 계약은 동일하게 유지합니다.
         # 앙상블 기ㅏㅂㄴ
         if self.name == "lightgbm_ranker":
+            """
+            LightGBM의 경우에는 Histogram 기반의 분할 방식으로 Leaf-wise tree growth 방식을 사용합니다.
+            Leaf-wise tree growth란 모든 leaf를 동일하게 키우지 않고 loss 를 줄이는 leaf를 집중적으로 확장하는 형태입니다.
+
+            또한 히스토그램 방식으로 연속형 feature의 값을 여러 구간으로 묶어서 split 후보를 줄이는 방식입니다.
+            """
             from inspect import signature
             from lightgbm import LGBMRanker
 
@@ -159,11 +165,21 @@ class TreeRanker(BaseRankingModel):
                 x, y, group=groups, 
                 eval_group=[vgroups], **validation_args)
             self.history = self.estimator.evals_result_
-            
+
         # xgboost 트리 모델 기반
         elif self.name == "xgboost_ranker":
+            """
+            XGBoost가 제공하는 Learning to Rank 전용 estimator
+
+            gbdt 기반 트리 부스팅 모델. 숫자 오차 자체를 줄이는게 아니라 같은 요청 안의 후보 순서를 잘 맞추도록 학습
+            """
             from xgboost import XGBRanker
-            self.estimator = XGBRanker(objective="rank:ndcg", random_state=self.seed, **self.params)
+
+            self.estimator = XGBRanker(
+                objective="rank:ndcg", 
+                random_state=self.seed, 
+                **self.params
+            )
             self.estimator.fit(x, y, group=groups, eval_set=[(vx, vy)], eval_group=[vgroups], verbose=False)
             self.history = self.estimator.evals_result()
 

@@ -23,7 +23,7 @@ def test_configs_validate_params_and_roundtrip(tmp_path):
         path.write_text(dump_config(config), encoding="utf-8")
         assert load_config(path) == config
     for invalid in ({"name": "imaginary"}, {"name": "lightgbm_ranker", "params": {"C": 1.0}},
-                    {"name": "ranknet", "params": {"epochs": 0}}, {"name": "lightgbm_ranker", "params": {"learning_rate": float('nan')}}):
+                    {"name": "ranknet", "params": {"depth": 0}}, {"name": "ranknet", "params": {"epochs": 0}}, {"name": "lightgbm_ranker", "params": {"learning_rate": float('nan')}}):
         with pytest.raises(ValidationError):
             ModelConfig.model_validate(invalid)
     with pytest.raises(ValidationError):
