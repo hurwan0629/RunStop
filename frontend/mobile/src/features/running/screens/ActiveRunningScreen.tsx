@@ -4,6 +4,8 @@ import * as Location from 'expo-location';
 import {
   ActivityIndicator,
   Alert,
+  AppState,
+  BackHandler,
   Pressable,
   Text,
   View,
@@ -15,6 +17,7 @@ import { CourseMap } from '@/features/course/components/CourseMap';
 import type { LocationPoint } from '@/features/course/types';
 import { useAuth } from '@/providers/AuthProvider';
 import { getApiErrorMessage } from '@/services/api/errors';
+import { clearActiveRunningSession } from '@/storage/runningSessionStorage';
 
 import {
   endRunningSession,
@@ -27,24 +30,29 @@ export default function ActiveRunningScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     courseId?: string;
+    recovery?: string;
     sessionId?: string;
   }>();
   const { accessToken } = useAuth();
   const courseId = Number(params.courseId);
   const sessionId = Number(params.sessionId);
+  const isRecovery = params.recovery === 'true';
   const [plannedPath, setPlannedPath] = useState<LocationPoint[]>([]);
   const [trackedPath, setTrackedPath] = useState<LocationPoint[]>([]);
   const [currentLocation, setCurrentLocation] =
     useState<LocationPoint | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [distanceMeters, setDistanceMeters] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(isRecovery);
   const [isLocating, setIsLocating] = useState(true);
   const [isFinishing, setIsFinishing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const pendingTrackpoints = useRef<RunningTrackpoint[]>([]);
   const activeSend = useRef<Promise<void> | null>(null);
   const lastPoint = useRef<LocationPoint | null>(null);
+  const appState = useRef(AppState.currentState);
+  const wasRunningBeforeBackgroundRef = useRef(false);
+  const hasShownInitialRecoveryPromptRef = useRef(false);
 
   useEffect(() => {
     if (!accessToken || !Number.isInteger(courseId) || courseId <= 0) {
@@ -198,11 +206,18 @@ export default function ActiveRunningScreen() {
 
     setIsFinishing(true);
     setIsPaused(true);
+    wasRunningBeforeBackgroundRef.current = false;
     setErrorMessage('');
 
     try {
       await flushTrackpoints();
       const result = await endRunningSession(accessToken, sessionId);
+
+      try {
+        await clearActiveRunningSession();
+      } catch {
+        // 서버 세션이 종료됐으므로 다음 복구 조회에서 오래된 로컬 값은 무시된다.
+      }
 
       // GPS가 충분히 쌓이기 전에 끝낸 러닝은 기록 목록에 남기지 않는다.
       if (result.status === 'CANCELLED') {
@@ -232,7 +247,74 @@ export default function ActiveRunningScreen() {
     }
   };
 
-  const confirmFinish = () => {
+  const promptResumeRunning = useCallback(() => {
+    Alert.alert(
+      '진행 중인 러닝이 있어요',
+      '계속 달리거나 지금 러닝을 종료할 수 있어요.',
+      [
+        {
+          text: '러닝 종료',
+          style: 'destructive',
+          onPress: () => void handleFinish(),
+        },
+        {
+          text: '계속 달리기',
+          onPress: () => {
+            // 백그라운드 동안 이동한 거리가 러닝 기록에 합산되지 않도록 한다.
+            lastPoint.current = null;
+            setIsPaused(false);
+          },
+        },
+      ],
+      { cancelable: false },
+    );
+  }, [handleFinish]);
+
+  useEffect(() => {
+    if (
+      !isRecovery ||
+      isFinishing ||
+      hasShownInitialRecoveryPromptRef.current
+    ) {
+      return;
+    }
+
+    hasShownInitialRecoveryPromptRef.current = true;
+    promptResumeRunning();
+  }, [isFinishing, isRecovery, promptResumeRunning]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      const wasInBackground =
+        appState.current === 'inactive' || appState.current === 'background';
+
+      if (nextAppState === 'inactive' || nextAppState === 'background') {
+        if (
+          !isPaused &&
+          !isFinishing &&
+          !wasRunningBeforeBackgroundRef.current
+        ) {
+          wasRunningBeforeBackgroundRef.current = true;
+          setIsPaused(true);
+          void flushTrackpoints().catch(() => undefined);
+        }
+      } else if (
+        nextAppState === 'active' &&
+        wasInBackground &&
+        wasRunningBeforeBackgroundRef.current &&
+        !isFinishing
+      ) {
+        wasRunningBeforeBackgroundRef.current = false;
+        promptResumeRunning();
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => subscription.remove();
+  }, [flushTrackpoints, isFinishing, isPaused, promptResumeRunning]);
+
+  const promptFinish = useCallback(() => {
     Alert.alert(
       '러닝을 종료할까요?',
       '현재까지 저장된 위치로 거리와 페이스를 계산합니다.',
@@ -241,7 +323,23 @@ export default function ActiveRunningScreen() {
         { text: '종료', style: 'destructive', onPress: () => void handleFinish() },
       ],
     );
-  };
+  }, [handleFinish]);
+
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (!isFinishing) {
+          promptFinish();
+        }
+
+        // 러닝 화면을 바로 pop하지 않는다. 종료는 사용자의 명시적 선택으로만 한다.
+        return true;
+      },
+    );
+
+    return () => subscription.remove();
+  }, [isFinishing, promptFinish]);
 
   if (!accessToken || !Number.isInteger(sessionId) || sessionId <= 0) {
     return (
@@ -270,6 +368,7 @@ export default function ActiveRunningScreen() {
         currentLocation={currentLocation ?? undefined}
         followCurrentLocation
         routePath={plannedPath}
+        showStartDirection
         startPoint={plannedPath[0]}
         style={styles.runningMap}
         trackedRoutePath={trackedPath}
@@ -305,7 +404,7 @@ export default function ActiveRunningScreen() {
           </Pressable>
           <Pressable
             disabled={isFinishing}
-            onPress={confirmFinish}
+            onPress={promptFinish}
             style={({ pressed }) => [
               styles.finishButton,
               pressed && styles.pressed,

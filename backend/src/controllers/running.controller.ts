@@ -9,6 +9,7 @@ import {
   runningStartResponseSchema,
   runningTrackpointsResponseSchema,
   runningEndResponseSchema,
+  runningActiveSessionResponseSchema,
 } from "../dto/running/running-response.dto.js";
 import { runningStartSchema } from "../dto/running/running-start.dto.js";
 import { runningTrackpointsSchema } from "../dto/running/running-trackpoint.dto.js";
@@ -20,6 +21,7 @@ import {
   saveRunningTrackpoints as saveRunningTrackpointsService,
   startRunningSession as startRunningSessionService,
   endRunningSession as endRunningSessionService,
+  getActiveRunningSession as getActiveRunningSessionService,
 } from "../services/running.service.js";
 
 const runningSessionParamsSchema = z.object({
@@ -79,6 +81,23 @@ export async function listRunningSessions(req: Request, res: Response, next: Nex
   res.json({
     success: true,
     data: runningHistoryResponseSchema.parse(result),
+  });
+}
+
+/**
+ * 현재 사용자의 진행 중인 러닝 세션을 반환합니다.
+ */
+export async function getActiveRunningSession(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  const userIdx = getAuthenticatedUserIdx(req);
+  const result = await getActiveRunningSessionService(userIdx);
+
+  res.json({
+    success: true,
+    data: runningActiveSessionResponseSchema.parse(result),
   });
 }
 
