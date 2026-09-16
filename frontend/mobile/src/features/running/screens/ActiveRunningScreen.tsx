@@ -30,20 +30,18 @@ export default function ActiveRunningScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     courseId?: string;
-    recovery?: string;
     sessionId?: string;
   }>();
   const { accessToken } = useAuth();
   const courseId = Number(params.courseId);
   const sessionId = Number(params.sessionId);
-  const isRecovery = params.recovery === 'true';
   const [plannedPath, setPlannedPath] = useState<LocationPoint[]>([]);
   const [trackedPath, setTrackedPath] = useState<LocationPoint[]>([]);
   const [currentLocation, setCurrentLocation] =
     useState<LocationPoint | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [distanceMeters, setDistanceMeters] = useState(0);
-  const [isPaused, setIsPaused] = useState(isRecovery);
+  const [isPaused, setIsPaused] = useState(false);
   const [isLocating, setIsLocating] = useState(true);
   const [isFinishing, setIsFinishing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -52,7 +50,6 @@ export default function ActiveRunningScreen() {
   const lastPoint = useRef<LocationPoint | null>(null);
   const appState = useRef(AppState.currentState);
   const wasRunningBeforeBackgroundRef = useRef(false);
-  const hasShownInitialRecoveryPromptRef = useRef(false);
 
   useEffect(() => {
     if (!accessToken || !Number.isInteger(courseId) || courseId <= 0) {
@@ -200,7 +197,7 @@ export default function ActiveRunningScreen() {
     };
   }, [accessToken, flushTrackpoints, isFinishing, isPaused, sessionId]);
 
-  const handleFinish = async () => {
+  const handleFinish = useCallback(async () => {
     if (
       !accessToken ||
       !Number.isInteger(sessionId) ||
@@ -222,13 +219,12 @@ export default function ActiveRunningScreen() {
       try {
         await clearActiveRunningSession();
       } catch {
-        // 서버 세션이 종료됐으므로 다음 복구 조회에서 오래된 로컬 값은 무시된다.
+        // Server session is already closed; stale local state can be ignored.
       }
 
-      // GPS가 충분히 쌓이기 전에 끝낸 러닝은 기록 목록에 남기지 않는다.
       if (result.status === 'CANCELLED') {
         Alert.alert(
-          '러닝을 취소했어요',
+          '러닝이 취소되었어요',
           '유효한 GPS 기록이 부족해 이번 러닝은 기록으로 저장되지 않았습니다.',
           [{ text: '확인', onPress: () => router.replace('/home') }],
         );
@@ -251,43 +247,14 @@ export default function ActiveRunningScreen() {
       setIsFinishing(false);
       setIsPaused(false);
     }
-  };
-
-  const promptResumeRunning = useCallback(() => {
-    Alert.alert(
-      '진행 중인 러닝이 있어요',
-      '계속 달리거나 지금 러닝을 종료할 수 있어요.',
-      [
-        {
-          text: '러닝 종료',
-          style: 'destructive',
-          onPress: () => void handleFinish(),
-        },
-        {
-          text: '계속 달리기',
-          onPress: () => {
-            // 백그라운드 동안 이동한 거리가 러닝 기록에 합산되지 않도록 한다.
-            lastPoint.current = null;
-            setIsPaused(false);
-          },
-        },
-      ],
-      { cancelable: false },
-    );
-  }, [handleFinish]);
-
-  useEffect(() => {
-    if (
-      !isRecovery ||
-      isFinishing ||
-      hasShownInitialRecoveryPromptRef.current
-    ) {
-      return;
-    }
-
-    hasShownInitialRecoveryPromptRef.current = true;
-    promptResumeRunning();
-  }, [isFinishing, isRecovery, promptResumeRunning]);
+  }, [
+    accessToken,
+    elapsedSeconds,
+    flushTrackpoints,
+    isFinishing,
+    router,
+    sessionId,
+  ]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
@@ -295,13 +262,8 @@ export default function ActiveRunningScreen() {
         appState.current === 'inactive' || appState.current === 'background';
 
       if (nextAppState === 'inactive' || nextAppState === 'background') {
-        if (
-          !isPaused &&
-          !isFinishing &&
-          !wasRunningBeforeBackgroundRef.current
-        ) {
+        if (!isFinishing && !wasRunningBeforeBackgroundRef.current) {
           wasRunningBeforeBackgroundRef.current = true;
-          setIsPaused(true);
           void flushTrackpoints().catch(() => undefined);
         }
       } else if (
@@ -311,14 +273,14 @@ export default function ActiveRunningScreen() {
         !isFinishing
       ) {
         wasRunningBeforeBackgroundRef.current = false;
-        promptResumeRunning();
+        lastPoint.current = null;
       }
 
       appState.current = nextAppState;
     });
 
     return () => subscription.remove();
-  }, [flushTrackpoints, isFinishing, isPaused, promptResumeRunning]);
+  }, [flushTrackpoints, isFinishing]);
 
   const promptFinish = useCallback(() => {
     Alert.alert(
@@ -339,7 +301,6 @@ export default function ActiveRunningScreen() {
           promptFinish();
         }
 
-        // 러닝 화면을 바로 pop하지 않는다. 종료는 사용자의 명시적 선택으로만 한다.
         return true;
       },
     );
@@ -352,7 +313,7 @@ export default function ActiveRunningScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.centerCard}>
           <Text style={styles.errorText}>
-            {'러닝 세션을 시작할 수 없습니다. 코스 상세에서 다시 시작해 주세요.'}
+            {'러닝 세션 정보를 확인할 수 없습니다. 코스 상세에서 다시 시작해 주세요.'}
           </Text>
         </View>
       </SafeAreaView>
@@ -363,10 +324,10 @@ export default function ActiveRunningScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.runningHeader}>
         <Text style={styles.runningTitle}>
-          {isPaused ? '일시정지' : '러닝 중'}
+          {isPaused ? '일시정지 중' : '러닝 중'}
         </Text>
         <Text style={styles.gpsState}>
-          {isLocating ? 'GPS 연결 중' : 'GPS 연결됨'}
+          {isLocating ? 'GPS 확인 중' : 'GPS 연결됨'}
         </Text>
       </View>
 
@@ -384,9 +345,9 @@ export default function ActiveRunningScreen() {
         <Text style={styles.timeValue}>{formatDuration(elapsedSeconds)}</Text>
         <Text style={styles.timeLabel}>{'러닝 시간'}</Text>
         <View style={styles.metricRow}>
-          <Metric label="현재 거리" value={`${(distanceMeters / 1000).toFixed(2)}km`} />
+          <Metric label="이동 거리" value={`${(distanceMeters / 1000).toFixed(2)}km`} />
           <Metric
-            label="현재 평균 페이스"
+            label="현재 페이스"
             value={formatLivePace(elapsedSeconds, distanceMeters)}
           />
           <Metric label="GPS 포인트" value={String(trackedPath.length)} />

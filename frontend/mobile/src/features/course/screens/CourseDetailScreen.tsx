@@ -15,17 +15,21 @@ import {
   getRouteBookmarks,
 } from '@/features/bookmarks/api/bookmarksApi';
 import {
+  endRunningSession,
   getActiveRunningSession,
   startRunningSession,
 } from '@/features/running/api/runningApi';
 import { useAuth } from '@/providers/AuthProvider';
 import { getApiErrorMessage } from '@/services/api/errors';
+import {
+  clearActiveRunningSession,
+  saveActiveRunningSession,
+} from '@/storage/runningSessionStorage';
 
 import { getCourseDetail, selectCourse } from '../api/courseApi';
 import { CourseMap } from '../components/CourseMap';
 import type { LocationPoint, RouteDetail } from '../types';
 import { styles } from './CourseDetailScreen.styles';
-import { saveActiveRunningSession } from '@/storage/runningSessionStorage';
 
 export default function CourseDetailScreen() {
   const router = useRouter();
@@ -103,49 +107,15 @@ export default function CourseDetailScreen() {
     }
   };
 
-  const startRunning = async () => {
-  if (!accessToken || !course || isWorking) {
-    return;
-  }
-
-  setIsWorking(true);
-  setErrorMessage('');
-
-  try {
-    // 1. 이미 서버에 진행 중인 러닝이 있으면 새 세션을 만들지 않고 복귀
-    const activeSession = await getActiveRunningSession(accessToken);
-
-    if (activeSession) {
-      try {
-        await saveActiveRunningSession({
-          sessionId: activeSession.sessionIdx,
-          courseId: activeSession.routeRecommendationIdx,
-          startedAt: activeSession.startedAt,
-        });
-      } catch {
-        // 로컬 저장에 실패해도 서버의 IN_PROGRESS 세션은 남아 있으므로
-        // 다음 실행 시 서버 조회로 복구할 수 있음
-      }
-
-      router.replace({
-        pathname: '/running/active',
-        params: {
-          courseId: String(activeSession.routeRecommendationIdx),
-          sessionId: String(activeSession.sessionIdx),
-          startedAt: activeSession.startedAt,
-          recovery: 'true',
-        },
-      });
-
+  const startNewRunning = async () => {
+    if (!accessToken || !course) {
       return;
     }
 
-    // 2. 아직 선택하지 않은 추천 코스라면, 러닝 시작 직전에 최종 선택 처리
     if (hasRouteRequestId) {
       await selectCourse(accessToken, requestId, course.idx);
     }
 
-    // 3. 서버와 로컬 저장소에 같은 시작 시각을 기록
     const startedAt = new Date().toISOString();
     const session = await startRunningSession(
       accessToken,
@@ -160,10 +130,9 @@ export default function CourseDetailScreen() {
         startedAt,
       });
     } catch {
-      // 저장소 오류가 러닝 시작 자체를 막으면 안 됨
+      // Server session creation succeeded, so storage failure should not block running.
     }
 
-    // 4. 새 러닝 화면으로 이동
     router.push({
       pathname: '/running/active',
       params: {
@@ -171,12 +140,31 @@ export default function CourseDetailScreen() {
         sessionId: String(session.sessionIdx),
       },
     });
-  } catch (error) {
-    setErrorMessage(getApiErrorMessage(error));
-  } finally {
-    setIsWorking(false);
-  }
-};
+  };
+
+  const startRunning = async () => {
+    if (!accessToken || !course || isWorking) {
+      return;
+    }
+
+    setIsWorking(true);
+    setErrorMessage('');
+
+    try {
+      const activeSession = await getActiveRunningSession(accessToken);
+
+      if (activeSession) {
+        await endRunningSession(accessToken, activeSession.sessionIdx);
+        await clearActiveRunningSession();
+      }
+
+      await startNewRunning();
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error));
+    } finally {
+      setIsWorking(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -218,11 +206,19 @@ export default function CourseDetailScreen() {
           <View style={styles.metricRow}>
             <Metric
               label="거리"
-              value={course.totalDistance === null ? '--' : `${(course.totalDistance / 1000).toFixed(1)}km`}
+              value={
+                course.totalDistance === null
+                  ? '--'
+                  : `${(course.totalDistance / 1000).toFixed(1)}km`
+              }
             />
             <Metric
               label="누적 오르막"
-              value={course.totalAscent === null ? '--' : `${Math.round(course.totalAscent)}m`}
+              value={
+                course.totalAscent === null
+                  ? '--'
+                  : `${Math.round(course.totalAscent)}m`
+              }
             />
             <Metric
               label="경사도 편차"
@@ -231,7 +227,7 @@ export default function CourseDetailScreen() {
           </View>
           {course.path.length < 2 ? (
             <Text style={styles.noticeText}>
-              {'아직 경로 좌표가 없어 지도 선은 표시되지 않습니다.'}
+              {'아직 경로 좌표가 없어 지도에 표시할 수 없습니다.'}
             </Text>
           ) : null}
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
