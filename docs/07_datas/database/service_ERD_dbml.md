@@ -32,6 +32,7 @@ Enum service.running_session_status {
   COMPLETED
   STOPPED
   FAILED
+  CANCELLED
 }
 
 Enum service.inquiry_status {
@@ -129,6 +130,7 @@ Table service.route_requests {
   idx integer [pk, increment]
   users_idx integer [not null]
   prompt text
+  route_type varchar(20) [note: '경로 유형. 세부 허용 값은 서비스 로직/API 계약에서 관리']
   element_conditions jsonb [note: '알고리즘 입력 조건. 거리=m, 경사=%, 시설 개수=count 등의 공통 단위를 사용']
   selected_recommendations_idx integer
   created_at timestamptz [not null, default: `now()`]
@@ -245,6 +247,9 @@ Table service.running_sessions {
 
   정상 종료는 COMPLETED, 사용자가 중간 종료한 경우 STOPPED,
   앱/GPS 오류 등 비정상 종료는 FAILED로 기록한다.
+
+  CANCELLED는 migration에서 추가된 취소 상태이며,
+  세부 발생 조건은 서비스 로직/API 정책에서 정의한다.
 
   distance는 추천 경로의 total_distance가 아니라
   실제 running_trackpoints를 기반으로 계산한 러닝 거리이다.
