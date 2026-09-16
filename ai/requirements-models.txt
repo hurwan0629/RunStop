@@ -1,0 +1,5 @@
+# Optional: install only the model libraries you intend to use.
+lightgbm>=4.5,<5
+xgboost>=2.1,<4
+catboost>=1.2,<2
+torch>=2.5,<3

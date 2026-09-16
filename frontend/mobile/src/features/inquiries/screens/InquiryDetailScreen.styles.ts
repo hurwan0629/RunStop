@@ -1,0 +1,30 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#F7F8FA' },
+  header: {
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+  },
+  backButton: { width: 36, color: '#0A145A', fontSize: 38, lineHeight: 40 },
+  screenTitle: { color: '#0A145A', fontSize: 22, fontWeight: '900' },
+  loader: { marginTop: 60 },
+  content: { padding: 20, paddingBottom: 44 },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  title: { flex: 1, color: '#0A145A', fontSize: 22, fontWeight: '900', lineHeight: 30 },
+  statusBadge: { borderRadius: 14, backgroundColor: '#E8F8C9', paddingHorizontal: 10, paddingVertical: 6, marginLeft: 10 },
+  statusText: { color: '#405B00', fontSize: 11, fontWeight: '800' },
+  dateText: { color: '#9299A8', fontSize: 12, marginTop: 10 },
+  contentCard: { borderRadius: 16, backgroundColor: '#FFFFFF', padding: 18, marginTop: 24 },
+  answerCard: { borderWidth: 1, borderColor: '#DCE2C8', borderRadius: 16, backgroundColor: '#F8FFE9', padding: 18, marginTop: 14 },
+  cardLabel: { color: '#596275', fontSize: 12, fontWeight: '800' },
+  bodyText: { color: '#252B3B', fontSize: 14, lineHeight: 23, marginTop: 12 },
+  waitingText: { color: '#7D8495', fontSize: 14, lineHeight: 21, marginTop: 12 },
+  answerDate: { color: '#9299A8', fontSize: 11, marginTop: 16 },
+  messageCard: { alignItems: 'center', padding: 30, marginTop: 40 },
+  errorText: { color: '#E5484D', fontSize: 13, textAlign: 'center' },
+  retryText: { color: '#100078', fontSize: 13, fontWeight: '800', marginTop: 14 },
+});

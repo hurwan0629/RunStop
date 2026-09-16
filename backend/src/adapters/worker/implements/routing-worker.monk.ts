@@ -1,4 +1,4 @@
-// monk 구현체를 넣어놓는 공간
+// mock 구현체를 넣어놓는 공간
 import type { RouteWorkerClient } from "../routing-worker.client.js";
 
 import type { WorkerRouteRequestDTO } from "../../../dto/worker/worker-route-request.dto.js";

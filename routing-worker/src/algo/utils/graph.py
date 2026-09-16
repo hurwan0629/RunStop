@@ -18,10 +18,11 @@ import networkx as nx
 import numpy as np
 from scipy.spatial import cKDTree
 
+from src.algo.types import Coordinate, NodeId
 from src.algo.utils.geo import point_at_bearing, to_5179
 
 
-def load_graphml(path):
+def load_graphml(path: str | Path) -> nx.MultiDiGraph:
     """osmnx graphml -> MultiDiGraph. 문자열로 저장된 좌표/길이를 float 로 복원."""
     G = nx.read_graphml(path, force_multigraph=True)
     for _, d in G.nodes(data=True):
@@ -32,7 +33,7 @@ def load_graphml(path):
     return G
 
 
-def load_graph(graphml_path):
+def load_graph(graphml_path: str | Path) -> nx.MultiDiGraph:
     """graphml 로드 + pickle 캐시. 두 번째 실행부터 훨씬 빠름 (~19s -> ~3s).
     .pkl 이 graphml 보다 최신일 때만 사용 (build_graph 재실행 시 자동 무효화).
     networkx 버전을 올린 뒤 이상하면 .pkl 을 지우면 다음 실행에 새로 만든다."""
@@ -50,7 +51,7 @@ def load_graph(graphml_path):
 class NodeIndex:
     """(lat, lon) -> 가장 가까운 그래프 노드 id. EPSG:5179 평면에서 KD-tree 최근접."""
 
-    def __init__(self, G):
+    def __init__(self, G: nx.Graph):
         self.ids = list(G.nodes)
         xy = np.array([
             to_5179.transform(G.nodes[n]["x"], G.nodes[n]["y"])
@@ -58,13 +59,18 @@ class NodeIndex:
         ])
         self._tree = cKDTree(xy)
 
-    def snap(self, lat, lon):
+    def snap(self, lat: float, lon: float) -> NodeId:
         x, y = to_5179.transform(lon, lat)
         _, i = self._tree.query([x, y])
         return self.ids[i]
 
 
-def grid_graph(rows=80, cols=80, spacing_m=100.0, origin=(37.50, 127.02)):
+def grid_graph(
+    rows: int = 80,
+    cols: int = 80,
+    spacing_m: float = 100.0,
+    origin: Coordinate = (37.50, 127.02),
+) -> nx.MultiDiGraph:
     """테스트용 격자 도로망. 실제 OSM 그래프와 같은 스키마(x, y, length).
     r 증가 = 북쪽, c 증가 = 동쪽. 모든 엣지 양방향."""
     G = nx.MultiDiGraph()

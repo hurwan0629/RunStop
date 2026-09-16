@@ -3,7 +3,12 @@ import { getPool } from "../infra/db/pool.js";
 
 type QueryClient = Pool | PoolClient;
 
-export type RunningSessionStatus = "IN_PROGRESS" | "COMPLETED" | "STOPPED" | "FAILED";
+export type RunningSessionStatus =
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "STOPPED"
+  | "CANCELLED"
+  | "FAILED";
 
 export type RunningSessionRow = {
   idx: number;
@@ -37,7 +42,10 @@ export type CreateRunningSessionInput = {
 
 export type UpdateRunningSessionResultInput = {
   sessionIdx: number;
-  status: Extract<RunningSessionStatus, "COMPLETED" | "STOPPED" | "FAILED">;
+  status: Extract<
+    RunningSessionStatus,
+    "COMPLETED" | "STOPPED" | "CANCELLED" | "FAILED"
+  >;
   finishedAt: string;
   distance: number;
   averagePace: number | null;
@@ -100,7 +108,7 @@ export async function findRunningSessionsByUserIdx(
         average_pace
       FROM service.running_sessions
       WHERE users_idx = $1
-        AND status <> 'IN_PROGRESS'
+        AND status IN ('COMPLETED', 'STOPPED', 'FAILED')
         AND ($2::date IS NULL OR started_at >= $2::date)
         AND ($3::date IS NULL OR started_at < ($3::date + INTERVAL '1 day'))
       ORDER BY started_at DESC, idx DESC
@@ -317,7 +325,7 @@ export async function summarizeRunningSessionsByUserIdx(
         MIN(average_pace) AS best_pace
       FROM service.running_sessions
       WHERE users_idx = $1
-        AND status <> 'IN_PROGRESS'
+        AND status IN ('COMPLETED', 'STOPPED', 'FAILED')
     `,
     [userIdx],
   );
@@ -348,7 +356,7 @@ export async function sumRunningDistanceByUserIdxAndPeriod(
         COALESCE(SUM(distance), 0)::text AS progress_distance
       FROM service.running_sessions
       WHERE users_idx = $1
-        AND status <> 'IN_PROGRESS'
+        AND status IN ('COMPLETED', 'STOPPED', 'FAILED')
         AND started_at >= $2::date
         AND started_at < ($3::date + INTERVAL '1 day')
     `,
@@ -375,7 +383,7 @@ export async function sumRunningDistanceByUserIdxAndGoalPeriodUntilToday(
         COALESCE(SUM(distance), 0)::text AS progress_distance
       FROM service.running_sessions
       WHERE users_idx = $1
-        AND status <> 'IN_PROGRESS'
+        AND status IN ('COMPLETED', 'STOPPED', 'FAILED')
         AND started_at >= $2::date
         AND started_at < (LEAST($3::date, CURRENT_DATE) + INTERVAL '1 day')
     `,

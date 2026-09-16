@@ -1,0 +1,37 @@
+kind: generation
+schema_version: 1
+version: candidates_v001
+seed: 42
+source_json: datasets/user_profiles_and_requests/runstop_users_1000_5000_requests_behavioral.json
+expected_users: 1000
+expected_requests: 5000
+output_dir: datasets/2026-09-14_11h17m54s_runstop_users_1000_5000_requests_behavioral
+routing_worker_dir: ../routing-worker
+worker_python: ''
+data_root: ../routing-worker/src/algo/data
+graph_path: ../routing-worker/src/algo/data/서울_보행네트워크.graphml
+workers: 12
+n_directions: 16
+timeout_seconds: 86400
+request_error: exclude
+candidates:
+  minimum: 6
+  target: 8
+  maximum: 10
+  shortage: exclude
+  excess: seeded_sample
+  retries: 1
+utility:
+  name: preference_v1
+  version: utility_behavioral_v001
+  params:
+    profile_share: 0.7
+    distance_tolerance_ratio: 0.15
+    slope_scale_pct: 8.0
+    facility_scale_per_km: 1.0
+    night_scale_per_km: 10.0
+    flow_scale_per_km: 5.0
+    requirement_violation_penalty: 0.25
+    missing_satisfaction: 0.0
+  relevance_levels: 5
+  tie_decimals: 8

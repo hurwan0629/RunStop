@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import { routeDetailSchema } from "../dto/route/route-detail.dto.js";
 import { routeRecommendResponseSchema } from "../dto/route/route-recommendation.dto.js";
@@ -34,14 +34,8 @@ function getAuthenticatedUserIdx(req: Request): number {
   return req.user.idx;
 }
 
-/**
- * 경로 추천 요청을 생성하고 워커의 후보 경로를 저장합니다.
- */
 export async function recommendRoutes(req: Request, res: Response, next: NextFunction): Promise<void> {
-  // req.users 존재 확인하기
   const userIdx = getAuthenticatedUserIdx(req);
-  // 사용자의 요청 스키마가 서버의 예상과 같은지 확인하기 [2026-09-02 20:11:08] 기준 임시 명세와 동일한 형태. 나중에 알고리즘 쪽과 맞추어야함
-  // [2026-09-02 20:17:47] 기준 routeRequestSchema와 dto/worker/worker-route-request.dto.ts 파일의 workerRouteRequestSchema 는 나누어져있습니다.
   const parseResult = routeRequestSchema.safeParse(req.body);
 
   if (!parseResult.success) {
@@ -63,12 +57,8 @@ export async function recommendRoutes(req: Request, res: Response, next: NextFun
   });
 }
 
-/**
- * 이미 생성된 경로 추천 요청에서 하나의 추천 코스를 선택합니다.
- */
 export async function selectRouteRecommendation(req: Request, res: Response, next: NextFunction): Promise<void> {
   const userIdx = getAuthenticatedUserIdx(req);
-  // 경로 변수의 requestIdx를 받아줍니다
   const paramsResult = routeRequestParamsSchema.safeParse(req.params);
 
   if (!paramsResult.success) {
@@ -80,7 +70,6 @@ export async function selectRouteRecommendation(req: Request, res: Response, nex
     });
   }
 
-  // body에 존재하는 recommendationIdx를 받아줍니다.
   const bodyResult = routeSelectSchema.safeParse(req.body);
 
   if (!bodyResult.success) {
@@ -92,7 +81,6 @@ export async function selectRouteRecommendation(req: Request, res: Response, nex
     });
   }
 
-  // 사용자가 한 경로 요청에 대해서 추천된 후보를 선택했을 때, 사용자가 선택한 경로 후보를 사용자의 요청에 등록해주기
   const result = await selectRouteRecommendationService(
     userIdx,
     paramsResult.data.requestIdx,
@@ -105,9 +93,6 @@ export async function selectRouteRecommendation(req: Request, res: Response, nex
   });
 }
 
-/**
- * 추천 코스의 전체 경로와 주요 지점 상세 데이터를 반환합니다.
- */
 export async function getRouteDetail(req: Request, res: Response, next: NextFunction): Promise<void> {
   const userIdx = getAuthenticatedUserIdx(req);
   // routeDetailParamsScehema 라는 러닝 경로 상세 조회 api의 파라미터 dto

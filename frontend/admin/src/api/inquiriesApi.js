@@ -55,3 +55,11 @@ export const createInquiryAnswer = async (
 
   return response.data.data
 }
+
+export const getInquirySummary = async () => {
+  const response = await apiClient.get(
+    '/admin/inquiries/summary',
+  )
+
+  return response.data.data
+}

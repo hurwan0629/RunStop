@@ -120,18 +120,18 @@ export async function sendPhoneVerification(input: SendPhoneVerificationInput): 
   // 6자리 인증코드 만들기
   const code = createVerificationCode();
 
-  // verification을 만들어서 verificationStore에 저장하기
-  verificationStore.set(
-    verificationId,
-    createVerificationRecord(input, code),
-  );
-
   // 전화번호를 사용자 (또는 개발시에는 콘솔)에게 보내주기
   // adapter/sms.client 에 존재하는 sms모듈을 이용하여 콘솔 또는 api 를 발송하여 줍니다.
   await sendVerificationSms({
     phone: input.phone,
     code,
   });
+
+  // SMS 발송이 성공한 인증번호만 검증 가능하게 저장합니다.
+  verificationStore.set(
+    verificationId,
+    createVerificationRecord(input, code),
+  );
 
   logger.info({
     serviceName: "phoneVerification",

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { routeCoordinateSchema } from "./route-coordinate.dto.js";
 import { routeRequestPointSchema } from "./route-request-point.dto.js";
+import { routeSlopeProfileSchema } from "./route-recommendation.dto.js";
 
 export const routeDetailSchema = z.object({
   // 사용자의 경로 상세 요청에는 route_recommendations.idx
@@ -13,6 +14,8 @@ export const routeDetailSchema = z.object({
   totalAscent: z.number().nullable(),
   // route_recommendations.slope_std - 이건 확정일듯
   slopeStd: z.number().nullable(),
+  // 경사 프로필
+  slope: routeSlopeProfileSchema.nullable(),
   // route_bookmarks join exists
   isBookmarked: z.boolean(),
   // route_recommendations.route::geometry(LineString, 4326)

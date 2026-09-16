@@ -9,11 +9,15 @@ routeType 매핑:  LOOP -> loop  |  ONE_WAY -> point_to_point  |  ROUND_TRIP -> 
 API 서버는 다음 단계 (이 recommend() 를 HTTP 로 감싸면 됨).
 """
 
+from typing import Any
+
 import networkx as nx
 
+from src.algo.ai.candidate_selector import select_candidates_with_ai
+from src.algo.types import CandidateRoute, Coordinate, Requirements, RouteType, Weights
 from src.algo.routing.candidates import generate_candidates, generate_candidates_via
 from src.algo.features.elevation import analyze_elevation_profile
-from src.algo.features.facilities import analyze_nearby_facilities
+from src.algo.features.facilities import analyze_nearby_facilities, get_facility_status
 from src.algo.features.nature import analyze_nature_adjacency
 from src.algo.features.surface import analyze_surface_profile
 from src.algo.scoring.weighting import score_candidate
@@ -25,8 +29,21 @@ _MODE = {
 }
 
 
-def recommend(G, idx, route_type, start, target_km, end=None, vias=None,
-              weights=None, requirements=None, n_directions=12, top_k=3):
+def recommend(
+    G: nx.Graph,
+    idx: Any,
+    route_type: RouteType,
+    start: Coordinate,
+    target_km: float,
+    end: Coordinate | None = None,
+    vias: list[Coordinate] | None = None,
+    weights: Weights | None = None,
+    requirements: Requirements | None = None,
+    facility_preferences: dict[str, str] | None = None,
+    n_directions: int = 12,
+    top_k: int = 3,
+    request_id: str | None = None,
+) -> list[CandidateRoute]:
     mode = _MODE.get(route_type)
     if mode is None:
         raise ValueError(f"route_type 은 {list(_MODE)} 중 하나 (받음: {route_type})")
@@ -41,10 +58,13 @@ def recommend(G, idx, route_type, start, target_km, end=None, vias=None,
             weights=weights, requirements=requirements,
         )
     else:
+        # print("generate_candidates")
         cands = generate_candidates(G, idx, mode, start, target_m,
                                     end=end, n_directions=n_directions,
                                     weights=weights, requirements=requirements)
-    
+
+        # print("cands:", len(cands))
+
     for c in cands:
         
         # 경사 (DEM)
@@ -60,12 +80,13 @@ def recommend(G, idx, route_type, start, target_km, end=None, vias=None,
         # - f"{key}_per_km:  
         # - f"{key}_nearest_m 를 가져와주기
         c["facilities"] = analyze_nearby_facilities(c["coords"])
+        c["facility_status"] = get_facility_status(c, facility_preferences)
 
         # 녹지·하천 인접률 (OSM 폴리곤)       
         # f"{nature_type}_ratio": dict[str, float] 반환
         c["nature"] = analyze_nature_adjacency(c["coords"])       
 
-        # 노면·흐름 (OSM 엣지/노드)
+        # 도로 환경 정보 (OSM 엣지/노드)
         # 도로의 유형을 모두 가져와서 비율을 책정해주기
         # - length_m: 총 길이 float
         # - walkable_ratio: 보행자 도로 float
@@ -76,11 +97,22 @@ def recommend(G, idx, route_type, start, target_km, end=None, vias=None,
         c["surface"] = analyze_surface_profile(G, c["nodes"])
 
         # 누적한 slope, facilities, nature, surface를 기준으로 사용자 요청 값인 weights, requirements를 이용해서 비교해주기
-        score_candidate(c, weights, requirements)         # sub_scores + conditionScore
+        score_candidate(
+            c,
+            weights,
+            requirements,
+            facility_preferences,
+        )         # sub_scores + conditionScore
         c.pop("nodes", None)                              # 내부용, 응답엔 불필요
 
-    cands.sort(key=lambda c: c["condition_score"], reverse=True)
-    return cands[:top_k]          # 풀에 점수 매긴 뒤 상위 top_k 만
+    return select_candidates_with_ai(
+        cands,
+        weights,
+        requirements,
+        facility_preferences,
+        top_k,
+        request_id=request_id,
+    )
 
 if __name__ == "__main__":
     from pathlib import Path

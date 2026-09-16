@@ -8,14 +8,22 @@ import sys
 
 # query_elevation.py + 서울_DEM_10m.npy + _meta.json 이 있는 폴더 (배포 패키지 기준)
 from src.algo._datapaths import DEM_DIR
-sys.path.insert(0, str(DEM_DIR))
-from query_elevation import get_elevation                  # noqa: E402
+if str(DEM_DIR) not in sys.path:
+    sys.path.insert(0, str(DEM_DIR))
+
+# query_elevation.py는 DATA_ROOT/배포에 배치된다. DATA_ROOT 자체를
+# 패키지로 가정하면 배포 환경과 실제 데이터 레이아웃이 어긋난다.
+from query_elevation import get_elevation  # noqa: E402
 
 from src.algo.utils.geo import haversine_m
 from src.algo import config
+from src.algo.types import Coordinate, ElevationProfile
 
 
-def sample_route_coordinates(route_coordinates, sampling_interval_m=config.SLOPE_SAMPLE_M):
+def sample_route_coordinates(
+    route_coordinates: list[Coordinate],
+    sampling_interval_m: float = config.SLOPE_SAMPLE_M,
+) -> list[Coordinate]:
     """
     폴리라인에서 대략 interval_m 간격으로 점을 뽑는다. None 이면 config.SLOPE_SAMPLE_M.
     리턴값은 list[tuple[float, float]]
@@ -38,13 +46,17 @@ def sample_route_coordinates(route_coordinates, sampling_interval_m=config.SLOPE
     return sampled_coordinates
 
 
-def analyze_elevation_profile(route_coordinates, sampling_interval_m=config.SLOPE_SAMPLE_M):
+def analyze_elevation_profile(
+    route_coordinates: list[Coordinate],
+    sampling_interval_m: float = config.SLOPE_SAMPLE_M,
+) -> ElevationProfile:
 
     # 
     sampled_coordinates = sample_route_coordinates(route_coordinates, sampling_interval_m)
     elevations_m = [get_elevation(lat, lon) for lat, lon in sampled_coordinates]
 
     slope_percentages, total_elevation_gain_m = [], 0.0
+    total_elevation_loss_m = 0.0
 
     # 각 구간별 [시작 위치, 종료 위치, 시작 위치 경사도, 종료 위치 경사도] 를 기준으로 데이터를 정리해주기
     for start_coordinate, end_coordinate, start_elevation_m, end_elevation_m \
@@ -62,15 +74,26 @@ def analyze_elevation_profile(route_coordinates, sampling_interval_m=config.SLOP
         slope_percentages.append(abs(end_elevation_m - start_elevation_m) / segment_distance_m * 100)
         if end_elevation_m > start_elevation_m:
             total_elevation_gain_m += end_elevation_m - start_elevation_m
+        elif end_elevation_m < start_elevation_m:
+            total_elevation_loss_m += start_elevation_m - end_elevation_m
 
     if not slope_percentages:                        # 전 구간 DEM 없음
         return {"avg_slope_pct": None, "max_slope_pct": None,
-                "elevation_gain_m": None, "sample_count": len(sampled_coordinates)}
+                "slope_std_pct": None, "elevation_gain_m": None,
+                "elevation_loss_m": None, "sample_count": len(sampled_coordinates)}
+
+    avg_slope_pct = sum(slope_percentages) / len(slope_percentages)
+    slope_std_pct = (
+        sum((slope - avg_slope_pct) ** 2 for slope in slope_percentages)
+        / len(slope_percentages)
+    ) ** 0.5
 
     return {
-        "avg_slope_pct": round(sum(slope_percentages) / len(slope_percentages), 2),
+        "avg_slope_pct": round(avg_slope_pct, 2),
         "max_slope_pct": round(max(slope_percentages), 2),
+        "slope_std_pct": round(slope_std_pct, 2),
         "elevation_gain_m": round(total_elevation_gain_m, 1),
+        "elevation_loss_m": round(total_elevation_loss_m, 1),
         "sample_count": len(sampled_coordinates),
     }
 

@@ -1,14 +1,15 @@
-import { useEffect, useRef } from 'react';
+import {
+  NaverMapMarkerOverlay,
+  NaverMapPathOverlay,
+  NaverMapView,
+  NaverMapArrowheadPathOverlay,
+} from '@mj-studio/react-native-naver-map';
 import {
   StyleProp,
   StyleSheet,
   View,
   ViewStyle,
 } from 'react-native';
-import MapView, {
-  Marker,
-  Polyline,
-} from 'react-native-maps';
 
 import type { LocationPoint } from '../types';
 
@@ -17,8 +18,11 @@ type CourseMapProps = {
   endPoint?: LocationPoint;
   waypoints?: LocationPoint[];
   routePath?: LocationPoint[];
+  trackedRoutePath?: LocationPoint[];
   currentLocation?: LocationPoint;
+  followCurrentLocation?: boolean;
   style?: StyleProp<ViewStyle>;
+  showStartDirection?: boolean;
 };
 
 const DEFAULT_LOCATION: LocationPoint = {
@@ -42,83 +46,152 @@ export function CourseMap({
   endPoint,
   waypoints = [],
   routePath = [],
+  trackedRoutePath = [],
   currentLocation,
+  followCurrentLocation = false,
+  showStartDirection = false,
   style,
 }: CourseMapProps) {
-  const mapRef = useRef<MapView>(null);
-  const focusPoint = startPoint ?? currentLocation ?? DEFAULT_LOCATION;
+  const focusPoint = followCurrentLocation
+    ? currentLocation ?? startPoint ?? DEFAULT_LOCATION
+    : startPoint ?? currentLocation ?? DEFAULT_LOCATION;
 
-  useEffect(() => {
-    mapRef.current?.animateToRegion(
-      {
-        latitude: focusPoint.lat,
-        longitude: focusPoint.lng,
-        latitudeDelta: 0.012,
-        longitudeDelta: 0.012,
-      },
-      500,
-    );
-  }, [focusPoint.lat, focusPoint.lng]);
+  const startDirectionPath = showStartDirection
+    ? getStartDirectionPath(routePath, 80)
+    : [];
 
   return (
     <View style={[styles.container, style]}>
-      <MapView
-        ref={mapRef}
-        initialRegion={{
-          latitude: DEFAULT_LOCATION.lat,
-          longitude: DEFAULT_LOCATION.lng,
-          latitudeDelta: 0.012,
-          longitudeDelta: 0.012,
+      <NaverMapView
+        animationDuration={500}
+        camera={{
+          latitude: focusPoint.lat,
+          longitude: focusPoint.lng,
+          zoom: 15,
         }}
-        loadingBackgroundColor="#E8EEF8"
-        loadingEnabled
-        loadingIndicatorColor="#06065C"
-        mapType="standard"
-        showsCompass
-        showsMyLocationButton={false}
+        isShowCompass
+        isShowLocationButton={false}
+        mapType="Basic"
         style={styles.map}>
         {routePath.length >= 2 ? (
-          <Polyline
-            coordinates={routePath.map(toMapCoordinate)}
-            strokeColor="#172E38"
-            strokeWidth={5}
+          <NaverMapPathOverlay
+            color="#100078"
+            coords={routePath.map(toMapCoordinate)}
+            outlineColor="#FFFFFF"
+            outlineWidth={1}
+            width={5}
+          />
+        ) : null}
+        {startDirectionPath.length >= 2 ? (
+          <NaverMapArrowheadPathOverlay
+            color="#A8F500"
+            coords={startDirectionPath.map(toMapCoordinate)}
+            headSizeRatio={3}
+            outlineColor="#FFFFFF"
+            outlineWidth={1}
+            width={8}
+          />
+        ) : null}
+
+        {trackedRoutePath.length >= 2 ? (
+          <NaverMapPathOverlay
+            color="#A7EF2A"
+            coords={trackedRoutePath.map(toMapCoordinate)}
+            outlineColor="#FFFFFF"
+            outlineWidth={1}
+            width={6}
           />
         ) : null}
 
         {startPoint ? (
-          <Marker
-            coordinate={toMapCoordinate(startPoint)}
-            pinColor="#22A06B"
-            title={startPoint.name ?? '출발지'}
+          <NaverMapMarkerOverlay
+            caption={{ text: startPoint.name ?? '출발지' }}
+            image={{ symbol: 'green' }}
+            latitude={startPoint.lat}
+            longitude={startPoint.lng}
           />
         ) : null}
 
         {endPoint ? (
-          <Marker
-            coordinate={toMapCoordinate(endPoint)}
-            pinColor="#E5484D"
-            title={endPoint.name ?? '도착지'}
+          <NaverMapMarkerOverlay
+            caption={{ text: endPoint.name ?? '도착지' }}
+            image={{ symbol: 'red' }}
+            latitude={endPoint.lat}
+            longitude={endPoint.lng}
           />
         ) : null}
 
         {waypoints.map((point, index) => (
-          <Marker
-            coordinate={toMapCoordinate(point)}
+          <NaverMapMarkerOverlay
+            caption={{ text: point.name ?? `경유지 ${index + 1}` }}
+            image={{ symbol: 'yellow' }}
             key={point.id ?? `waypoint-${index}`}
-            pinColor="#F5A524"
-            title={point.name ?? `경유지 ${index + 1}`}
+            latitude={point.lat}
+            longitude={point.lng}
           />
         ))}
 
         {currentLocation ? (
-          <Marker
-            coordinate={toMapCoordinate(currentLocation)}
-            pinColor="#3478F6"
-            title="현재 위치"
+          <NaverMapMarkerOverlay
+            caption={{ text: '현재 위치' }}
+            image={{ symbol: 'blue' }}
+            latitude={currentLocation.lat}
+            longitude={currentLocation.lng}
           />
         ) : null}
-      </MapView>
+      </NaverMapView>
     </View>
+  );
+}
+
+// 지도에 표시할 화살표를 그릴 구간을 뽑기
+function getStartDirectionPath(
+  routePath: LocationPoint[],
+  targetDistanceMeters: number,
+) : LocationPoint[] {
+  if (routePath.length < 2) {
+    return [];
+  }
+
+  const directionPath = [routePath[0]];
+  let accumulatedDistance = 0;
+
+  for (let index = 1; index < routePath.length; index += 1) {
+    const previousPoint = routePath[index - 1];
+    const currentPoint = routePath[index];
+
+    accumulatedDistance += getDistanceMeters(previousPoint, currentPoint);
+    directionPath.push(currentPoint);
+
+    if (accumulatedDistance >= targetDistanceMeters) {
+      break;
+    }
+  }
+  return directionPath;
+}
+
+// getDistanceMeters
+function getDistanceMeters(
+  from: LocationPoint,
+  to: LocationPoint,
+): number {
+  const earthRadius = 6371000;
+  const toRadians = (degrees: number) => (degrees * Math.PI) / 100;
+
+  const latitudeDelta = toRadians(to.lat - from.lat);
+  const longitudeDelta = toRadians(to.lng - from.lng);
+  const fromLatitude = toRadians(from.lat);
+  const toLatitude = toRadians(to.lat);
+
+  const a =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(fromLatitude) *
+      Math.cos(toLatitude) *
+      Math.sin(longitudeDelta / 2) ** 2;
+
+  return 2 * earthRadius * Math.atan2(
+    Math.sqrt(a),
+    Math.sqrt(1 - a),
   );
 }
 

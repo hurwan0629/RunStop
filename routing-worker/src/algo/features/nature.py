@@ -13,6 +13,7 @@ from shapely import LineString
 from src.algo.utils.geo import to_5179, CRS_METRIC
 from src.algo._datapaths import OSM_OUT as NATURE_DATA_DIRECTORY   # 배포 패키지 datasets/osm/out 또는 RUNSTOP_DATA_DIR
 from src.algo import config
+from src.algo.types import Coordinate, NatureProfile
 NATURE_LAYER_PATHS = {
     "park": NATURE_DATA_DIRECTORY / "서울_공원.geojson",
     "water": NATURE_DATA_DIRECTORY / "서울_하천_polygon.geojson",
@@ -41,11 +42,14 @@ def _load_nature_layers():
     return _NATURE_LAYER_CACHE
 
 
-def _create_projected_route_line(route_coordinates):
+def _create_projected_route_line(route_coordinates: list[Coordinate]) -> LineString:
     return LineString([to_5179.transform(lon, lat) for lat, lon in route_coordinates])
 
 
-def analyze_nature_adjacency(route_coordinates: list[tuple[float, float]], buffer_distance_m=config.BUFFER_M):
+def analyze_nature_adjacency(
+    route_coordinates: list[Coordinate],
+    buffer_distance_m: float = config.NATURE_BUFFER_M,
+) -> NatureProfile:
     """경로 지점들을 받아서 안에 존재하는 """
 
     # shapely의 LineString 생성 함수
@@ -58,7 +62,12 @@ def analyze_nature_adjacency(route_coordinates: list[tuple[float, float]], buffe
     nature_layers = _load_nature_layers()
 
     # 
-    metrics = {}
+    metrics: NatureProfile = {
+        "park_ratio": None,
+        "water_ratio": None,
+        "park_names": [],
+        "water_names": [],
+    }
     # 환경 종류 가져오기 [2026-09-10 12:55:07] 기준 [park(공원), water(하천)]이 존재함.
     for nature_type in NATURE_LAYER_PATHS:
         # 해당 geopandas df 가져와주기
@@ -72,6 +81,26 @@ def analyze_nature_adjacency(route_coordinates: list[tuple[float, float]], buffe
         if not intersecting_indices:
             metrics[f"{nature_type}_ratio"] = 0.0
             continue
+
+        # 경로 주변에 실제로 있는 공원이나 하천 데이터 행
+        matched_features = nature_layer_gdf.iloc[intersecting_indices]
+
+        # GeoJSON에 들어 있는 실제 명칭 추출
+        if "name" in matched_features.columns:
+            names = [
+                str(name).strip()
+                for name in matched_features["name"].dropna().tolist()
+                if str(name).strip()
+            ]
+
+        # 중복 이름 제거 후 최대 3개만 유지
+        unique_names = list(dict.fromkeys(names))[:3]
+
+        if nature_type == "park":
+            metrics["park_names"] = unique_names
+        elif nature_type == "water":
+            metrics["water_names"] = unique_names
+
         # 앞에서 경로 버퍼에 포함되는 환경들만 가져와주기
         merged_nature_geometry = nature_layer_gdf.geometry.iloc[intersecting_indices].union_all()
         # 겹치는 비율 반환해주기 (버퍼 너비 대비 겹치는 면적 비율)

@@ -1,2 +1,81 @@
-/** TODO: /api/running 경로의 러닝 API 요청 함수를 정의합니다. */
-export {};
+import { apiRequest } from '@/services/api/client';
+
+import type {
+  RunningActiveSession,
+  RunningEndResponse,
+  RunningFinishResponse,
+  RunningPaceResponse,
+  RunningStartResponse,
+  RunningTrackpoint,
+  RunningTrackpointsSaveResponse,
+} from '../types';
+
+export function startRunningSession(
+  accessToken: string,
+  routeRecommendationIdx: number,
+  startedAt: string = new Date().toISOString(),
+) {
+  return apiRequest<RunningStartResponse>('/api/running-sessions', {
+    method: 'POST',
+    accessToken,
+    body: {
+      routeRecommendationIdx,
+      startedAt,
+    },
+  });
+}
+
+export function getActiveRunningSession(accessToken: string) {
+  return apiRequest<RunningActiveSession | null>(
+    '/api/running-sessions/active',
+    { accessToken },
+  );
+}
+
+export function saveRunningTrackpoints(
+  accessToken: string,
+  sessionIdx: number,
+  trackpoints: RunningTrackpoint[],
+) {
+  return apiRequest<RunningTrackpointsSaveResponse>(
+    `/api/running-sessions/${sessionIdx}/trackpoints`,
+    {
+      method: 'POST',
+      accessToken,
+      body: { trackpoints },
+    },
+  );
+}
+
+export function finishRunningSession(accessToken: string, sessionIdx: number) {
+  return apiRequest<RunningFinishResponse>(
+    `/api/running-sessions/${sessionIdx}/finish`,
+    {
+      method: 'POST',
+      accessToken,
+      body: { finishedAt: new Date().toISOString() },
+    },
+  );
+}
+
+/**
+ * 러닝 종료를 요청합니다. 서버가 유효 GPS 수와 도착 조건을 보고
+ * COMPLETED, STOPPED, CANCELLED 중 하나를 결정합니다.
+ */
+export function endRunningSession(accessToken: string, sessionIdx: number) {
+  return apiRequest<RunningEndResponse>(
+    `/api/running-sessions/${sessionIdx}/end`,
+    {
+      method: 'POST',
+      accessToken,
+      body: { finishedAt: new Date().toISOString() },
+    },
+  );
+}
+
+export function getRunningPace(accessToken: string, sessionIdx: number) {
+  return apiRequest<RunningPaceResponse>(
+    `/api/running-sessions/${sessionIdx}/pace`,
+    { accessToken },
+  );
+}

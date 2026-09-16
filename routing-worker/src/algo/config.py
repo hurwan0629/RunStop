@@ -22,19 +22,22 @@ CAND_DIST_TOL_PCT = 10.0      # 후보 거리오차 하드컷 (%)
 CAND_MAX_OVERLAP  = 0.35      # 후보 겹침 하드컷
 
 # ── features: 코스 주변 분석 ──────────────────────
-BUFFER_M       = 100          # 시설/녹지 인접 판정 버퍼 폭 (m) — facilities·nature 공용
+# BUFFER_M       = 100          # 기존 공용 버퍼 fallback 값
+FACILITY_BUFFER_M = 50        # 시설 인접 판정 버퍼 폭 (m)
+NATURE_BUFFER_M   = 50        # 자연환경 인접 판정 버퍼 폭 (m)
 SLOPE_SAMPLE_M = 30.0         # 경사 프로파일 폴리라인 샘플 간격 (m)
 MIN_SEGMENT_M  = 1.0          # 이보다 짧은 구간은 경사 계산에서 제외 (0 나눗셈 방지)
 
+# ── scoreing/edge_cost.py _single_edge_cost 가중치 ──────────────────────
 # [가중치 설계 추가] 사용자 선호도 입력 범위와 엣지 비용 튜닝값.
 PREFERENCE_LEVEL_MIN     = 0.0
 PREFERENCE_LEVEL_MAX     = 5.0
 PREFERENCE_LEVEL_DEFAULT = 3.0
 
-EDGE_COST_SCALE_ELEVATION = 1.2
-EDGE_COST_SCALE_SAFETY    = 0.8
-EDGE_COST_SCALE_NATURE    = 0.6
-EDGE_COST_SCALE_SURFACE   = 0.8
-EDGE_COST_SCALE_FLOW      = 0.5
-EDGE_SLOPE_GOOD_PCT       = 2.0
-EDGE_SLOPE_BAD_PCT        = 10.0
+EDGE_COST_SCALE_ELEVATION = 1.2    # [참고자료 검증] Valhalla는 경사를 factor가 아닌 grade-bucket 비용으로 처리해 직접 대응값 없음 — 러닝 특성상 최우선 유지
+EDGE_COST_SCALE_SAFETY    = 0.8    # [참고자료 검증] Valhalla use_lit(0~1)은 다이얼만 있고 배율 미문서화 — 유지
+EDGE_COST_SCALE_NATURE    = 0.6    # [참고자료 검증] Valhalla 보행 costing엔 자연환경 선호 개념 자체가 없음 — 유지
+EDGE_COST_SCALE_SURFACE   = 1.0    # [참고자료 튜닝] Valhalla alley_factor(2.0)/driveway_factor(5.0)가 문서상 가장 공격적인 회피 계수 — elevation과 동급으로 상향(0.8→1.0)
+EDGE_COST_SCALE_FLOW      = 0.5    # [참고자료 검증] 대응 Valhalla 수치 없음, RunStop 내에서도 최하위 우선순위가 합리적 — 유지
+EDGE_SLOPE_GOOD_PCT       = 2.0    # [참고자료 검증] Valhalla 최저 grade bucket(0~2%) 상한과 일치 — 유지
+EDGE_SLOPE_BAD_PCT        = 10.0   # [참고자료 검증] Valhalla grade 비용 급등 구간과 대략 일치 — 유지

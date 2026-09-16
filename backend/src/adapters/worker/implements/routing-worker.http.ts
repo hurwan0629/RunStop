@@ -1,12 +1,11 @@
-import { ApiError } from "../../../middleware/error.js";
-
-import type { RouteWorkerClient } from "../routing-worker.client.js";
 import { env } from "../../../config/env.js";
-
 import type { WorkerRouteRequestDTO } from "../../../dto/worker/worker-route-request.dto.js";
-import type { WorkerRouteResponseDTO } from "../../../dto/worker/worker-route-response.dto.js"
-
-import { workerRouteResponseSchema } from "../../../dto/worker/worker-route-response.dto.js";
+import {
+  workerRouteResponseSchema,
+  type WorkerRouteResponseDTO,
+} from "../../../dto/worker/worker-route-response.dto.js";
+import { ApiError } from "../../../middleware/error.js";
+import type { RouteWorkerClient } from "../types.js";
 
 export class HttpRouteWorkerClient implements RouteWorkerClient {
   async checkHealth(): Promise<{ ok: boolean }> {

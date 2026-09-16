@@ -23,3 +23,9 @@ export function createInquiry(
     body: input,
   });
 }
+
+export function getInquiryDetail(accessToken: string, inquiryIdx: number) {
+  return apiRequest<InquiryDetail>(`/api/inquiries/${inquiryIdx}`, {
+    accessToken,
+  });
+}

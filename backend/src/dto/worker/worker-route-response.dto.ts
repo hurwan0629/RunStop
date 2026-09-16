@@ -23,10 +23,10 @@ export const workerRouteCandidateSchema = z.object({
   path: z.array(routeCoordinateSchema).min(2),
   // 시설 점수
   // { string: ?? } 형태의 스키마
-  featureScores: z.record(z.string(), z.number()).default({}),
+  featureScores: z.record(z.string(), z.number().nullable()).default({}),
   // 시설 상세 정보 (화장실이 몇개이니 등등 하는것들)
   // { string: ?? } 형태의 스키마
-  featureValues: z.record(z.string(), z.unknown()).default({}),
+  featureValues: z.record(z.string(), z.unknown().nullable()).default({}),
   // 총 거리
   totalDistance: z.number().int().positive().nullable(),
   // 총 올라간 고도 - 이것도 확정

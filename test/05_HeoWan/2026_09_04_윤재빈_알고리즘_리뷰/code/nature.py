@@ -44,7 +44,7 @@ def _project_line(coords):
     return LineString([to_5179.transform(lon, lat) for lat, lon in coords])
 
 
-def adjacency_ratios(coords, buffer_m=100):
+def adjacency_ratios(coords, buffer_m=50):
     """
     반환값:
     

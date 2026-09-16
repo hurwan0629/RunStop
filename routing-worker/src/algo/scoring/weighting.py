@@ -9,32 +9,58 @@
 """
 
 # ── 0점 ↔ 100점 기준 (튜닝 포인트) ─────────────────────────────
+from src.algo.types import CandidateRoute, Requirements, SubScores, Weights
+
 DIST_ERR_ZERO_PCT   = 10.0    # 거리 오차 10% -> 0점, 0% -> 100점
+# [유지] DIST_TOLERANCE_PCT/config.CAND_DIST_TOL_PCT와 값을 맞춰둔 것 — 임의로 바꾸면 하드컷·점수 레이어가 어긋남
+
 GAIN_PER_KM_ZERO    = 30.0    # 1km당 오르막 30m -> 0점, 0m -> 100점
+# [유지] Valhalla엔 대응 지표 없음(경사를 factor가 아닌 grade-bucket으로 처리). 실사용 로그 확보 후 LTR로 재조정 대상
+
 ELEVATION_NEUTRAL   = 50.0    # DEM 없을 때 경사 소점수 (중립)
-TOILET_FULL         = 2       # 화장실 이 개수 이상이면 개수점 만점
-STORE_FULL          = 3
+# [유지] DEM 부재 시 중립값 50은 0/100 어느 쪽에도 치우치지 않아 구조적으로 타당
+
+TOILET_FULL         = 3       # 화장실 이 개수 이상이면 개수점 만점
+# [실측 튜닝] 서울 표본 N=40 출발점/120 후보(3km loop) 기준 toilet_per_km median=1.05 -> 3km 환산 ~3.1. 기존 2는 median보다도 낮아 절반 이상 코스가 항상 만점 처리됨
+STORE_FULL          = 7
+# [실측 튜닝] 동일 표본 store_per_km median=2.37 -> 3km 환산 ~7.1. 기존 3은 median의 절반 이하라 거의 모든 코스가 상시 만점(사실상 죽은 지표)이었음
 NEAR_OK_M           = 100.0   # 시설 최근접 이 거리까지는 감점 없음
 NEAR_PENALTY_SPAN_M   = 100.0  # 이 거리마다 아래 점수씩 추가 감점
 NEAR_PENALTY_PER_SPAN = 20.0   # 스팬당 감점
 NEAR_PENALTY_MAX      = 40.0   # 근접 감점 총상한
+# [유지] 최근접거리(_nearest_m) 분포는 이번 실측에서 수집하지 않음 — 표본 확장 시 재검토
+
 PARK_RATIO_FULL     = 0.15    # 녹지 인접률 15% -> 100점
-WATER_RATIO_FULL    = 0.15    # 하천 인접률 15% -> 100점
+# [실측 검증] 동일 표본 park_ratio p90=0.21로 기존값이 p75(0.074)~p90 사이 — 이미 "상위권만 만점"인 합리적 위치, 유지
+WATER_RATIO_FULL    = 0.05    # 하천 인접률 5% -> 100점
+# [실측 튜닝] 동일 표본 water_ratio median=0, p90=0.012, 관측 최댓값=0.081 — 기존 0.15는 표본 전체 관측 최댓값보다도 높아 사실상 도달 불가능(만년 0점)했음. p90의 대략 4배 여유를 둔 0.05로 하향
 STREETLIGHT_PER_KM_FULL = 120.0  # (가로등+보안등+보행등)/km — 서울 도심은 대부분 포화
+# [실측 검증] streetlight_per_km p90=97.2, 관측 최댓값=139.6 — 기존값이 p90~최댓값 사이로 이미 "도전적이되 도달 가능"한 위치, 유지
 CCTV_PER_KM_FULL    = 15.0
-WALKABLE_FULL       = 0.60    # 보행자친화 길이비율 60% -> 100점 기여
+# [실측 검증] cctv_per_km p75=17.2로 기존값이 p75 근접 — 이미 합리적, 유지
+WALKABLE_FULL       = 0.90    # 보행자친화 길이비율 90% -> 100점 기여
+# [실측 튜닝] 동일 표본 walkable_ratio p25=0.791, median=0.899 — 기존 0.60은 관측 25th percentile보다도 낮아 거의 모든 코스가 상시 만점(사실상 죽은 지표)이었음. median 근처인 0.90으로 상향
 BIGROAD_ZERO        = 0.30    # 큰길 비율 30% -> 큰길 감점 최대
+# [실측 검증] bigroad_ratio p90=0.36로 기존값이 p75(0.22)~p90 사이 — 이미 "하위권만 0점"인 합리적 위치, 유지
 BIGROAD_PENALTY_MAX = 40.0    # 큰길 감점 상한 (= 스케일 계수)
+# [유지] 이미 공격적인 감점 설계(대로 30%만 노출돼도 최대 40점 감점)로 Valhalla의 "회피는 세게" 원칙과 부합
 STAIRS_PENALTY      = 15.0    # 계단 1개당 노면점 -15
-SIGNAL_PER_KM_ZERO  = 4.0     # 신호등 4개/km -> 0점, 0 -> 100점
+# [유지] 이미 "개수당 고정 감점"(길이 무관) 구조로 Valhalla step_penalty 철학과 일치
+SIGNAL_PER_KM_ZERO  = 1.0     # 신호등 1개/km -> 0점, 0 -> 100점
+# [실측 튜닝] 동일 표본 signal_per_km p90=0.68, 관측 최댓값=3.24(40표본) — 기존 4.0은 관측 최댓값보다도 높아 사실상 항상 고득점(사실상 죽은 지표)이었음. p90에 여유를 둔 1.0으로 하향
 OVERLAP_ZERO        = 0.30    # 겹침 0.30 -> 0점, 0 -> 100점
+# [유지] point-to-point 라우팅 엔진엔 없는 RunStop 고유 지표라 참고자료·이번 실측 대상 모두 아님
 PACE_MIN_PER_KM     = 6.0     # 예상 소요시간용
+# [유지] 라우팅 엔진 참고자료와 무관한 제품(러닝 페이스) 파라미터
 DEFAULT_WEIGHT      = 3       # 사용자 가중치 미지정 시 기본
+# [참고] _WEIGHT_KEY가 모든 소점수 키를 이미 _DEFAULT_W로 매핑해 이 fallback은 현재 코드 경로상 도달 불가능 — 동작엔 영향 없어 값 유지
 
 # ── 필수조건(requirements) 하드 판정 ──────────────────────────
 DIST_TOLERANCE_PCT  = 10.0    # 목표 거리 ±이 값(%)
 REQ_MIN_COUNT       = 1       # 필수 시설(화장실/편의점) 최소 개수
 REQ_PARK_RATIO_MIN  = 0.05    # 필수 "녹지 인접" 최소 인접률
+# [유지] 필수조건 하드컷은 참고자료·실측 대상 아님. REQ_PARK_RATIO_MIN(0.05) < PARK_RATIO_FULL(0.15) 위계는 이미 합리적
+
 
 
 def _clamp(v, lo=0.0, hi=100.0):
@@ -65,7 +91,7 @@ def _facility_count_score(count, full, nearest_m):
     return _clamp(base)
 
 
-def compute_sub_scores(cand):
+def compute_sub_scores(cand: CandidateRoute) -> SubScores:
     f = cand.get("facilities") or {}
     slope = cand.get("slope") or {}
     nat = cand.get("nature") or {}
@@ -137,19 +163,38 @@ _DEFAULT_W = {"distance": 3, "elevation": 3, "toilet": 3, "store": 3,
               "park": 3, "night": 3, "surface": 2, "flow": 2, "overlap": 2}
 
 
-def compute_condition_score(subs, weights=None):
+def compute_condition_score(
+    subs: SubScores,
+    weights: Weights | None = None,
+    facility_preferences: dict[str, str] | None = None,
+) -> float:
     w = {**_DEFAULT_W, **(weights or {})}
+    preferences = facility_preferences or {}
+
     num = den = 0.0
+
     for name, score in subs.items():
         if score is None:
             continue
+
+        # 체크하지 않은 시설은 점수 계산에서 완전히 제외
+        if name == "toilet" and preferences.get("toilet", "IGNORE") != "PREFER":
+            continue
+
+        if name == "store" and preferences.get("store", "IGNORE") != "PREFER":
+            continue
+
         wt = w.get(_WEIGHT_KEY.get(name, name), DEFAULT_WEIGHT)
         num += score * wt
         den += wt
+
     return round(num / den, 1) if den else 0.0
 
 
-def check_requirements(cand, requirements=None):
+def check_requirements(
+    cand: CandidateRoute,
+    requirements: Requirements | None = None,
+) -> tuple[list[str], bool]:
     """반환: (failed_conditions[], exact_match)."""
     req = requirements or {}
     f = cand.get("facilities") or {}
@@ -171,14 +216,27 @@ def check_requirements(cand, requirements=None):
     return failed, len(failed) == 0
 
 
-def score_candidate(cand, weights=None, requirements=None):
+def score_candidate(
+    cand: CandidateRoute,
+    weights: Weights | None = None,
+    requirements: Requirements | None = None,
+    facility_preferences: dict[str, str] | None = None,
+) -> CandidateRoute:
     # pipeline에서  scoring의 모듈들을 이용해서 누적한 점수들을 한곳에서 처리하는 코드
     subs = compute_sub_scores(cand)
-    
+
     failed, exact = check_requirements(cand, requirements)
+
     cand["sub_scores"] = subs
-    cand["condition_score"] = compute_condition_score(subs, weights)
+    cand["condition_score"] = compute_condition_score(
+        subs,
+        weights,
+        facility_preferences,
+    )
     cand["failed_conditions"] = failed
     cand["exact_match"] = exact
-    cand["estimated_minutes"] = round(cand["actual_distance_m"] / 1000 * PACE_MIN_PER_KM)
+    cand["estimated_minutes"] = round(
+        cand["actual_distance_m"] / 1000 * PACE_MIN_PER_KM,
+    )
+
     return cand

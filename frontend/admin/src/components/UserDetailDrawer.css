@@ -1,0 +1,289 @@
+.user-detail-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(15, 18, 35, 0.42);
+}
+
+.user-detail-drawer {
+  width: min(560px, 100%);
+  min-height: 100%;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: -12px 0 34px rgba(15, 23, 42, 0.18);
+}
+
+.user-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 84px;
+  padding: 0 34px;
+  border-bottom: 1px solid #e7eaf0;
+}
+
+.user-drawer-header h2 {
+  margin: 0;
+  color: #0b0b6b;
+  font-size: 23px;
+}
+
+.user-drawer-close-button {
+  border: 0;
+  background: transparent;
+  color: #202530;
+  font-size: 35px;
+  cursor: pointer;
+}
+
+.user-drawer-content {
+  padding: 30px 34px 48px;
+}
+
+.user-drawer-message {
+  color: #747a88;
+}
+
+.user-drawer-message.error {
+  color: #e4434d;
+}
+
+.drawer-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.drawer-user-avatar {
+  display: grid;
+  width: 82px;
+  height: 82px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e9eaf5;
+  color: #0b0b6b;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.drawer-user-profile h3 {
+  margin: 0;
+  color: #11155d;
+  font-size: 25px;
+}
+
+.drawer-user-profile p {
+  margin: 7px 0 0;
+  color: #737887;
+  font-size: 17px;
+}
+
+.drawer-basic-info {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px 28px;
+  padding: 26px;
+  border-radius: 16px;
+  background: #f6f7fa;
+}
+
+.drawer-basic-info div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.drawer-basic-info span {
+  color: #737887;
+  font-size: 14px;
+}
+
+.drawer-basic-info strong {
+  color: #11155d;
+  font-size: 17px;
+}
+
+.drawer-status {
+  width: fit-content;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 14px !important;
+}
+
+.drawer-status.enabled {
+  border: 1px solid #a8f3bc;
+  background: #edfff1;
+  color: #0d9637;
+}
+
+.drawer-status.suspended {
+  border: 1px solid #ffc1c5;
+  background: #fff1f2;
+  color: #ef4d58;
+}
+
+.drawer-status.withdrawn {
+  border: 1px solid #dfe2e8;
+  background: #f3f4f6;
+  color: #737887;
+}
+
+.drawer-section {
+  margin-top: 32px;
+}
+
+.drawer-section h3 {
+  margin: 0 0 14px;
+  color: #0b0b6b;
+  font-size: 18px;
+}
+
+.drawer-running-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.drawer-running-grid article {
+  display: flex;
+  min-height: 112px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #f5f6f9;
+}
+
+.drawer-running-grid strong {
+  color: #0b0b6b;
+  font-size: 34px;
+}
+
+.drawer-running-grid span {
+  margin-top: 6px;
+  color: #737887;
+  font-size: 14px;
+}
+
+.drawer-inquiry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.drawer-inquiry-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 15px 17px;
+  border-radius: 12px;
+  background: #f6f7fa;
+}
+
+.drawer-inquiry-list strong {
+  color: #272c39;
+}
+
+.drawer-inquiry-list span,
+.drawer-empty-text {
+  color: #737887;
+  font-size: 14px;
+}
+
+.drawer-memo-box {
+  min-height: 76px;
+  padding: 16px;
+  border: 1px solid #e2e5ec;
+  border-radius: 12px;
+  background: #fff;
+  color: #737887;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.drawer-suspend-button,
+.drawer-enable-button,
+.drawer-cancel-button {
+  width: 100%;
+  min-height: 54px;
+  border-radius: 11px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.drawer-suspend-button {
+  border: 1px solid #ffadb3;
+  background: #fff0f1;
+  color: #ef4d58;
+}
+
+.drawer-enable-button {
+  border: 1px solid #9ae8ae;
+  background: #ecfff0;
+  color: #12913a;
+}
+
+.drawer-disabled-message {
+  padding: 16px;
+  border-radius: 11px;
+  background: #f3f4f6;
+  color: #737887;
+}
+
+.drawer-action-form {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.drawer-action-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drawer-action-form label > span {
+  color: #3d4350;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.drawer-action-form small {
+  margin-left: 6px;
+  color: #8b919d;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.drawer-action-form textarea,
+.drawer-action-form input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #dfe3ea;
+  border-radius: 10px;
+  outline-color: #0b0b6b;
+  font: inherit;
+}
+
+.drawer-action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.drawer-action-buttons button {
+  flex: 1;
+}
+
+.drawer-cancel-button {
+  border: 1px solid #dfe3ea;
+  background: #fff;
+  color: #626976;
+}

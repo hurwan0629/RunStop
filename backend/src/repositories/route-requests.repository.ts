@@ -1,7 +1,8 @@
 import type { Pool, PoolClient } from "pg";
 import { getPool } from "../infra/db/pool.js";
 import type { RouteCoordinateDTO } from "../dto/route/route-coordinate.dto.js";
-import type { RouteElementConditionsDTO } from "../dto/route/route-request.dto.js";
+import type { RouteElementConditionsDTO, RouteRequestDTO } from "../dto/route/route-request.dto.js";
+
 
 type QueryClient = Pool | PoolClient;
 
@@ -11,12 +12,14 @@ export type RouteRequestRow = {
   prompt: string | null;
   elementConditions: RouteElementConditionsDTO | null;
   selectedRecommendationIdx: number | null;
+  routeType: RouteRequestDTO["routeType"] | null;
 };
 
 export type CreateRouteRequestInput = {
   userIdx: number;
   prompt?: string | undefined;
   elementConditions: RouteElementConditionsDTO;
+  routeType: RouteRequestDTO["routeType"];
 };
 
 export type CreateRouteRequestPointInput = {
@@ -35,6 +38,7 @@ function mapRouteRequestRow(row: {
   prompt: string | null;
   element_conditions: RouteElementConditionsDTO | null;
   selected_recommendations_idx: number | null;
+  route_type: RouteRequestDTO["routeType"] | null;
 }): RouteRequestRow {
   return {
     idx: row.idx,
@@ -42,6 +46,7 @@ function mapRouteRequestRow(row: {
     prompt: row.prompt,
     elementConditions: row.element_conditions,
     selectedRecommendationIdx: row.selected_recommendations_idx,
+    routeType: row.route_type,
   };
 }
 
@@ -58,22 +63,30 @@ export async function createRouteRequest(
     prompt: string | null;
     element_conditions: RouteElementConditionsDTO | null;
     selected_recommendations_idx: number | null;
+    route_type: RouteRequestDTO["routeType"] | null;
   }>(
     `
       INSERT INTO service.route_requests (
-        users_idx,
-        prompt,
-        element_conditions
+      users_idx,
+      prompt,
+      element_conditions,
+      route_type
       )
-      VALUES ($1, $2, $3::jsonb)
+      VALUES ($1, $2, $3::jsonb, $4)
       RETURNING
         idx,
         users_idx,
         prompt,
         element_conditions,
-        selected_recommendations_idx
+        selected_recommendations_idx,
+        route_type
     `,
-    [input.userIdx, input.prompt ?? null, JSON.stringify(input.elementConditions)],
+    [
+      input.userIdx,
+      input.prompt ?? null,
+      JSON.stringify(input.elementConditions),
+      input.routeType,
+    ],
   );
 
   const row = result.rows[0];
@@ -104,8 +117,8 @@ export async function createRouteRequestPoints(
 
     values.push(
       routeRequestIdx, // 해당 route_request_points가 존재하는 요청의 idx
-      point.sequence, 
-      point.pointType, 
+      point.sequence,
+      point.pointType,
       point.point.lng, // postgis는 경도, 위도 순서
       point.point.lat
     );
@@ -145,6 +158,7 @@ export async function selectRecommendationForRequest(
     prompt: string | null;
     element_conditions: RouteElementConditionsDTO | null;
     selected_recommendations_idx: number | null;
+    route_type: RouteRequestDTO["routeType"] | null;
   }>(
     `
       UPDATE service.route_requests
@@ -156,7 +170,8 @@ export async function selectRecommendationForRequest(
         users_idx,
         prompt,
         element_conditions,
-        selected_recommendations_idx
+        selected_recommendations_idx,
+        route_type
     `,
     [routeRequestIdx, recommendationIdx],
   );
@@ -180,6 +195,7 @@ export async function findRouteRequestByIdxAndUserIdx(
     prompt: string | null;
     element_conditions: RouteElementConditionsDTO | null;
     selected_recommendations_idx: number | null;
+    route_type: RouteRequestDTO["routeType"] | null;
   }>(
     `
       SELECT
@@ -187,7 +203,8 @@ export async function findRouteRequestByIdxAndUserIdx(
         users_idx,
         prompt,
         element_conditions,
-        selected_recommendations_idx
+        selected_recommendations_idx,
+        route_type
       FROM service.route_requests
       WHERE idx = $1
         AND users_idx = $2

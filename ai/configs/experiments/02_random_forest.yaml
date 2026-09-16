@@ -1,0 +1,34 @@
+kind: experiment
+schema_version: 1
+name: random_forest
+seed: 42
+dataset_path: datasets/2026-09-14_11h17m54s_runstop_users_1000_5000_requests_behavioral/candidates.parquet
+metadata_path: datasets/2026-09-14_11h17m54s_runstop_users_1000_5000_requests_behavioral/metadata.json
+features:
+  use_profile: true
+  use_request: true
+  use_requirements: true
+  use_candidate_features: true
+  use_condition_score: false
+  use_history: false
+split:
+  strategy: user_temporal_holdout
+  seed: 42
+  cold_user_ratio: 0.2
+  validation_requests: 1
+  test_requests: 1
+  min_train_requests: 1
+  insufficient_user: exclude
+model:
+  name: random_forest
+  params:
+    n_estimators: 300
+    max_depth:
+    min_samples_leaf: 2
+    max_features: 1.0
+    n_jobs: 1
+evaluation:
+  top_k: 3
+  bootstrap_samples: 1000
+  confidence_level: 0.95
+output_dir: artifacts

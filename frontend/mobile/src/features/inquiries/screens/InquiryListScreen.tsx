@@ -215,6 +215,12 @@ export default function InquiryListScreen() {
               error={listError}
               isLoading={isLoading}
               items={items}
+              onOpen={(inquiryIdx) =>
+                router.push({
+                  pathname: '/profile/inquiries/[inquiryId]',
+                  params: { inquiryId: String(inquiryIdx) },
+                })
+              }
               onRetry={() => void loadInquiries()}
             />
           </ScrollView>
@@ -249,12 +255,14 @@ function InquiryHistory({
   error,
   isLoading,
   items,
+  onOpen,
   onRetry,
 }: {
   accessToken: string | null;
   error: string;
   isLoading: boolean;
   items: InquiryListItem[];
+  onOpen: (inquiryIdx: number) => void;
   onRetry: () => void;
 }) {
   if (!accessToken) {
@@ -283,7 +291,14 @@ function InquiryHistory({
   return (
     <View style={styles.historyList}>
       {items.map((item) => (
-        <View key={item.idx} style={styles.historyCard}>
+        <Pressable
+          accessibilityRole="button"
+          key={item.idx}
+          onPress={() => onOpen(item.idx)}
+          style={({ pressed }) => [
+            styles.historyCard,
+            pressed && styles.pressed,
+          ]}>
           <Text numberOfLines={2} style={styles.historyTitle}>
             {item.title}
           </Text>
@@ -297,7 +312,7 @@ function InquiryHistory({
               {statusLabels[item.status]}
             </Text>
           </View>
-        </View>
+        </Pressable>
       ))}
     </View>
   );

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { nonnegative, z } from "zod";
 
 export const runningStartResponseSchema = z.object({
   sessionIdx: z.number().int().positive(),
@@ -7,6 +7,8 @@ export const runningStartResponseSchema = z.object({
 
 export const runningTrackpointsResponseSchema = z.object({
   savedCount: z.number().int().nonnegative(),
+  trackpointCount: z.number().int().nonnegative(),
+  distance: z.number().int().nonnegative(),
 });
 
 export const runningFinishResponseSchema = z.object({
@@ -15,6 +17,25 @@ export const runningFinishResponseSchema = z.object({
   distance: z.number().int().nonnegative(),
   averagePace: z.number().int().positive().nullable(),
 });
+
+export const runningEndResponseSchema = z.object({
+  sessionIdx: z.number().int().positive(),
+  status: z.enum(["COMPLETED", "STOPPED", "CANCELLED"]),
+  distance: z.number().int().nonnegative(),
+  averagePace: z.number().int().positive().nullable(),
+});
+
+export const runningActiveSessionResponseSchema = z.object({
+  sessionIdx: z.number().int().positive(),
+  routeRecommendationIdx: z.number().int().positive(),
+  startedAt: z.string().datetime(),
+  status: z.literal("IN_PROGRESS"),
+}).nullable();
+
+export type RunningActiveSessionResponseDTO =
+  z.infer<typeof runningActiveSessionResponseSchema>;
+
+export type RunningEndResponseDTO = z.infer<typeof runningEndResponseSchema>;
 
 export const runningPaceSegmentSchema = z.object({
   distanceFrom: z.number().int().nonnegative(),

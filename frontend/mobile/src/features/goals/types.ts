@@ -31,3 +31,9 @@ export interface CreateGoalRequest {
   startDate: string;
   endDate: string;
 }
+
+export interface StopGoalResponse {
+  idx: number;
+  status: 'STOPPED';
+  finishedAt: string;
+}

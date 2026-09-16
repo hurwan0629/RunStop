@@ -15,6 +15,8 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 services:
   backend: # Node 서버
+    volumes:
+      - ./infra:/infra:ro
     # name: runstop-backend
     build: # `./backend/Dockerfile` 을 빌드합니다.
       context: ./backend 
@@ -55,5 +57,22 @@ services:
     volumes: # 컨테이너 데비안의 /var/lib/postgrersql/data에 있는 데이터를 볼륨으로 영속화합니다.
       - postgres-data:/var/lib/postgresql/data
 
+  caddy:
+    image: caddy:2
+    env_file:
+      - .env.production
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+
 volumes:
   postgres-data:
+  caddy_data:
+  caddy_config:
