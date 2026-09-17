@@ -4,13 +4,28 @@ import pandas as pd
 
 
 def ndcg_at_k(relevance, k: int) -> float:
-    """이미 예측 순서로 정렬된 relevance에서 NDCG@k를 계산합니다."""
+    """
+    
+    이미 예측 순서로 정렬된 relevance에서 NDCG@k를 계산합니다.
+    
+    모델이 만든(인자로 들어오는) relevence가 [2, 3, 1, 0] 이라면 실제로 정답은 [3, 2, 1, 0] 입니다.
+    """
     rel = np.asarray(relevance, dtype=float)
     if k < 1 or rel.ndim != 1 or not len(rel) or not np.isfinite(rel).all() or (rel < 0).any():
         raise ValueError("Invalid NDCG input")
     n = min(k, len(rel))
+
+    # 순위별 점수 배열로 만들어주기 1, 0.6..., ...
     discount = np.log2(np.arange(2, n + 2))
-    dcg = np.sum(np.expm1(rel[:n] * np.log(2)) / discount)
+
+    # expm1(x) = e**x - 1
+    # 각각 순위에 대해서 e**(rel점수*ln2)-1 / relDiscount
+    # 최종적으로 높은 rel 점수일수록 disconut의 역수를 곱해줘서 더 중요하게 취급
+    dcg = np.sum(
+        np.expm1(rel[:n] * np.log(2)) 
+        / discount
+    )
+    # 위와 동일한 식이지만 rel이 정렬되었을 때의 기준
     ideal = np.sum(np.expm1(np.sort(rel)[::-1][:n] * np.log(2)) / discount)
     return float(dcg / ideal) if ideal else 0.0
 

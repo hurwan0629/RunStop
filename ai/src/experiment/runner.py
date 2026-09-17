@@ -80,6 +80,8 @@ def run_experiment(config: ExperimentConfig):
         predictions.to_parquet(path / "predictions.parquet", index=False)
         per_request.to_parquet(path / "request_metrics.parquet", index=False)
         write_json(path / "metrics.json", metrics)
+
+        # 모니터 정보 주기
         write_json(path / "resource_usage.json", {**monitor.result, **inference, "train_seconds": train_seconds,
                    "model_bundle_bytes": (path / "model" / "model.pkl").stat().st_size})
         (path / "diagnostics").mkdir()

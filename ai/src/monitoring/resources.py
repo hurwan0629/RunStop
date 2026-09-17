@@ -1,4 +1,5 @@
 """실험 프로세스의 간단한 CPU/메모리 사용량을 측정합니다."""
+
 import threading
 import time
 import psutil
@@ -6,6 +7,7 @@ import psutil
 
 class ResourceMonitor:
     """현재 프로세스 RSS를 20ms마다 샘플링합니다. CPU 시간은 스레드를 포함합니다."""
+
     def __enter__(self):
         """측정을 시작하고 백그라운드 샘플링 스레드를 띄웁니다."""
         self.process = psutil.Process()
@@ -30,7 +32,11 @@ class ResourceMonitor:
         cpu = self.process.cpu_times()
         seconds = time.perf_counter() - self.started
         cpu_seconds = cpu.user + cpu.system - self.cpu_start
-        self.result = {"wall_seconds": seconds, "cpu_seconds": cpu_seconds,
-                       "cpu_percent_one_core": 100 * cpu_seconds / seconds if seconds else 0,
-                       "sampled_peak_rss_bytes": max(self.peak, self.process.memory_info().rss),
-                       "sampling_interval_ms": 20, "scope": "experiment process including native threads; not child processes"}
+        self.result = {
+            "wall_seconds": seconds,
+            "cpu_seconds": cpu_seconds,
+            "cpu_percent_one_core": 100 * cpu_seconds / seconds if seconds else 0,
+            "sampled_peak_rss_bytes": max(self.peak, self.process.memory_info().rss),
+            "sampling_interval_ms": 20,
+            "scope": "experiment process including native threads; not child processes",
+        }

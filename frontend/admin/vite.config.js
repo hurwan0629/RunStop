@@ -5,9 +5,10 @@ export default defineConfig({
   plugins: [react()],
 
   server: {
+    port: 3000, // 이 부분을 추가하여 3000번 포트로 고정합니다
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'https://runstop.hurwan.net',
         changeOrigin: true,
       },
     },
