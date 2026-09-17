@@ -10,6 +10,7 @@ import { getAdminDashboard } from '../api/dashboardApi'
 import './DashboardPage.css'
 
 import DashboardCardIcon from '../components/DashboardCardIcon'
+import RunningOverview from '../components/RunningOverview'
 
 const statusLabels = {
   PENDING: '답변 대기',
@@ -159,6 +160,8 @@ function DashboardPage() {
     </strong>
   </button>
     </section>
+
+      <RunningOverview />
 
       <section className="recent-inquiries-card">
         <header className="recent-inquiries-header">

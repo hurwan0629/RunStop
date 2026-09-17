@@ -5,10 +5,12 @@ export const getAdminUsers = async ({
   limit = 20,
   keyword = '',
   status = '',
+  signal,
 } = {}) => {
   const response = await apiClient.get(
     '/admin/users',
     {
+      signal,
       params: {
         page,
         limit,
@@ -23,9 +25,11 @@ export const getAdminUsers = async ({
 
 export const getAdminUserDetail = async (
   userIdx,
+  signal,
 ) => {
   const response = await apiClient.get(
     `/admin/users/${userIdx}`,
+    { signal },
   )
 
   return response.data.data

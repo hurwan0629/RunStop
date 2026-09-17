@@ -1,0 +1,40 @@
+.running-overview {
+  overflow: hidden;
+  border: 1px solid #e4e7ee;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.running-overview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px;
+}
+
+.running-overview h2 { margin: 0; color: #0b0b6b; font-size: 23px; }
+.running-overview-header p { margin: 8px 0 0; color: #646b79; font-size: 14px; }
+.running-overview-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 0 24px; }
+.running-overview-stat { display: flex; flex-direction: column; gap: 12px; padding: 20px; background: #f5f6fa; border-radius: 12px; }
+.running-overview-stat span { color: #646b79; font-size: 14px; }
+.running-overview-stat strong { color: #0b0b6b; font-size: 24px; overflow-wrap: anywhere; }
+.running-overview-rate { display: flex; flex-direction: column; gap: 10px; padding: 24px; color: #646b79; }
+.running-overview-rate progress { width: 100%; height: 16px; accent-color: #0b0b6b; }
+.running-overview-table { width: 100%; min-width: 480px; border-collapse: collapse; text-align: left; }
+.running-overview-table caption { padding: 16px 24px; text-align: left; font-weight: 700; color: #0b0b6b; }
+.running-overview-table th, .running-overview-table td { padding: 16px 24px; border-top: 1px solid #edf0f4; overflow-wrap: anywhere; }
+.running-overview-table th { background: #f5f6fa; color: #646b79; }
+.running-overview-message { padding: 0 24px 24px; color: #646b79; }
+.running-overview-error { color: #b42318; }
+.running-overview-pagination { display: flex; justify-content: center; align-items: center; gap: 16px; padding: 20px; }
+.running-overview button:disabled { opacity: 0.5; cursor: default; }
+.running-overview button:focus-visible { outline: 3px solid #0b0b6b; outline-offset: 3px; }
+
+@media (max-width: 1100px) {
+  .running-overview-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .running-overview-header { align-items: flex-start; flex-wrap: wrap; }
+  .running-overview-cards { grid-template-columns: 1fr; }
+}

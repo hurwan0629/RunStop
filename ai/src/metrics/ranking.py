@@ -48,17 +48,24 @@ def confidence_interval(
     seed: int,
 ) -> list[float] | None:
     """사용자 단위 cluster bootstrap으로 신뢰구간을 계산합니다."""
+
+    # bootstrap로 계산할 metric의 결측치 제거
     valid = frame.dropna(subset=[metric])
     if valid.empty or samples == 0 or valid.user_id.nunique() < 2:
         return None
 
     # 같은 사용자의 반복 요청은 bootstrap 샘플링에서도 함께 움직입니다.
+    # (2명의 사용자 A 요청이 있으면 하나로 합쳐주기)
     aggregates = valid.groupby("user_id")[metric].agg(["sum", "count"])
     totals, counts = aggregates["sum"].to_numpy(), aggregates["count"].to_numpy()
     rng = np.random.default_rng(seed)
     estimates = []
+
+    # confidence score를 뽑기 위해 samples 수만큼 돌려주기
     for _ in range(samples):
         indices = rng.integers(0, len(totals), size=len(totals))
         estimates.append(totals[indices].sum() / counts[indices].sum())
+
+    # confidence 범위만큼 남게 뽑아주기
     alpha = (1 - confidence) / 2
     return [float(v) for v in np.quantile(estimates, [alpha, 1 - alpha])]

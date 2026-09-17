@@ -4,7 +4,7 @@ from importlib import import_module, util
 from ai.src.config.schema import PARAM_SCHEMAS, ModelConfig
 from ai.src.models.base import BaseRankingModel
 
-MODELS = {
+MODELS = { # 모델 이름, 라이브러리, ./implementations 모듈, 설명
     "condition_score_baseline": ("Condition score", None, "condition_score_baseline", "ConditionScoreBaseline", "기존 점수 정렬 · 학습 없음"),
     "logistic_regression": ("Logistic Regression", "sklearn", "logistic_regression", "LogisticRegressionRanker", "Utility 선호 쌍을 학습하는 선형 모델"),
     "random_forest": ("Random Forest", "sklearn", "random_forest", "RandomForestRanker", "Utility 회귀 · 트리 앙상블"),

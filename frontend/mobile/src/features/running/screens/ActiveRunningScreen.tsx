@@ -52,6 +52,15 @@ export default function ActiveRunningScreen() {
   const wasRunningBeforeBackgroundRef = useRef(false);
 
   useEffect(() => {
+    if (!errorMessage) {
+      return;
+    }
+
+    const timer = setTimeout(() => setErrorMessage(''), 5000);
+    return () => clearTimeout(timer);
+  }, [errorMessage]);
+
+  useEffect(() => {
     if (!accessToken || !Number.isInteger(courseId) || courseId <= 0) {
       return;
     }

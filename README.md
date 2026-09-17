@@ -1,657 +1,209 @@
-# RunStop
+﻿<p align="center">
+  <img src="./assets/app-icon/icon.png" width="120" alt="RunStop 앱 아이콘" />
+</p>
 
-> 화장실·편의점·경사도·야간 인프라 등 다양한 공간 데이터를 반영한 맞춤형 러닝 코스 추천 서비스
+<h1 align="center">RunStop</h1>
+<p align="center"><strong>나만의 러닝 코스</strong><br />거리·경사·주변 시설·야간 인프라를 반영하는 맞춤형 러닝 코스 추천 서비스</p>
 
-RunStop은 사용자의 러닝 조건과 주변 공간 데이터를 함께 활용하여  
-**단순 최단 경로가 아니라 실제로 달리기 좋은 경로를 추천하는 것**을 목표로 하는 프로젝트입니다.
+RunStop은 원하는 러닝 조건으로 코스를 추천받고, 실제 달린 경로와 기록을 관리하는 모바일 서비스입니다. 서울 보행 네트워크와 공간 데이터를 바탕으로 후보 경로를 생성하고, 조건 점수와 AI 랭킹으로 최대 3개의 코스를 제공합니다.
 
-현재는 초기 기획 단계를 지나 **서비스 아키텍처, 데이터/알고리즘, UI/UX의 인터페이스를 맞추고 개발 환경을 구축하는 단계**입니다.
+현재 모바일 앱, Node API, Python 경로 추천 Worker, 관리자 웹이 구현되어 있습니다. Git 기록 기준으로 2026년 9월 16일 앱 2차 로컬 테스트 및 릴리스 작업을 진행했으며, 이후 기능 보완과 AI 평가 개선을 이어가고 있습니다.
 
----
+## 서비스 화면
 
-## 📌 프로젝트 소개
+**아래 갤러리를 좌우로 스크롤해 확인하세요.** 이미지를 누르면 원본을 볼 수 있습니다.
 
-사용자는 출발지와 원하는 러닝 조건을 입력하고, RunStop은 보행 가능한 경로와 여러 공간 데이터를 분석하여 조건에 맞는 코스 후보를 제공합니다.
+<table>
+  <tr>
+    <td align="center" nowrap><strong>인트로</strong><br /><a href="./assets/service-screenshot/1.jpg"><img src="./assets/service-screenshot/1.jpg" height="440" alt="RunStop 인트로" /></a></td>
+    <td align="center" nowrap><strong>로그인</strong><br /><a href="./assets/service-screenshot/2.jpg"><img src="./assets/service-screenshot/2.jpg" height="440" alt="회원 로그인" /></a></td>
+    <td align="center" nowrap><strong>홈 · 러닝 목표</strong><br /><a href="./assets/service-screenshot/3.jpg"><img src="./assets/service-screenshot/3.jpg" height="440" alt="홈 화면의 코스 찾기와 러닝 목표" /></a></td>
+    <td align="center" nowrap><strong>출발지 · 도착지 설정</strong><br /><a href="./assets/service-screenshot/6.jpg"><img src="./assets/service-screenshot/6.jpg" height="440" alt="지도에서 출발지와 도착지 설정" /></a></td>
+    <td align="center" nowrap><strong>러닝 조건 입력</strong><br /><a href="./assets/service-screenshot/4.jpg"><img src="./assets/service-screenshot/4.jpg" height="440" alt="목표 거리와 자연어 조건 입력" /></a></td>
+    <td align="center" nowrap><strong>조건별 중요도 확인</strong><br /><a href="./assets/service-screenshot/5.jpg"><img src="./assets/service-screenshot/5.jpg" height="440" alt="거리, 경사도, 시설, 야간 인프라 중요도 확인" /></a></td>
+    <td align="center" nowrap><strong>추천 코스 비교</strong><br /><a href="./assets/service-screenshot/7.jpg"><img src="./assets/service-screenshot/7.jpg" height="440" alt="추천 코스의 거리, 경사와 추천 이유 비교" /></a></td>
+    <td align="center" nowrap><strong>코스 상세</strong><br /><a href="./assets/service-screenshot/8.jpg"><img src="./assets/service-screenshot/8.jpg" height="440" alt="선택한 코스의 지도와 상세 정보" /></a></td>
+    <td align="center" nowrap><strong>실시간 러닝</strong><br /><a href="./assets/service-screenshot/9.jpg"><img src="./assets/service-screenshot/9.jpg" height="440" alt="GPS 위치와 러닝 시간, 이동 거리, 페이스" /></a></td>
+    <td align="center" nowrap><strong>러닝 테스트 · 오류 표시</strong><br /><a href="./assets/service-screenshot/10.jpg"><img src="./assets/service-screenshot/10.jpg" height="440" alt="실제 이동 궤적과 요청 처리 오류가 표시된 테스트 화면" /></a></td>
+    <td align="center" nowrap><strong>러닝 기록</strong><br /><a href="./assets/service-screenshot/11.jpg"><img src="./assets/service-screenshot/11.jpg" height="440" alt="기간별 러닝 통계와 기록 목록" /></a></td>
+  </tr>
+</table>
 
-주요 고려 요소는 다음과 같습니다.
+## 주요 기능
 
-- 목표 거리
-- 경사도 및 누적 상승고도
-- 공중화장실
-- 편의점
-- 공원 및 주변 환경
-- 가로등 / 보안등 / CCTV 등 야간 인프라
-- 보행 가능한 경로
-- 사용자가 입력한 추가 조건
-
-예를 들어 다음과 같은 요청을 처리하는 것을 목표로 합니다.
-
-```text
-7km 정도 뛰고 싶어요.
-
-오르막은 적었으면 좋겠고,
-중간에 화장실이 있었으면 좋겠어요.
-
-밤에 달릴 예정이라
-가로등이 많은 길이면 좋겠어요.
-```
-
-사용자의 자연어 입력은 필요한 경우 LLM을 이용해 구조화된 조건으로 변환하고,  
-경로 생성 및 평가 과정에서는 TMAP 보행 경로와 공공 공간 데이터를 함께 활용합니다.
-
----
-
-## 🎯 프로젝트 목표
-
-1. 사용자의 거리, 경사, 시설, 환경 조건을 반영한 러닝 코스 생성
-2. 여러 후보 경로를 Feature 단위로 분석하고 비교
-3. 최대 3개의 추천 코스를 사용자에게 제공
-4. 실제 러닝 중 GPS 데이터를 기록하고 러닝 결과를 저장
-5. 데이터 / 알고리즘 / UI / 서버가 독립적으로 개발되어도 쉽게 통합할 수 있는 구조 구성
-
----
-
-## 🔄 현재 서비스 흐름
-
-```text
-회원가입 / 로그인
-        ↓
-사용자 정보 및 선호 설정
-        ↓
-러닝 조건 입력
-        ↓
-자연어 조건 구조화 및 입력 검증
-        ↓
-경로 생성 요청
-        ↓
-TMAP 및 공간 데이터 기반 후보 경로 생성
-        ↓
-Route Feature 계산
-        ↓
-조건 검사 / 점수화 / Ranking
-        ↓
-추천 코스 최대 3개 제공
-        ↓
-사용자가 코스 선택
-        ↓
-러닝 시작
-        ↓
-GPS 기반 실제 이동 경로 기록
-        ↓
-러닝 종료 및 기록 저장
-```
-
----
-
-## 👥 역할 분담
-
-| 담당자 | 담당 영역 |
+| 영역 | 구현 내용 |
 |---|---|
-| 윤재빈 / 박건희 | 데이터 분석, 전처리, 경로 생성 및 추천 알고리즘 |
-| 최한빈 / 이승연 | UI/UX 설계 및 프론트 개발 |
-| 허완 | 서비스 아키텍처 설계, 서버/DB/Worker 인터페이스, 프로젝트 문서화 |
+| 코스 설정 | 장소 검색, 현재 위치·출발지·도착지·경유지 설정, 순환·편도·왕복 코스 |
+| 맞춤 추천 | 목표 거리, 경사, 화장실·편의점, 야간 인프라 등 조건 및 중요도 반영 |
+| 자연어 입력 | LLM을 이용한 러닝 요구사항 구조화 및 서버 검증 |
+| 코스 비교 | 최대 3개 후보의 지도, 거리, 고도·경사 정보, 조건 충족도 및 추천 이유 확인 |
+| 러닝 | GPS 이동 경로 기록, 거리·시간·페이스 표시, 일시정지·종료, 진행 중 세션 복구, 코스 방향 표시 |
+| 기록 관리 | 러닝 내역·통계, 목표 설정, 코스·장소 즐겨찾기 |
+| 계정·문의 | 자체 회원가입·로그인, JWT 인증, SMS 인증 연동, 회원정보 관리·탈퇴, 문의 등록 |
+| 관리자 | 관리자 로그인, 대시보드, 사용자·문의 관리 |
 
-각 영역은 독립적으로 작업하되, 최종 통합 시 충돌을 줄이기 위해 DTO와 인터페이스 규격을 먼저 맞추는 방향으로 진행합니다.
-
----
-
-## 🧱 현재 서비스 아키텍처
-
-현재 서버는 **Node.js Backend / Python Routing Worker / PostgreSQL + PostGIS**를 분리하는 방향으로 설계하고 있습니다.
-
-```text
-React Native App
-        │
-        │ HTTP / JSON
-        ▼
-Node.js + TypeScript Backend
-        │
-        ├──────────────► PostgreSQL + PostGIS
-        │                  서비스 데이터
-        │                  공간 데이터
-        │                  경로 / GPS
-        │
-        │ Internal HTTP / JSON
-        ▼
-Python + FastAPI Routing Worker
-        │
-        ├─ algorithm
-        ├─ features
-        ├─ ranking
-        └─ AI inference
-```
-
-Docker 환경에서는 다음 3개 서비스를 독립 컨테이너로 구성합니다.
+## 서비스 구조
 
 ```text
-docker-compose
-├─ backend
-│  └─ Node.js + TypeScript
-│
-├─ routing-worker
-│  └─ Python + FastAPI
-│
-└─ database
-   └─ PostgreSQL + PostGIS
+모바일 앱 (React Native / Expo)       관리자 웹 (React / Vite)
+                │                            │
+                └────────── HTTP ────────────┘
+                              │
+                    Node.js API (Express)
+                      ├─ PostgreSQL / PostGIS
+                      ├─ LLM / SMS / 장소 검색 API
+                      └─ 내부 HTTP
+                              │
+                    Python Worker (FastAPI)
+                      ├─ 보행 네트워크 기반 후보 생성
+                      ├─ 경사·시설·녹지·노면 특성 계산
+                      └─ 조건 점수 및 AI 랭킹 → 최대 3개 코스
 ```
 
-React Native 애플리케이션은 Docker Compose에 포함하지 않고 Android / iOS 앱으로 별도 빌드합니다.
+Backend는 인증, 요청 검증, 외부 API 연동과 데이터 저장을 담당하고, Worker는 경로 생성과 평가·추론을 담당합니다. 모바일 앱은 Backend를 통해 서비스를 이용합니다. 운영 환경에서는 Caddy가 Backend 앞에서 HTTPS 요청을 전달합니다.
 
-### Node Backend
+### 경로 추천과 AI
 
-담당 영역:
+1. Backend에서 입력 조건과 자연어 요구사항을 정리합니다.
+2. Worker가 서울 보행 그래프에서 코스 유형과 경유지를 반영한 후보를 생성합니다.
+3. DEM 고도, 주변 시설, 녹지·하천, 도로 환경 특성을 계산하고 조건 점수를 부여합니다.
+4. 학습된 모델로 후보 순위를 정해 최대 3개를 반환합니다. 모델 추론에 실패하면 조건 점수 순으로 선택합니다.
 
-- 외부 REST API
-- 회원가입 / 로그인 / 인증
-- 요청 검증
-- 서비스 흐름 제어
-- DB 접근
-- TMAP / LLM / SMS 등 외부 API Adapter
-- Python Worker 호출
-- 공통 오류 처리 및 로깅
+학습·비교 실험은 별도 `ai/` 프로젝트에서 수행합니다. 합성 선호 기반 데이터 생성, 모델별 학습, NDCG 등 평가, 모델 내보내기를 지원하며, 운영 추론 코드는 `routing-worker/src/algo/ai/`에 있습니다.
 
-### Python Routing Worker
+## 기술 구성
 
-담당 영역:
-
-- 후보 경로 생성 알고리즘
-- Route Feature 계산
-- 후보 경로 점수화 및 Ranking
-- AI 모델 추론
-- 데이터 전처리 코드 및 알고리즘 실험
-
-FastAPI는 외부 사용자용 메인 API 서버가 아니라  
-**Node Backend와 Python 알고리즘 사이의 내부 인터페이스**로 사용합니다.
-
-### PostgreSQL + PostGIS
-
-담당 영역:
-
-- 사용자 및 서비스 데이터
-- 경로 데이터
-- GPS Trackpoint
-- 공공 공간 데이터
-- Point / LineString / Polygon 공간 연산
-- 거리 / Buffer / 교차 / 인접 시설 Query
-
----
-
-## 🛠️ 기술 스택 및 버전
-
-현재 프로젝트 설계 기준입니다.  
-아직 실제 구현이 시작되지 않았거나 팀에서 최종 확정하지 않은 항목은 `TBD`로 표시합니다.
-
-| 영역 | 기술 | 버전 / 기준 |
-|---|---|---|
-| Frontend | React Native | TBD |
-| Frontend | TypeScript | TBD |
-| Backend Runtime | Node.js | 24.18.0 |
-| Package Manager | npm | 11.16.0 |
-| Backend | Express | 5.x |
-| Backend | TypeScript | TBD |
-| Validation | Zod | 4.x |
-| Database Driver | pg | 8.x |
-| Logging | Pino / pino-http | 10.x / 11.x |
-| Security | Helmet | 8.x |
-| Authentication | JWT / bcrypt | jsonwebtoken 9.x / bcrypt 6.x 기준 검토 |
-| Worker Runtime | Python | 3.12 |
-| Worker API | FastAPI | TBD |
-| Worker Server | Uvicorn | TBD |
-| Database | PostgreSQL | 17 |
-| Spatial Extension | PostGIS | 3.5 |
-| Container | Docker / Docker Compose | 로컬 개발 환경 기준 |
-| Test | Vitest / Supertest | TBD |
-
-### 버전 관리 원칙
-
-Node 버전은 다음 요소를 함께 이용해 통일하는 방향을 고려합니다.
-
-```text
-.nvmrc
-package.json engines
-package.json packageManager
-Dockerfile FROM node:...
-```
-
-Python Worker는 현재 다음 이미지를 기준으로 합니다.
-
-```dockerfile
-FROM python:3.12-slim
-```
-
-React Native 버전은 프론트 개발 환경 확정 후 README에 반영할 예정입니다.
-
----
-
-## 🗺️ 데이터 및 경로 처리
-
-현재 활용을 검토하거나 정제 중인 주요 데이터는 다음과 같습니다.
-
-| 데이터 | 주요 활용 |
+| 영역 | 기술 |
 |---|---|
-| 공중화장실 | 경로 주변 화장실 수 / 접근 거리 |
-| 편의점 | 경로 주변 편의시설 접근성 |
-| 공원 | 공원 인접도 / 통과 여부 |
-| 가로등 / 보안등 | 야간 조명 환경 |
-| CCTV | 야간 안전 인프라 보조 지표 |
-| 고도 / 등고선 | 경사도 / 누적 상승고도 계산 |
-| 보행자 관련 공간 데이터 | 보행 가능 구간 분석 |
-| TMAP 보행자 경로 API | 실제 보행 가능한 경로 생성 |
+| 모바일 | React Native 0.86, Expo 57, React 19, TypeScript, Expo Router, Naver Map, Expo Location |
+| 관리자 웹 | React 19, Vite 8, React Router, Axios |
+| Backend | Node.js 24, TypeScript, Express 5, Zod, pg, JWT, bcrypt, Pino |
+| Routing Worker | Python 3.12, FastAPI, NetworkX, NumPy 및 공간 데이터 처리 라이브러리 |
+| AI 실험 | Logistic Regression, Random Forest, LightGBM, XGBoost, CatBoost, RankNet 등 비교 |
+| 데이터베이스 | PostgreSQL 17, PostGIS 3.5, node-pg-migrate |
+| 배포 | Docker Compose, Caddy |
 
-공공데이터는 단순 존재 여부만 사용하는 것이 아니라  
-경로 단위의 `RouteFeature`로 변환하여 알고리즘이 사용할 수 있도록 구성합니다.
+버전은 저장소의 패키지 선언과 Dockerfile 기준입니다.
 
-예:
-
-```text
-RouteFeature
-
-distanceKm
-distanceError
-elevationGain
-elevationScore
-toiletCount
-nearestToiletDistance
-storeCount
-nearestStoreDistance
-parkScore
-streetlightScore
-cctvScore
-```
-
----
-
-## 🧭 좌표 및 공간 데이터 규칙
-
-외부 통신에서는 다음 형식을 기본으로 사용합니다.
-
-```json
-{
-  "latitude": 37.543,
-  "longitude": 127.044
-}
-```
-
-기본 좌표계:
-
-```text
-App / Backend / 외부 API
-→ EPSG:4326
-```
-
-거리, Buffer 등 공간 연산이 필요한 경우:
-
-```text
-EPSG:4326
-    ↓
-EPSG:5179
-```
-
-GIS 객체 생성 시 좌표 순서는 일반적인 GIS 규칙에 맞춰 다음과 같이 사용합니다.
-
-```text
-API / JSON
-latitude, longitude
-
-GIS
-longitude, latitude
-```
-
-경로는 기본적으로 `LineString`, 시설은 `Point`, 영역 데이터는 `Polygon` 형태로 관리하는 방향입니다.
-
----
-
-## 🤖 AI / LLM 활용 방향
-
-AI는 서비스 전체를 대신하는 형태가 아니라 필요한 구간에 선택적으로 적용합니다.
-
-### LLM
-
-주요 역할:
-
-```text
-사용자 자연어
-        ↓
-LLM
-        ↓
-구조화 JSON
-        ↓
-Backend 검증
-        ↓
-경로 추천 알고리즘
-```
-
-LLM 결과는 바로 신뢰하지 않고 서버에서 다시 검증합니다.
-
-예:
-
-```json
-{
-  "targetDistanceKm": 7,
-  "slopePreference": "LOW",
-  "requirements": {
-    "toilet": true
-  }
-}
-```
-
-### 경로 생성 / 추천 AI
-
-현재 다음 적용 가능성을 검토하고 있습니다.
-
-- 기존 알고리즘으로 생성한 후보를 학습 데이터로 활용하는 경로 생성 모델
-- Route Feature를 기반으로 후보 경로를 평가하는 추천 / Ranking 모델
-
-프로젝트 범위와 학습 데이터 품질을 고려하여  
-기존 알고리즘과 AI의 역할은 실제 구현 과정에서 조정할 예정입니다.
-
----
-
-## 🔐 인증 정책 변경
-
-초기에는 Google OAuth 단일 로그인을 검토했으나 현재는 다음 방향으로 변경하였습니다.
-
-```text
-자체 회원가입
-        ↓
-자체 로그인
-        ↓
-bcrypt 비밀번호 해싱
-        ↓
-JWT 기반 인증
-```
-
-현재 기준:
-
-- 자체 회원가입 / 로그인
-- JWT 기반 인증
-- bcrypt 비밀번호 해싱
-- 필요 시 전화번호 인증 추가 검토
-- OAuth 계정 병합 정책은 현재 범위에서 제외
-
-추가 보안 기능은 실제 구현 단계에서 필요성을 확인하며 적용합니다.
-
----
-
-## 🔌 주요 인터페이스 방향
-
-### Frontend → Backend
-
-```text
-React Native
-    ↓ HTTP / JSON
-Node Backend
-```
-
-외부 앱은 Python Worker나 DB에 직접 접근하지 않습니다.
-
-### Backend → Python Worker
-
-초기에는 Node `child_process`로 Python을 실행하는 방식도 PoC를 진행했으나,  
-현재는 런타임 결합을 줄이기 위해 다음 구조로 변경하였습니다.
-
-```text
-Node Container
-      ↓ Internal HTTP
-FastAPI Worker Container
-```
-
-현재 선택 이유:
-
-- Node / Python 런타임 분리
-- Worker 독립 재시작
-- Health Check 구성 용이
-- Worker 수평 확장 가능성
-- Docker 기반 통합 실행
-
-메시지 큐와 Raw TCP 방식도 검토했지만 현재 프로젝트 규모와 기술 비용을 고려하여 사용하지 않습니다.
-
-### Backend → TMAP
-
-TMAP API Key는 모바일 앱에 직접 포함하지 않고 Backend에서 관리합니다.
-
-```text
-App
- ↓
-Backend
- ↓
-TmapAdapter
- ↓
-TMAP API
-```
-
-TMAP 원본 응답은 내부 공통 Route 형식으로 변환한 뒤 알고리즘에서 사용합니다.
-
----
-
-## 🗄️ DB 초기화 방향
-
-새로운 환경에서도 프로젝트를 쉽게 실행할 수 있도록 다음 구조를 준비하고 있습니다.
-
-```text
-DB 생성
-    ↓
-Migration
-    ↓
-Seed
-    ↓
-CSV / SHP Import
-```
-
-예상 구조:
-
-```text
-infra/
-└─ db/
-   ├─ migrations/
-   ├─ seeds/
-   └─ imports/
-```
-
-반복 실행 시 데이터가 중복되거나 상태가 망가지지 않도록  
-`UNIQUE`, `UPSERT`, `ON CONFLICT` 등을 이용한 멱등성을 고려합니다.
-
-Migration 도구와 구체적인 자동화 방식은 아직 확정 전입니다.
-
----
-
-## 📁 프로젝트 구조
-
-현재 프로젝트는 다음과 같은 큰 구조를 기준으로 구성하고 있습니다.
+## 저장소 구성
 
 ```text
 RunStop/
-├─ backend/                 # Node.js + TypeScript API 서버
-│  ├─ src/
-│  │  ├─ routes/
-│  │  ├─ services/
-│  │  ├─ repositories/
-│  │  ├─ adapters/
-│  │  ├─ dto/
-│  │  ├─ config/
-│  │  └─ middleware/
-│  └─ Dockerfile
-│
-├─ routing-worker/          # Python 경로 알고리즘 / AI Worker
-│  ├─ src/
-│  │  ├─ api/
-│  │  ├─ services/
-│  │  ├─ algorithm/
-│  │  ├─ features/
-│  │  └─ ranking/
-│  ├─ preprocessing/
-│  ├─ inference/
-│  ├─ training/
-│  ├─ models/
-│  └─ Dockerfile
-│
-├─ frontend/                # React Native App
-├─ data/                    # 원본 / 정제 데이터
-├─ infra/                   # DB migration / seed / import 등
-├─ notebooks/               # 데이터 / 모델 실험
-├─ test/                    # 팀원별 기술 검증 / PoC
-├─ docs/                    # 기획 / 설계 / 회의 / 명세
-│
+├─ frontend/
+│  ├─ mobile/          모바일 앱
+│  └─ admin/           관리자 웹
+├─ backend/            API · 인증 · 비즈니스 로직 · 데이터 저장
+├─ routing-worker/     경로 생성 · 특성 계산 · 점수화 · AI 추론
+├─ ai/                 데이터 생성 · 모델 학습 · 평가 실험
+├─ infra/db/           DB 마이그레이션 · 데이터 적재
+├─ assets/             README용 앱 아이콘 · 서비스 스크린샷
+├─ docs/               설계 · API 명세 · 회의 및 개발 문서
+├─ notebooks/          분석 및 실험 노트북
+├─ test/               팀원별 기술 검증 및 테스트 자료
 ├─ docker-compose.yml
-├─ .env.example
-└─ README.md
+├─ docker-compose.production.yml
+└─ Caddyfile
 ```
 
-일부 폴더는 인터페이스를 먼저 정의하기 위해 생성된 골격이며 구현이 진행되면서 변경될 수 있습니다.
+## 개발 환경 실행
 
----
+Docker Compose와 Node.js/npm이 필요합니다. 모바일 네이티브 빌드에는 Android SDK 또는 iOS 개발 환경이 필요하며, Worker를 직접 실행하거나 AI 실험을 할 때는 Python 3.12 환경을 준비합니다.
 
-## ⚙️ 개발 원칙
+### API · Worker · DB
 
-현재 프로젝트에서는 기능을 한꺼번에 구현한 뒤 마지막에 합치는 방식을 지양합니다.
+저장소 루트에서 환경 파일을 준비합니다. 아래 명령은 PowerShell 기준이며, 이미 환경 파일이 있다면 기존 설정을 사용합니다.
 
-```text
-기술 가능 여부 확인
-        ↓
-작은 PoC
-        ↓
-인터페이스 정의
-        ↓
-구현
-        ↓
-작은 단위 통합 테스트
-        ↓
-최종 통합
+```powershell
+Copy-Item .env.development.example .env.development
+Copy-Item .env.production.example .env.production
 ```
 
-서버 환경은 다음 순서로 준비하고 있습니다.
+`.env.development`의 DB 접속 정보와 `JWT_SECRET`을 설정합니다. 외부 서비스를 연결하지 않는 개발 환경은 `LLM_MODE=mock`, `SMS_API_ENABLED=false`로 설정할 수 있습니다. 사용하지 않는 선택 API 키 항목은 빈 값 대신 삭제하거나 주석 처리합니다. 현재 환경변수 검증에서 빈 문자열은 허용하지 않습니다.
 
-```text
-Dockerfile / docker-compose
-        ↓
-환경변수
-        ↓
-DB migration / seed / import
-        ↓
-프로젝트 폴더 구조
-        ↓
-DTO / interface
-        ↓
-Repository / Adapter
-        ↓
-Worker 연결
-        ↓
-실제 서비스 로직
+```powershell
+docker compose up -d --build database routing-worker backend
+docker compose exec backend npm run db:migrate
 ```
 
-목표는 팀원이 Repository를 clone한 뒤 최대한 비슷한 환경에서 프로젝트를 실행할 수 있도록 하는 것입니다.
+현재 개발 Compose에도 Caddy가 선언되어 있어 `.env.production` 파일을 함께 준비하되, 위 명령에서는 개발용 세 서비스만 실행합니다. DB가 준비된 뒤 마이그레이션을 실행하세요.
 
----
+- Backend 상태 확인: `http://localhost:3000/health`
+- Worker 상태 확인: `http://localhost:8000/health`
+- DB 접속 포트: `localhost:5432`
 
-## 🕒 개발 기록
+실제 코스 추천에는 보행 그래프, DEM, 시설·OSM 데이터가 필요합니다. 데이터 준비는 [Worker 데이터 안내](routing-worker/src/algo/data/README.md)를 참고하세요. 현재 Worker는 보행 그래프가 없으면 테스트용 격자 그래프를 사용합니다.
 
-### 2026-08-23
+### 모바일 앱
 
-- RunStop Repository 초기 구성
-- 프로젝트 기획안 및 공공데이터 후보 정리
-- 서비스 차별점, 기본 사용자 흐름, AI 활용 후보 정의
+`frontend/mobile/.env`에서 `EXPO_PUBLIC_API_BASE_URL`을 설정합니다. Android 에뮬레이터는 `http://10.0.2.2:3000`, 실기기는 접근 가능한 개발 PC의 LAN 주소 또는 배포 API 주소를 사용합니다.
 
-### 2026-08-25
-
-- 사용자 플로우와 주요 화면 구조 구체화
-- PostgreSQL + PostGIS 사용 방향 결정
-- React Native / Node.js / Python Worker 기반 아키텍처 초안 작성
-- 경로 생성 → Feature 계산 → Ranking 구조 정리
-- 서비스 DB 초안 및 주요 도메인 데이터 정의
-
-### 2026-08-26
-
-- 경로 추천 API 및 DTO 구조 구체화
-- `RouteRequest`, `Route`, `RouteFeature`, `RouteScore` 등 내부 데이터 규격 검토
-- TMAP 응답을 내부 Route로 변환하는 Adapter 구조 정리
-- EPSG:4326 / EPSG:5179 좌표계 사용 원칙 정리
-- 프론트 화면과 백엔드 데이터의 불일치 항목 검토
-
-### 2026-08-27
-
-- PostGIS 기본 타입 / 함수 / 공간 Query 검증
-- 팀 데이터 및 경사도 처리 모듈 테스트
-- 프로젝트 전체 정책과 서비스 데이터 구조 통합 정리
-- CSV / SHP 데이터의 DB 적재 및 활용 방식 검토
-
-### 2026-08-28
-
-- DB Schema 분리, Migration / Seed / Import 방향 검토
-- Node와 Python의 DB 접근 권한 및 책임 범위 검토
-- 서비스 API 명세와 데이터셋 DB 구성 방향 구체화
-
-### 2026-08-29
-
-- Node `child_process` 기반 Python Worker 통신 PoC 진행
-- JSON 직렬화 / 오류 처리 / 프로세스 종료 처리 검증
-- TypeScript 도입 및 DTO 타입 설계 검토
-- 알고리즘 명세 문서 작성 프레임 구성
-- 실제 서비스에서는 Python Worker를 독립 서비스로 분리하는 방향 확정
-
-### 2026-08-30
-
-- `backend / routing-worker / frontend / infra` 프로젝트 골격 구성
-- Node Backend와 Python FastAPI Worker 분리
-- Dockerfile / `.dockerignore` 작성 및 Docker Layer / Cache 검토
-- Docker Compose로 Backend / Worker / PostGIS를 묶는 provisioning 구조 작성
-- 환경변수 관리 규칙 정리
-- Worker 통신 방식을 `Node → Internal HTTP → FastAPI` 구조로 변경
-- Health Check, DB Migration / Seed / Import를 다음 구현 단계로 설정
-
----
-
-## 📊 현재 진행 상태
-
-```text
-[완료/진행] 서비스 기획 및 요구사항 정리
-[진행] UI/UX 구체화
-[진행] 데이터 전처리 및 알고리즘 설계
-[진행] 서비스 아키텍처 설계
-[진행] Docker 기반 개발 환경 구성
-[진행] PostGIS / TMAP / Worker 기술 검증
-[예정] Backend / Worker 최소 Health Check 구현
-[예정] Docker Compose 통합 실행 검증
-[예정] Node → Worker → PostGIS 최소 수직 통합
-[예정] DB Migration / Seed / Import 구현
-[예정] API / DTO 최종 확정
-[예정] 실제 서비스 기능 개발
-[예정] 통합 및 현장 테스트
-[예정] 배포
+```powershell
+cd frontend/mobile
+npm ci
+npm run android
 ```
 
----
+Naver Map 네이티브 모듈을 사용하는 개발 빌드입니다. `app.json`의 지도 클라이언트 설정을 확인하세요. 개발 빌드 설치 후에는 `npx expo start --dev-client`로 개발 서버를 실행할 수 있습니다.
 
-## 🚧 현재 주요 미확정 사항
+### 관리자 웹
 
-- React Native 버전 및 지도 SDK 세부 구성
-- API의 동기 / 비동기 추천 처리 방식
-- Migration 도구
-- AI 모델의 최종 적용 범위
-- Route Feature 및 Ranking 공식
-- Worker Scaling 필요 여부
-- 실제 배포 환경
-
-해당 사항은 PoC 및 실제 구현 결과를 기준으로 단계적으로 확정합니다.
-
----
-
-## 📚 참고 문서
-
-상세 설계 및 회의 내용은 `docs/` 폴더에서 관리합니다.
-
-주요 문서 분류:
-
-```text
-docs/
-├─ 01_기획
-├─ 02_프로젝트_설계
-├─ 03_프론트_UI_UX
-├─ 04_API_EVENTS_명세
-├─ 05_AI_구조_명세
-├─ 06_datas
-├─ summary
-└─ 99_logs
+```powershell
+cd frontend/admin
+npm ci
+npm run dev -- --port 5173
 ```
 
-README는 현재 프로젝트 상태를 빠르게 파악하기 위한 문서이며,  
-세부 구현 규칙과 의사결정 과정은 각 설계 문서를 기준으로 관리합니다.
+Backend와 포트가 겹치지 않도록 `5173`을 지정합니다. 현재 `vite.config.js`의 `/api` 프록시는 배포 서버를 가리키므로, 로컬 API에 연결하려면 `target`을 `http://localhost:3000`으로 변경합니다.
+
+### 운영 배포
+
+운영 구성은 [docker-compose.production.yml](docker-compose.production.yml)과 [Caddyfile](Caddyfile)을 사용합니다. `.env.production`에 DB·인증·외부 API 설정과 `API_DOMAIN`을 준비하고, 도메인이 서버를 가리키도록 설정합니다.
+
+```powershell
+docker compose -f docker-compose.production.yml pull
+docker compose -f docker-compose.production.yml up -d
+```
+
+현재 운영 Compose는 레지스트리의 Backend·Worker 이미지를 사용합니다. 신규 DB의 마이그레이션과 데이터 적재는 별도로 진행해야 하며, 모바일 앱과 관리자 웹은 이 Compose에 포함되지 않습니다.
+
+## 참여자
+
+| 팀원 | 담당 영역 |
+|---|---|
+| 박건희 | 경로 생성 가중치 알고리즘, AI 추천 모델 |
+| 윤재빈 | 데이터 전처리, 경로 점수화 |
+| 최한빈 | 사용자 어플리케이션 개발, 프론트 설계 |
+| 이승연 | 관리자 페이지 개발, 프론트 설계 | 
+| 허완 | 서비스 아키텍처/DB/서버 설계, 프로젝트 문서화, AI 추천 모델 |
+
+## 개발 기록
+
+- [2026-09-17] AI 평가 지표·자원 측정 및 관리자 API 프록시 설정 보완.
+- [2026-09-16] 앱 2차 로컬 테스트 완료, 릴리스 및 오류 수정.
+- [2026-09-15] 앱·서버·알고리즘·AI 통합 및 배포, LLM·SMS 연동, 세션 복구·코스 방향 표시와 거리 집계 개선.
+- [2026-09-14] 추천 코스 실제 데이터 연결, AI 자동화 작업, 추천 및 러닝 종료 처리 개선.
+- [2026-09-13] 운영 Compose 작성, 프론트·Worker 통합 및 AI 실험 환경 구성.
+- [2026-09-12] AI 평가·데이터 생성 전략 정리, 프론트 화면과 스타일 수정.
+- [2026-09-11] LLM 어댑터·장소 검색 구현, 경로 추천 스키마 정리 및 모바일 통합.
+- [2026-09-10] 알고리즘 2차 병합, 경로 생성·특성 추출 개선 및 관리자 기능 구현.
+- [2026-09-08] 모바일 메인 앱·관리자 대시보드 추가, Naver Map 개발 빌드 설정.
+- [2026-09-07] 관리자 로그인·문의 화면 추가, 알고리즘 코드 검토.
+- [2026-09-06] Node·FastAPI·알고리즘 연동, 회원 탈퇴 기능 추가.
+- [2026-09-05] 경로 추천 알고리즘 리뷰 및 테스트.
+- [2026-09-02] 인증·사용자 API 구현 및 Node API·어댑터 골격 정리.
+- [2026-09-01] 서버 구조 및 인증 기능 구현 시작.
+- [2026-08-31] DB ERD 및 마이그레이션 작업.
+- [2026-08-30] 저장소 구조·Docker 실행 환경 구성, Node·Python 통신 검증.
+- [2026-08-28] 데이터 모듈·PostGIS 테스트 및 팀 작업 취합.
+- [2026-08-27] 경사도 계산 모듈 공유 및 진행 상황 정리.
+- [2026-08-26] DB·UI·알고리즘 설계 구체화 및 역할 정리.
+- [2026-08-24] 기획안 기반 서비스 설계 구체화.
+- [2026-08-23] 프로젝트 시작.
+
+## 관련 문서
+
+- [Backend API 명세](docs/04_Node_서버_설계/API/README.md)
+- [Worker 설계 문서](docs/06_router-worker_명세/README.md)
+- [AI 실험 환경 및 실행 방법](ai/README.md)
+- [서울 공간 데이터 안내](routing-worker/src/algo/data/README.md)
+- [전체 문서](docs/)
