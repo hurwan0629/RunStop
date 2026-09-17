@@ -1,0 +1,12 @@
+# 런타임 (pipeline.recommend 실행에 필요) — 깨끗한 venv 권장
+networkx>=3.0
+numpy>=1.24
+scipy>=1.10
+pyproj>=3.5
+pandas>=2.0
+shapely>=2.0
+geopandas>=1.0        # nature.py — 공원/하천 geojson 로드
+
+# 1회성 도구
+# osmnx>=2.0          # build_graph.py, fetch_park_water.py (그래프/폴리곤 다운로드)
+# folium>=0.19        # draw_map.py (코스 HTML 지도)

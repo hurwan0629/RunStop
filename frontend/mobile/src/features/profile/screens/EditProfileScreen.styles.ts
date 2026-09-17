@@ -1,0 +1,41 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
+  keyboardArea: { flex: 1 },
+  header: {
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  backButton: { width: 36, color: '#0A145A', fontSize: 38, lineHeight: 40 },
+  screenTitle: { color: '#0A145A', fontSize: 22, fontWeight: '900' },
+  content: { padding: 24, paddingBottom: 44 },
+  field: { marginTop: 22 },
+  label: { color: '#252B3B', fontSize: 14, fontWeight: '700', marginBottom: 9 },
+  inputRow: {
+    minHeight: 54,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#DDE0E8',
+    borderRadius: 12,
+    backgroundColor: '#F8F9FC',
+    paddingHorizontal: 15,
+  },
+  input: { flex: 1, color: '#17204E', fontSize: 15 },
+  suffix: { color: '#7D8495', fontSize: 13, fontWeight: '700' },
+  errorText: { color: '#E5484D', fontSize: 13, lineHeight: 19, marginTop: 20 },
+  saveButton: {
+    minHeight: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+    backgroundColor: '#100078',
+    marginTop: 34,
+  },
+  saveButtonText: { color: '#C8FF30', fontSize: 16, fontWeight: '900' },
+  pressed: { opacity: 0.68 },
+  disabled: { opacity: 0.5 },
+});

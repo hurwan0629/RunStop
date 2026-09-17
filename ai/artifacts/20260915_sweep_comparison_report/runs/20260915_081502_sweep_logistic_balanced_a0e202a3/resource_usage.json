@@ -1,0 +1,13 @@
+{
+  "wall_seconds": 16.561243299976923,
+  "cpu_seconds": 19.84375,
+  "cpu_percent_one_core": 119.82041227561491,
+  "sampled_peak_rss_bytes": 371425280,
+  "sampling_interval_ms": 20,
+  "scope": "experiment process including native threads; not child processes",
+  "inference_seconds": 10.513704100740142,
+  "inference_ms_per_request": 8.506233091213707,
+  "inference_protocol": "one call per request; includes preprocessing; first cold call included; no warmup",
+  "train_seconds": 1.617744799994398,
+  "model_bundle_bytes": 9560
+}

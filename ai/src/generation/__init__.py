@@ -1,0 +1,1 @@
+"""datasets의 user_profiles_and_requests 폴더를 읽고 json 파일을 이용하여 데이터셋을 datasets/에 생성하기 위한 모듈입니다."""

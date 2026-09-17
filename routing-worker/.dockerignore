@@ -1,0 +1,38 @@
+# Python 가상환경
+.venv/
+venv/
+
+# Python 캐시
+__pycache__/
+*.pyc
+*.pyo
+
+# 테스트/도구 캐시
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# 환경변수
+.env
+.env.*
+
+# 로그
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 훈련용 폴더
+training/
+preprocessing/
+
+# 

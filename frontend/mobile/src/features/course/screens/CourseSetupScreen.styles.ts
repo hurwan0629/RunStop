@@ -1,0 +1,203 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F7F8FA',
+  },
+  content: {
+    paddingTop: 10,
+    paddingBottom: 40,
+  },
+  headerRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+  },
+  backButton: {
+    color: '#100078',
+    fontSize: 38,
+    lineHeight: 40,
+  },
+  stepText: {
+    color: '#100078',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  title: {
+    color: '#100078',
+    flex: 1,
+    fontSize: 22,
+    fontWeight: '800',
+    marginLeft: 16,
+  },
+  stepBadge: {
+    backgroundColor: '#F0F2FF',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  map: {
+    borderRadius: 0,
+    height: 260,
+  },
+  errorText: {
+    color: '#E5484D',
+    fontSize: 12,
+    marginBottom: 10,
+    marginLeft: 58,
+  },
+  routeForm: {
+    backgroundColor: '#F7F8FA',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  searchRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  fieldLabel: {
+    color: '#475467',
+    fontSize: 14,
+    fontWeight: '700',
+    marginRight: 8,
+    width: 50,
+  },
+  searchInput: {
+    backgroundColor: '#F8F8FA',
+    borderRadius: 14,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: 56,
+    paddingHorizontal: 16,
+  },
+  searchText: {
+    color: '#100078',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  placeholderText: {
+    color: '#8F92B5',
+    fontWeight: '400',
+  },
+  clearValueButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: -35,
+    minHeight: 48,
+    width: 35,
+    zIndex: 1,
+  },
+  clearValueText: {
+    color: '#98A2B3',
+    fontSize: 23,
+    lineHeight: 26,
+  },
+  currentLocationButton: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#100078',
+    borderRadius: 14,
+    borderWidth: 1,
+    justifyContent: 'center',
+    marginLeft: 8,
+    minHeight: 56,
+    paddingHorizontal: 10,
+  },
+  currentLocationButtonText: {
+    color: '#100078',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  removeWaypointButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+    minHeight: 48,
+    width: 30,
+  },
+  removeWaypointText: {
+    color: '#667085',
+    fontSize: 25,
+    fontWeight: '400',
+    lineHeight: 28,
+  },
+  disabledButton: {
+    opacity: 0.55,
+  },
+  waypointButton: {
+    alignSelf: 'flex-start',
+    paddingBottom: 18,
+    paddingLeft: 58,
+    paddingTop: 2,
+  },
+  waypointButtonText: {
+    color: '#667085',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  favoriteSection: {
+    borderTopColor: '#E5E7F0',
+    borderTopWidth: 1,
+    marginTop: 8,
+    paddingTop: 18,
+  },
+  favoriteTitle: {
+    color: '#182230',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  favoriteHint: {
+    color: '#667085',
+    fontSize: 12,
+    marginTop: 6,
+  },
+  favoritePlace: {
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E5E7F0',
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    marginTop: 10,
+    padding: 13,
+  },
+  favoriteStar: {
+    color: '#100078',
+    fontSize: 17,
+    marginRight: 9,
+  },
+  favoriteCopy: {
+    flex: 1,
+  },
+  favoritePlaceName: {
+    color: '#101828',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  favoriteCoordinate: {
+    color: '#98A2B3',
+    fontSize: 11,
+    marginTop: 3,
+  },
+  nextButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 54,
+    borderRadius: 14,
+    backgroundColor: '#100078',
+    paddingHorizontal: 18,
+    marginHorizontal: 20,
+    marginTop: 20,
+  },
+  nextButtonText: {
+    color: '#C8FF30',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+});

@@ -1,0 +1,8 @@
+numpy>=2.0,<3
+pandas>=2.2,<4
+pyarrow>=18,<25
+PyYAML>=6,<7
+pydantic>=2.10,<3
+scikit-learn>=1.6,<2
+psutil>=6,<8
+matplotlib>=3.9,<4

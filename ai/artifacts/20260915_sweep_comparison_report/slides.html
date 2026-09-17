@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RunStop AI Sweep Slides</title>
+<style>
+:root{--ink:#182522;--muted:#64706c;--line:#d9e2de;--paper:#edf2f0;--panel:#fff;--green:#16705d;--teal:#0f8b8d;--blue:#3867d6;--red:#b44747;--amber:#a76c16;--violet:#6b5dd3}
+*{box-sizing:border-box}html{scroll-snap-type:y proximity}body{margin:0;background:var(--paper);color:var(--ink);font:18px/1.45 "Segoe UI","Malgun Gothic",Arial,sans-serif}
+.deck{display:grid;gap:34px;max-width:1240px;margin:0 auto;padding:28px}
+.slide{min-height:720px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:44px 54px;box-shadow:0 14px 40px rgba(24,37,34,.08);overflow:visible;position:relative;scroll-snap-align:start;break-after:page}
+h1,h2,h3,p{margin-top:0}h1{font-size:56px;line-height:1.05;margin-bottom:20px;letter-spacing:0}h2{font-size:38px;margin-bottom:22px;letter-spacing:0}h3{font-size:24px;margin-bottom:8px;letter-spacing:0}p{color:var(--muted)}small,.slide-muted{color:var(--muted)}.kicker{font-size:15px;color:var(--green);font-weight:700;margin-bottom:12px;text-transform:uppercase}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:38px;align-items:end;height:100%}.hero-stat{display:grid;grid-template-columns:1fr 1fr;gap:14px}.hero-stat article,.metric-grid article,.callout,.model-card{border:1px solid var(--line);border-radius:8px;padding:18px;background:#f9fbfa}
+.hero-stat b{display:block;font-size:28px}.hero-stat span{color:var(--muted);font-size:14px}.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.metric-grid b{font-size:24px}.metric-grid p{font-size:15px;margin:8px 0}.metric-grid small{font-size:13px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.callout b{display:block;font-size:26px;margin-bottom:8px}.callout strong{font-size:40px;color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:15px}th,td{border-bottom:1px solid var(--line);padding:10px 9px;text-align:left;vertical-align:middle}th{font-size:13px;color:var(--muted)}td b{display:block}td span{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.slide-bar{display:block;height:8px;border-radius:99px;background:linear-gradient(90deg,var(--green) var(--w),#e8eeeb var(--w));margin-top:7px}.slide-bar.cost{background:linear-gradient(90deg,#7c8792 var(--w),#e8eeeb var(--w))}
+.model-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.model-card h3{font-size:19px}.model-card p{font-size:14px;margin-bottom:8px}.model-card ul{list-style:none;padding:0;margin:0;display:grid;gap:6px}.model-card li{display:grid;grid-template-columns:1fr 1.2fr .8fr;gap:8px;font-size:12px;align-items:start}.model-card li span{color:var(--muted)}.model-card li em{font-style:normal;text-align:right;color:var(--green)}
+.scatter{height:470px;border:1px solid var(--line);border-radius:8px;background:linear-gradient(#edf3f0 1px,transparent 1px),linear-gradient(90deg,#edf3f0 1px,transparent 1px);background-size:20% 25%;position:relative;margin-top:10px}.scatter:before{content:"Top1 높음";position:absolute;left:14px;top:10px;color:var(--muted);font-size:13px}.scatter:after{content:"추론 시간 증가";position:absolute;right:14px;bottom:10px;color:var(--muted);font-size:13px}.dot{width:13px;height:13px;border-radius:50%;position:absolute;transform:translate(-50%,-50%);border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.18)}.dot-label{position:absolute;transform:translateY(-50%);font-size:11px;line-height:1;background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:4px;padding:3px 5px;white-space:nowrap;color:#20302c}
+.condition_score_baseline{background:#111827}.lightgbm_ranker{background:var(--green)}.xgboost_ranker{background:var(--amber)}.catboost_ranker{background:var(--teal)}.ranknet{background:var(--blue)}.random_forest{background:var(--red)}.logistic_regression{background:var(--violet)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:12px;color:var(--muted)}.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.decision{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}.decision article{border-left:5px solid var(--green);background:#f8fbfa;padding:18px}.decision article:nth-child(2){border-color:#7c8792}.decision b{display:block;font-size:22px;margin-bottom:6px}
+@page{size:landscape;margin:0}@media print{html{scroll-snap-type:none}body{background:#fff}.deck{display:block;padding:0}.slide{border:0;box-shadow:none;border-radius:0;width:100vw;min-height:100vh}}
+@media(max-width:900px){body{font-size:15px}.deck{padding:12px}.slide{aspect-ratio:auto;min-height:720px;padding:28px}h1{font-size:38px}h2{font-size:28px}.hero-grid,.two,.three,.model-grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main class="deck">
+<section class="slide">
+  <div class="hero-grid">
+    <div>
+      <div class="kicker">RunStop AI Ranking Sweep</div>
+      <h1>모델별 성능과 비용 비교</h1>
+      <p>2026-09-15 실험 19개를 발표용으로 재구성했습니다. 줄글 파라미터 대신 모델별 최고안, 비용, 파라미터 영향만 빠르게 보이도록 정리했습니다.</p>
+    </div>
+    <div class="hero-stat">
+      <article><span>최고 성능</span><b>ranknet_wider</b><small>Top1 82.4%</small></article>
+      <article><span>가장 빠름</span><b>condition_score_baseline</b><small>0.02 ms/request</small></article>
+      <article><span>가장 작음</span><b>condition_score_baseline</b><small>0.0002 MB</small></article>
+      <article><span>운영 후보</span><b>lightgbm_more_trees</b><small>Top1 63.2%</small></article>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Metrics</div>
+  <h2>지표 의미</h2>
+  <div class="metric-grid"><article><b>Top1</b><p>가장 좋은 후보를 1순위로 뽑은 비율</p><small>높을수록 좋음</small></article><article><b>NDCG@3</b><p>상위 3개 추천 순서가 이상적인 순서와 얼마나 가까운지</p><small>높을수록 좋음</small></article><article><b>Regret</b><p>최고 후보를 놓쳐서 잃은 utility 평균</p><small>낮을수록 좋음</small></article><article><b>Pairwise</b><p>두 후보를 비교했을 때 더 나은 쪽을 맞춘 비율</p><small>높을수록 좋음</small></article><article><b>추론 시간</b><p>요청 1건을 랭킹하는 데 걸린 평균 시간</p><small>낮을수록 좋음</small></article><article><b>자원 사용량</b><p>학습 시간, CPU 시간, Peak RSS, 모델 번들 크기</p><small>낮을수록 배포 부담이 작음</small></article></div>
+  <p style="margin-top:18px">MRR은 이번 평가에서 제외했습니다. 실제 사용자 클릭/선택 로그가 아니라 synthetic utility 기반 후보 순위라서, Top1/NDCG/Regret과 의미가 크게 겹칩니다.</p>
+</section>
+
+<section class="slide">
+  <div class="kicker">Best Per Model</div>
+  <h2>모델별 최고 실험 비교</h2>
+  <table><thead><tr><th>모델</th><th>Top1</th><th>NDCG@3</th><th>Regret</th><th>추론 시간</th></tr></thead><tbody><tr><td><b>ranknet</b><span>ranknet_wider</span></td><td>82.4%<span class="slide-bar " style="--w:100.00%"></span></td><td>0.9954<span class="slide-bar " style="--w:100.00%"></span></td><td>0.0019</td><td>6.48 ms</td></tr><tr><td><b>lightgbm_ranker</b><span>lightgbm_more_trees</span></td><td>63.2%<span class="slide-bar " style="--w:76.64%"></span></td><td>0.9895<span class="slide-bar " style="--w:99.41%"></span></td><td>0.0066</td><td>5.89 ms</td></tr><tr><td><b>random_forest</b><span>random_forest_base</span></td><td>61.3%<span class="slide-bar " style="--w:74.39%"></span></td><td>0.9870<span class="slide-bar " style="--w:99.15%"></span></td><td>0.0060</td><td>17.26 ms</td></tr><tr><td><b>catboost_ranker</b><span>catboost_more_iterations</span></td><td>60.5%<span class="slide-bar " style="--w:73.41%"></span></td><td>0.9873<span class="slide-bar " style="--w:99.18%"></span></td><td>0.0071</td><td>6.85 ms</td></tr><tr><td><b>xgboost_ranker</b><span>xgboost_base</span></td><td>56.6%<span class="slide-bar " style="--w:68.69%"></span></td><td>0.9849<span class="slide-bar " style="--w:98.95%"></span></td><td>0.0091</td><td>9.11 ms</td></tr><tr><td><b>logistic_regression</b><span>logistic_stronger_regularization</span></td><td>55.0%<span class="slide-bar " style="--w:66.73%"></span></td><td>0.9783<span class="slide-bar " style="--w:98.28%"></span></td><td>0.0120</td><td>5.60 ms</td></tr><tr><td><b>condition_score_baseline</b><span>condition_score_baseline</span></td><td>36.5%<span class="slide-bar " style="--w:44.26%"></span></td><td>0.9585<span class="slide-bar " style="--w:96.30%"></span></td><td>0.0201</td><td>0.02 ms</td></tr></tbody></table>
+</section>
+
+<section class="slide">
+  <div class="kicker">Quality vs Latency</div>
+  <h2>성능과 추론 비용의 위치</h2>
+  <div class="scatter"><span class='dot ranknet' style='left:37.80%;top:6.00%' title='ranknet_wider: Top1 82.4%, 6.48ms'></span><span class='dot-label' style='left:39.00%;top:3.00%'>ranknet_wider</span><span class='dot ranknet' style='left:28.89%;top:6.00%' title='ranknet_depth_2: Top1 82.3%, 4.77ms'></span><span class='dot-label' style='left:30.09%;top:6.00%'>ranknet_depth_2</span><span class='dot ranknet' style='left:28.44%;top:6.00%' title='ranknet_base: Top1 80.6%, 4.69ms'></span><span class='dot-label' style='left:29.64%;top:9.00%'>ranknet_base</span><span class='dot lightgbm_ranker' style='left:34.70%;top:23.02%' title='lightgbm_more_trees: Top1 63.2%, 5.89ms'></span><span class='dot-label' style='left:35.90%;top:20.02%'>lightgbm_more_trees</span><span class='dot random_forest' style='left:94.00%;top:25.05%' title='random_forest_base: Top1 61.3%, 17.26ms'></span><span class='dot-label' style='left:88.00%;top:25.05%'>random_forest_base</span><span class='dot random_forest' style='left:55.74%;top:25.67%' title='random_forest_smaller: Top1 60.8%, 9.92ms'></span><span class='dot-label' style='left:56.94%;top:28.67%'>random_forest_smaller</span><span class='dot catboost_ranker' style='left:39.69%;top:25.94%' title='catboost_more_iterations: Top1 60.5%, 6.85ms'></span><span class='dot-label' style='left:40.89%;top:22.94%'>catboost_more_iterations</span><span class='dot lightgbm_ranker' style='left:33.21%;top:26.02%' title='lightgbm_base: Top1 60.4%, 5.60ms'></span><span class='dot-label' style='left:34.41%;top:26.02%'>lightgbm_base</span><span class='dot lightgbm_ranker' style='left:41.17%;top:27.26%' title='lightgbm_regularized: Top1 59.3%, 7.13ms'></span><span class='dot-label' style='left:42.37%;top:30.26%'>lightgbm_regularized</span><span class='dot xgboost_ranker' style='left:51.52%;top:30.17%' title='xgboost_base: Top1 56.6%, 9.11ms'></span><span class='dot-label' style='left:52.72%;top:27.17%'>xgboost_base</span><span class='dot xgboost_ranker' style='left:52.47%;top:30.62%' title='xgboost_regularized: Top1 56.2%, 9.30ms'></span><span class='dot-label' style='left:53.67%;top:30.62%'>xgboost_regularized</span><span class='dot catboost_ranker' style='left:39.40%;top:31.94%' title='catboost_base: Top1 55.0%, 6.79ms'></span><span class='dot-label' style='left:40.60%;top:34.94%'>catboost_base</span><span class='dot logistic_regression' style='left:33.20%;top:31.94%' title='logistic_stronger_regularization: Top1 55.0%, 5.60ms'></span><span class='dot-label' style='left:34.40%;top:28.94%'>logistic_stronger_regularization</span><span class='dot logistic_regression' style='left:31.15%;top:32.03%' title='logistic_base: Top1 54.9%, 5.21ms'></span><span class='dot-label' style='left:32.35%;top:32.03%'>logistic_base</span><span class='dot logistic_regression' style='left:48.34%;top:32.03%' title='logistic_balanced: Top1 54.9%, 8.51ms'></span><span class='dot-label' style='left:49.54%;top:35.03%'>logistic_balanced</span><span class='dot random_forest' style='left:75.71%;top:32.21%' title='random_forest_limited_depth: Top1 54.8%, 13.76ms'></span><span class='dot-label' style='left:76.91%;top:29.21%'>random_limited_depth</span><span class='dot xgboost_ranker' style='left:53.63%;top:32.29%' title='xgboost_deeper: Top1 54.7%, 9.52ms'></span><span class='dot-label' style='left:54.83%;top:32.29%'>xgboost_deeper</span><span class='dot catboost_ranker' style='left:34.58%;top:34.33%' title='catboost_regularized: Top1 52.8%, 5.87ms'></span><span class='dot-label' style='left:35.78%;top:37.33%'>catboost_regularized</span><span class='dot condition_score_baseline' style='left:4.12%;top:52.17%' title='condition_score_baseline: Top1 36.5%, 0.02ms'></span><span class='dot-label' style='left:5.32%;top:49.17%'>condition_score_baseline</span></div>
+  <div class="legend"><span><i class='catboost_ranker'></i>catboost_ranker</span><span><i class='condition_score_baseline'></i>condition_score_baseline</span><span><i class='lightgbm_ranker'></i>lightgbm_ranker</span><span><i class='logistic_regression'></i>logistic_regression</span><span><i class='random_forest'></i>random_forest</span><span><i class='ranknet'></i>ranknet</span><span><i class='xgboost_ranker'></i>xgboost_ranker</span></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Runtime Cost</div>
+  <h2>빠른 순서로 본 자원 소모량</h2>
+  <table><thead><tr><th>실험</th><th>추론 시간</th><th>학습 시간</th><th>모델 크기</th><th>Peak RSS</th></tr></thead><tbody><tr><td><b>condition_score_baseline</b><span>condition_score_baseline</span></td><td>0.02 ms<span class="slide-bar cost" style="--w:2.00%"></span></td><td>0.00 s<span class="slide-bar cost" style="--w:2.00%"></span></td><td>0.00 MB<span class="slide-bar cost" style="--w:2.00%"></span></td><td>187.0 MB</td></tr><tr><td><b>ranknet_base</b><span>ranknet</span></td><td>4.69 ms<span class="slide-bar cost" style="--w:27.15%"></span></td><td>9.89 s<span class="slide-bar cost" style="--w:18.73%"></span></td><td>0.03 MB<span class="slide-bar cost" style="--w:2.00%"></span></td><td>505.0 MB</td></tr><tr><td><b>ranknet_depth_2</b><span>ranknet</span></td><td>4.77 ms<span class="slide-bar cost" style="--w:27.66%"></span></td><td>11.29 s<span class="slide-bar cost" style="--w:21.38%"></span></td><td>0.05 MB<span class="slide-bar cost" style="--w:2.00%"></span></td><td>512.2 MB</td></tr><tr><td><b>logistic_base</b><span>logistic_regression</span></td><td>5.21 ms<span class="slide-bar cost" style="--w:30.16%"></span></td><td>1.42 s<span class="slide-bar cost" style="--w:2.68%"></span></td><td>0.01 MB<span class="slide-bar cost" style="--w:2.00%"></span></td><td>354.6 MB</td></tr><tr><td><b>logistic_stronger_regularization</b><span>logistic_regression</span></td><td>5.60 ms<span class="slide-bar cost" style="--w:32.44%"></span></td><td>1.43 s<span class="slide-bar cost" style="--w:2.70%"></span></td><td>0.01 MB<span class="slide-bar cost" style="--w:2.00%"></span></td><td>354.2 MB</td></tr><tr><td><b>lightgbm_base</b><span>lightgbm_ranker</span></td><td>5.60 ms<span class="slide-bar cost" style="--w:32.46%"></span></td><td>2.76 s<span class="slide-bar cost" style="--w:5.23%"></span></td><td>0.71 MB<span class="slide-bar cost" style="--w:2.00%"></span></td><td>278.4 MB</td></tr><tr><td><b>catboost_regularized</b><span>catboost_ranker</span></td><td>5.87 ms<span class="slide-bar cost" style="--w:33.98%"></span></td><td>6.87 s<span class="slide-bar cost" style="--w:13.01%"></span></td><td>0.28 MB<span class="slide-bar cost" style="--w:2.00%"></span></td><td>290.5 MB</td></tr><tr><td><b>lightgbm_more_trees</b><span>lightgbm_ranker</span></td><td>5.89 ms<span class="slide-bar cost" style="--w:34.11%"></span></td><td>2.80 s<span class="slide-bar cost" style="--w:5.31%"></span></td><td>1.81 MB<span class="slide-bar cost" style="--w:2.00%"></span></td><td>283.5 MB</td></tr></tbody></table>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parameter Sweep</div>
+  <h2>모델별 파라미터 변화 영향</h2>
+  <div class="model-grid"><section class='model-card'><h3>catboost_ranker</h3><p>최고: <b>catboost_more_iterations</b> · Top1 60.5%</p><ul><li><b>catboost_base</b><span>base</span><em>Top1 55.0%, NDCG 0.9838</em></li><li><b>catboost_more_iterations</b><span>iterations: 200 -&gt; 400</span><em>Top1 60.5%, NDCG 0.9873</em></li><li><b>catboost_regularized</b><span>l2_leaf_reg: 3.0 -&gt; 6.0</span><em>Top1 52.8%, NDCG 0.9817</em></li></ul></section><section class='model-card'><h3>condition_score_baseline</h3><p>최고: <b>condition_score_baseline</b> · Top1 36.5%</p><ul><li><b>condition_score_baseline</b><span>base</span><em>Top1 36.5%, NDCG 0.9585</em></li></ul></section><section class='model-card'><h3>lightgbm_ranker</h3><p>최고: <b>lightgbm_more_trees</b> · Top1 63.2%</p><ul><li><b>lightgbm_base</b><span>base</span><em>Top1 60.4%, NDCG 0.9881</em></li><li><b>lightgbm_more_trees</b><span>n_estimators: 200 -&gt; 500</span><em>Top1 63.2%, NDCG 0.9895</em></li><li><b>lightgbm_regularized</b><span>reg_lambda: 0.0 -&gt; 1.0</span><em>Top1 59.3%, NDCG 0.9877</em></li></ul></section><section class='model-card'><h3>logistic_regression</h3><p>최고: <b>logistic_stronger_regularization</b> · Top1 55.0%</p><ul><li><b>logistic_balanced</b><span>class_weight: None -&gt; balanced</span><em>Top1 54.9%, NDCG 0.9783</em></li><li><b>logistic_base</b><span>base</span><em>Top1 54.9%, NDCG 0.9783</em></li><li><b>logistic_stronger_regularization</b><span>C: 1.0 -&gt; 0.5</span><em>Top1 55.0%, NDCG 0.9783</em></li></ul></section></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Parameter Sweep</div>
+  <h2>Parameter impact 2</h2>
+  <div class="model-grid"><section class='model-card'><h3>random_forest</h3><p>최고: <b>random_forest_base</b> · Top1 61.3%</p><ul><li><b>random_forest_base</b><span>base</span><em>Top1 61.3%, NDCG 0.9870</em></li><li><b>random_forest_limited_depth</b><span>max_depth: None -&gt; 12</span><em>Top1 54.8%, NDCG 0.9844</em></li><li><b>random_forest_smaller</b><span>n_estimators: 300 -&gt; 100</span><em>Top1 60.8%, NDCG 0.9866</em></li></ul></section><section class='model-card'><h3>ranknet</h3><p>최고: <b>ranknet_wider</b> · Top1 82.4%</p><ul><li><b>ranknet_base</b><span>base</span><em>Top1 80.6%, NDCG 0.9941</em></li><li><b>ranknet_depth_2</b><span>depth: 1 -&gt; 2</span><em>Top1 82.3%, NDCG 0.9944</em></li><li><b>ranknet_wider</b><span>hidden_dim: 64 -&gt; 128</span><em>Top1 82.4%, NDCG 0.9954</em></li></ul></section><section class='model-card'><h3>xgboost_ranker</h3><p>최고: <b>xgboost_base</b> · Top1 56.6%</p><ul><li><b>xgboost_base</b><span>base</span><em>Top1 56.6%, NDCG 0.9849</em></li><li><b>xgboost_deeper</b><span>max_depth: 6 -&gt; 8</span><em>Top1 54.7%, NDCG 0.9827</em></li><li><b>xgboost_regularized</b><span>reg_lambda: 1.0 -&gt; 3.0</span><em>Top1 56.2%, NDCG 0.9836</em></li></ul></section></div>
+</section>
+
+<section class="slide">
+  <div class="kicker">Takeaways</div>
+  <h2>결론</h2>
+  <div class="decision">
+    <article><b>순수 성능 우선</b><p>ranknet_wider가 Top1 82.4%, NDCG@3 0.9954로 가장 강합니다. RankNet 계열은 이번 sweep에서 가장 일관되게 높습니다.</p></article>
+    <article><b>운영 안정성 우선</b><p>lightgbm_more_trees는 성능이 RankNet보다 낮지만 모델 크기와 의존성, 해석 가능성 측면에서 운영 후보로 볼 만합니다.</p></article>
+  </div>
+  <div class="three" style="margin-top:18px">
+    <div class="callout"><b>RandomForest</b><p>성능 대비 모델 크기와 학습 시간이 큽니다.</p></div>
+    <div class="callout"><b>XGBoost/CatBoost</b><p>이번 단일 파라미터 sweep에서는 이득이 제한적입니다.</p></div>
+    <div class="callout"><b>Baseline</b><p>매우 빠르지만 랭킹 품질 차이가 큽니다.</p></div>
+  </div>
+</section>
+</main>
+</body>
+</html>

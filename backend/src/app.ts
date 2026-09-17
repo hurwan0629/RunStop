@@ -1,0 +1,66 @@
+﻿import express from "express";
+import helmet from "helmet";
+import cors from "cors";
+import { registerRouters } from "./routes/index.routes.js";
+import { createRequestLogger } from "./logging/logger.js";
+import { errorHandler, notFoundHandler } from "./middleware/error.js";
+import { registerDevTestRouter } from "./routes/dev-test.routes.js";
+import { getRouteWorkerClient } from "./adapters/worker/routing-worker.client.js";
+import { asyncHandler } from "./middleware/async-handler.js"
+
+/**
+ * 익스프레스 애플리케이션 인스턴스를 생성하고 기본 설정을 구성합니다.
+ *
+ * 역할:
+ * - 공통 미들웨어 등록
+ * - 도메인 라우터 연결
+ * - 404 및 전역 에러 핸들러 등록
+ */
+export function createApp() {
+  const app = express();
+
+  // cors 설정
+  app.use(cors({
+    origin: [
+      "http://localhost:3000",
+      // "http://"
+    ],
+    credentials: true,
+  }));
+
+  // 헬멧을 통해서 XSS, 스니핑 등 방지
+  app.use(helmet());
+  // 요청별 requestId, 응답 상태, 처리 시간을 로그로 남기기
+  // json 타입 요청 받아주기
+  app.use(express.json());
+  app.use(createRequestLogger());
+
+  // 도메인별 라우터 등록
+  const router = express.Router();
+
+  // 각 도메인 7개에 대해서 라우터 등록해주기
+  registerRouters(router)
+// dev용
+  // registerDevTestRouter(router)
+
+  app.get("/health", asyncHandler(async (req, res) => {
+    res.json([
+      {
+        name: "node server",
+        status: "ok",
+      },
+      {
+        name: "fastapi server",
+        status: await getRouteWorkerClient().checkHealth()
+      }
+    ]);
+  }));
+
+  app.use(router);
+
+  // API 
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+
+  return app;
+}

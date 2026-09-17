@@ -1,17 +1,15 @@
-<p align="center">
-  <img src="./assets/app-icon/icon.png" width="120" alt="RunStop 앱 아이콘" />
-</p>
+# RunStop
 
 <h1 align="center">RunStop</h1>
 <p align="center"><strong>나만의 러닝 코스</strong><br />거리·경사·주변 시설·야간 인프라를 반영하는 맞춤형 러닝 코스 추천 서비스</p>
 
-RunStop은 원하는 러닝 조건으로 코스를 추천받고, 실제 달린 경로와 기록을 관리하는 모바일 서비스입니다. 서울 보행 네트워크와 공간 데이터를 바탕으로 후보 경로를 생성하고, 조건 점수와 AI 랭킹으로 최대 3개의 코스를 제공합니다.
+## 📌 프로젝트 소개
 
 현재 모바일 앱, Node API, Python 경로 추천 Worker, 관리자 웹이 구현되어 있습니다. Git 기록 기준으로 2026년 9월 16일 앱 2차 로컬 테스트 및 릴리스 작업을 진행했으며, 이후 기능 보완과 AI 평가 개선을 이어가고 있습니다.
 
-## 서비스 화면
+---
 
-**아래 갤러리를 좌우로 스크롤해 확인하세요.** 이미지를 누르면 원본을 볼 수 있습니다.
+## 🎯 프로젝트 목표
 
 <table>
   <tr>
@@ -44,21 +42,7 @@ RunStop은 원하는 러닝 조건으로 코스를 추천받고, 실제 달린 �
 
 ## 서비스 구조
 
-```text
-모바일 앱 (React Native / Expo)       관리자 웹 (React / Vite)
-                │                            │
-                └────────── HTTP ────────────┘
-                              │
-                    Node.js API (Express)
-                      ├─ PostgreSQL / PostGIS
-                      ├─ LLM / SMS / 장소 검색 API
-                      └─ 내부 HTTP
-                              │
-                    Python Worker (FastAPI)
-                      ├─ 보행 네트워크 기반 후보 생성
-                      ├─ 경사·시설·녹지·노면 특성 계산
-                      └─ 조건 점수 및 AI 랭킹 → 최대 3개 코스
-```
+---
 
 Backend는 인증, 요청 검증, 외부 API 연동과 데이터 저장을 담당하고, Worker는 경로 생성과 평가·추론을 담당합니다. 모바일 앱은 Backend를 통해 서비스를 이용합니다. 운영 환경에서는 Caddy가 Backend 앞에서 HTTPS 요청을 전달합니다.
 
@@ -69,7 +53,7 @@ Backend는 인증, 요청 검증, 외부 API 연동과 데이터 저장을 담�
 3. DEM 고도, 주변 시설, 녹지·하천, 도로 환경 특성을 계산하고 조건 점수를 부여합니다.
 4. 학습된 모델로 후보 순위를 정해 최대 3개를 반환합니다. 모델 추론에 실패하면 조건 점수 순으로 선택합니다.
 
-학습·비교 실험은 별도 `ai/` 프로젝트에서 수행합니다. 합성 선호 기반 데이터 생성, 모델별 학습, NDCG 등 평가, 모델 내보내기를 지원하며, 운영 추론 코드는 `routing-worker/src/algo/ai/`에 있습니다.
+---
 
 ## 기술 구성
 
@@ -111,7 +95,7 @@ Docker Compose와 Node.js/npm이 필요합니다. 모바일 네이티브 빌드�
 
 ### API · Worker · DB
 
-저장소 루트에서 환경 파일을 준비합니다. 아래 명령은 PowerShell 기준이며, 이미 환경 파일이 있다면 기존 설정을 사용합니다.
+---
 
 ```powershell
 Copy-Item .env.development.example .env.development
