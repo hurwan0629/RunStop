@@ -1,5 +1,6 @@
 from .recommend import RouteRecommendRequestDTO
 from typing import Any
+from src.algo.features.facilities import get_nearby_facility_points
 
 def parse_node_request_to_python_recommendation(
     node_req: RouteRecommendRequestDTO
@@ -41,6 +42,7 @@ def parse_python_recommendation_to_node_require(results):
         distance_km = result["actual_distance_m"] / 1000
 
         feature_values = dict(result.get("facilities") or {})
+        feature_values["facilityPoints"] = get_nearby_facility_points(coords)
         feature_values["facilityStatus"] = result.get(
             "facility_status",
             {},

@@ -1,11 +1,16 @@
 # YAML 설정
 
-`kind: experiment`와 `kind: generation`을 분리하고 `schema_version: 1`을 사용합니다.
-모든 상대 데이터·출력 경로는 ai/ 기준입니다. 설정 파일 자체의 위치는 CLI 현재 디렉터리 기준입니다.
+기존 `schema_version: 1` YAML을 그대로 사용합니다. 설정 파일을 직접 편집합니다.
 
-- HTML: `python ai/scripts/config_ui.py` (저장/가져오기/검증; 실행 기능 없음)
-- 템플릿: `python ai/scripts/create_config.py --model lightgbm_ranker --output ai/configs/experiments/new.yaml`
-- 검증: `python ai/scripts/run_experiment.py --config ai/configs/experiments/lightgbm_compare.yaml --validate-only`
-- 생성 사전 확인: `python ai/scripts/generate_dataset.py --config ai/configs/generation/synthetic_v001.yaml --check`
+- `generation/`: `generate_dataset.py --config ...`로 데이터 생성
+- `experiments/`: `train.py --config ...`로 Train 학습·Val 평가
+- 테스트: `test.py --artifact ...`로 학습 당시 저장된 YAML과 모델·분할표 사용
 
-현재 분할은 user_temporal_holdout 한 종류입니다. 모델 파라미터 기본값·범위는 src/config/schema.py가 정의합니다. 기존 주석 전용 scaffold YAML과 호환되지 않는 v1 규격이므로 이전 설정은 새 템플릿으로 옮겨야 합니다.
+YAML 안의 상대 데이터·출력 경로는 `ai/` 기준입니다. CLI의 `--config`, `--artifact`는 현재 실행 디렉터리 기준입니다.
+
+```powershell
+python ai/scripts/train.py --config ai/configs/experiments/03_lightgbm_ranker.yaml --validate-only
+python ai/scripts/generate_dataset.py --config ai/configs/generation/synthetic_v001.yaml --check
+```
+
+모델 파라미터 기본값과 범위는 `src/config/schema.py`에서 검증합니다. 분할은 `user_temporal_holdout`을 유지하며 `test_requests`는 학습에서 제외할 Warm Test 요청 수입니다.

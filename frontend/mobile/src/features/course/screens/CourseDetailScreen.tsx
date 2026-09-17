@@ -195,6 +195,7 @@ export default function CourseDetailScreen() {
       ) : course ? (
         <ScrollView contentContainerStyle={styles.content}>
           <CourseMap
+            facilityPoints={course.facilityPoints}
             endPoint={points.endPoint}
             routePath={course.path}
             showStartDirection

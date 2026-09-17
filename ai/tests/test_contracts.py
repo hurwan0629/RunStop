@@ -13,7 +13,7 @@ from ai.src.generation.request_sampler import normalize_requests
 from ai.src.generation.user_sampler import load_users
 from ai.src.generation.utility import utility_score, label_candidates
 from ai.src.generation.candidate_worker import select_pool
-from ai.src.metrics.ranking import ndcg_at_k, request_metrics, confidence_interval
+from ai.src.experiment.metrics import ndcg_at_k, request_metrics, confidence_interval
 
 
 def test_configs_validate_params_and_roundtrip(tmp_path):

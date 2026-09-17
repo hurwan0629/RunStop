@@ -1,16 +1,14 @@
-# 검증
+# 코드 검증
 
-`python -m pytest ai/tests -q`는 작은 가상 데이터로 아래를 검사합니다.
+저장소 루트에서 `python -m pytest ai/tests -q`로 실행합니다.
 
-- 모델별 설정 검증 및 YAML 왕복, JSON 두 규격 정규화
-- Utility와 기존 점수의 독립성, 동점 순위, 정답 규격
+- YAML 규격과 기존 데이터 생성 계약
+- Utility·랭킹 지표의 알려진 정답
 - 사용자·요청 분할 누출 방지와 재현성
-- 지표의 알려진 정답, 가변 후보 수
-- 모델 7종의 작은 fit/predict, 행 순서 보존, 저장·복원
-- artifact 성공/실패 기록, 독립 export 추론
-- 가짜 워커 응답을 통한 임시 Parquet 조립, 기존 출력 거부
-- 로컬 API의 검증·저장·불러오기·경로 제한, 실행 API 부재
+- 모델 7종의 작은 학습·예측·저장·복원
+- 학습 명령의 Val 전용 평가, 테스트의 재학습 금지
+- 저장된 분할 재사용과 이전 artifact 호환
+- 변경된 모델·데이터·분할표 및 미완료 학습 결과 거부
+- `train.py`, `test.py` 실제 CLI 실행
 
-선택 모델 라이브러리가 없으면 해당 모델 테스트만 skip됩니다. 5,000건 JSON은 읽기 검증만 하며 실제 recommend()는 호출하지 않습니다. 테스트 Parquet과 모델은 OS 임시 폴더에 생성합니다.
-
-`python ai/scripts/check_ui.py`는 headless Edge에서 모델별 폼, YAML 저장/복원, 입력 오류, Utility 수정, 모바일 overflow를 검사합니다. 설정은 임시 폴더, 화면 캡처는 ai/artifacts/ui-check에 저장합니다.
+모델 라이브러리가 없으면 해당 모델 테스트만 skip합니다. 작은 가상 데이터와 임시 폴더를 사용하며 실제 routing-worker 추천이나 전체 데이터 학습은 실행하지 않습니다.

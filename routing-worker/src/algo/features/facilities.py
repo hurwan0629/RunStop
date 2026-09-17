@@ -27,6 +27,7 @@ FACILITY_TYPE_TO_KEY = {
 }
 
 _FACILITY_COORDINATES_CACHE = {}
+_FACILITY_POINTS_CACHE = {}
 
 
 def _load_facility_coordinates():
@@ -50,11 +51,37 @@ def _load_facility_coordinates():
         projected_x, projected_y = to_5179.transform(facility_group_df["경도"].to_numpy(), facility_group_df["위도"].to_numpy())
         # 캐시에 아래에 추가해서 등록시켜주기
         _FACILITY_COORDINATES_CACHE[facility_type] = np.column_stack([projected_x, projected_y])
+        key = FACILITY_TYPE_TO_KEY.get(facility_type)
+        if key in FACILITY_STATUS_KEYS:
+            _FACILITY_POINTS_CACHE[facility_type] = [
+                {
+                    "type": key,
+                    "name": str(name) if pd.notna(name) else facility_type,
+                    "lat": float(lat),
+                    "lng": float(lng),
+                }
+                for name, lat, lng in facility_group_df[["명칭", "위도", "경도"]].itertuples(index=False, name=None)
+            ]
     return _FACILITY_COORDINATES_CACHE
 
 
 def _create_projected_route_line(route_coordinates: list[Coordinate]) -> LineString:
     return LineString([to_5179.transform(lon, lat) for lat, lon in route_coordinates])
+
+
+def get_nearby_facility_points(
+    route_coordinates: list[Coordinate],
+    buffer_distance_m: float = config.FACILITY_BUFFER_M,
+) -> list[dict[str, str | float]]:
+    """최종 추천 경로에만 지도용 화장실·편의점을 붙인다. 집계와 동일한 버퍼 기준."""
+    coordinates_by_type = _load_facility_coordinates()
+    route_buffer = _create_projected_route_line(route_coordinates).buffer(buffer_distance_m)
+    result = []
+    for facility_type, facility_points in _FACILITY_POINTS_CACHE.items():
+        xy = coordinates_by_type[facility_type]
+        inside = contains_xy(route_buffer, xy[:, 0], xy[:, 1])
+        result.extend(facility_points[index] for index in np.flatnonzero(inside))
+    return result
 
 
 def analyze_nearby_facilities(

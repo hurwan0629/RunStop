@@ -11,12 +11,13 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import type { LocationPoint } from '../types';
+import type { LocationPoint, RouteFacilityPoint } from '../types';
 
 type CourseMapProps = {
   startPoint?: LocationPoint;
   endPoint?: LocationPoint;
   waypoints?: LocationPoint[];
+  facilityPoints?: RouteFacilityPoint[];
   routePath?: LocationPoint[];
   trackedRoutePath?: LocationPoint[];
   currentLocation?: LocationPoint;
@@ -45,6 +46,7 @@ export function CourseMap({
   startPoint,
   endPoint,
   waypoints = [],
+  facilityPoints = [],
   routePath = [],
   trackedRoutePath = [],
   currentLocation,
@@ -126,6 +128,18 @@ export function CourseMap({
             caption={{ text: point.name ?? `경유지 ${index + 1}` }}
             image={{ symbol: 'yellow' }}
             key={point.id ?? `waypoint-${index}`}
+            latitude={point.lat}
+            longitude={point.lng}
+          />
+        ))}
+
+        {facilityPoints.map((point, index) => (
+          <NaverMapMarkerOverlay
+            caption={{
+              text: `${point.type === 'toilet' ? '화장실' : '편의점'}${point.name ? ` · ${point.name}` : ''}`,
+            }}
+            image={{ symbol: point.type === 'toilet' ? 'lightblue' : 'pink' }}
+            key={`facility-${index}`}
             latitude={point.lat}
             longitude={point.lng}
           />

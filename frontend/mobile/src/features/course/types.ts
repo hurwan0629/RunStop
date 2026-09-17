@@ -109,6 +109,10 @@ export type RoutePoint = LocationPoint & {
   pointType: 'START' | 'WAYPOINT' | 'END';
 };
 
+export type RouteFacilityPoint = LocationPoint & {
+  type: 'toilet' | 'store';
+};
+
 export type RouteDetail = {
   idx: number;
   name: string;
@@ -119,6 +123,7 @@ export type RouteDetail = {
   isBookmarked: boolean;
   path: LocationPoint[];
   points: RoutePoint[];
+  facilityPoints?: RouteFacilityPoint[];
 };
 
 export type RouteSelectResponse = {

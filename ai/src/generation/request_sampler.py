@@ -152,7 +152,7 @@ def normalize_requests(users: list[dict[str, Any]]) -> list[dict[str, Any]]:
             # job에는 어떤 사용자의 어떤 요청인지, `U001:0001` 과 같이 만들어지게 됩니다.
             jobs.append({
                 "user_id": user["user_id"],
-                "request_id": f"{ ['user_id']}:{sequence:04d}",
+                "request_id": f"{user['user_id']}:{sequence:04d}",
                 "request_sequence": sequence,
                 "profile": user["profile"],
                 "args": args,

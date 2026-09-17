@@ -9,7 +9,8 @@ from ai.src.dataset.features import select_feature_columns
 from ai.src.models.registry import create_model
 from ai.src.models.base import BaseRankingModel
 from ai.src.experiment.artifacts import sha256_file, write_json
-from ai.src.experiment.runner import run_experiment
+from ai.src.experiment.training import train_model
+from ai.src.experiment.testing import evaluate_saved_model
 
 
 @pytest.mark.parametrize('name,params,library', [
@@ -51,22 +52,17 @@ def test_experiment_artifacts_complete_and_failure(candidates,tmp_path):
                          'utility':UtilityConfig().model_dump(),'candidates_sha256':sha256_file(dataset)})
     cfg=ExperimentConfig(dataset_path=str(dataset),metadata_path=str(metadata),output_dir=str(tmp_path/'runs'),
                          model=ModelConfig(name='condition_score_baseline'),evaluation=EvaluationConfig(bootstrap_samples=10))
-    run=run_experiment(cfg)
+    run=train_model(cfg)
     manifest=json.loads((run/'manifest.json').read_text())
     assert manifest['status']=='complete'
-    for name in ['config.yaml','environment.json','dataset_reference.json','split_assignments.parquet','predictions.parquet','request_metrics.parquet','model/model.pkl','model/input_schema.json','metrics.json','resource_usage.json','plots/ranking_metrics.png']:
+    for name in ['config.yaml','environment.json','dataset_reference.json','split_assignments.parquet','validation/predictions.parquet','validation/request_metrics.parquet','model/model.pkl','model/input_schema.json','validation/metrics.json','resource_usage.json','validation/plots/ranking_metrics.png']:
         assert (run/name).is_file() and name in manifest['files']
     assert manifest['files']['model/model.pkl']['sha256']==sha256_file(run/'model/model.pkl')
-    # Export must run without relying on the current repository's ai package.
-    import subprocess
-    import sys
-    root=Path(__file__).resolve().parents[2]
-    exported=tmp_path/'exported'
-    subprocess.run([sys.executable,str(root/'ai/scripts/export_model.py'),'--artifact',str(run),'--output',str(exported)],check=True,capture_output=True)
-    subprocess.run([sys.executable,str(exported/'predict.py'),'--input',str(dataset),'--output',str(tmp_path/'predicted.parquet')],cwd=tmp_path,check=True,capture_output=True)
-    assert (tmp_path/'predicted.parquet').exists()
+    result = evaluate_saved_model(run)
+    assert (result / 'metrics.json').is_file()
+    assert json.loads((result / 'manifest.json').read_text())['stage'] == 'test'
     cfg.dataset_path=str(tmp_path/'missing.parquet')
-    with pytest.raises(RuntimeError,match='Experiment failed'):
-        run_experiment(cfg)
+    with pytest.raises(RuntimeError,match='Training failed'):
+        train_model(cfg)
     manifests=[json.loads(p.read_text()) for p in (tmp_path/'runs').glob('*/manifest.json')]
     assert {m['status'] for m in manifests}=={'complete','failed'}

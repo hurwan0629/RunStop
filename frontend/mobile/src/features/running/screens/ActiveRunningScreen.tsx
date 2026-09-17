@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getCourseDetail } from '@/features/course/api/courseApi';
 import { CourseMap } from '@/features/course/components/CourseMap';
-import type { LocationPoint } from '@/features/course/types';
+import type { LocationPoint, RouteFacilityPoint } from '@/features/course/types';
 import { useAuth } from '@/providers/AuthProvider';
 import { getApiErrorMessage } from '@/services/api/errors';
 import { clearActiveRunningSession } from '@/storage/runningSessionStorage';
@@ -36,6 +36,7 @@ export default function ActiveRunningScreen() {
   const courseId = Number(params.courseId);
   const sessionId = Number(params.sessionId);
   const [plannedPath, setPlannedPath] = useState<LocationPoint[]>([]);
+  const [facilityPoints, setFacilityPoints] = useState<RouteFacilityPoint[]>([]);
   const [trackedPath, setTrackedPath] = useState<LocationPoint[]>([]);
   const [currentLocation, setCurrentLocation] =
     useState<LocationPoint | null>(null);
@@ -66,7 +67,10 @@ export default function ActiveRunningScreen() {
     }
 
     getCourseDetail(accessToken, courseId)
-      .then((detail) => setPlannedPath(detail.path))
+      .then((detail) => {
+        setPlannedPath(detail.path);
+        setFacilityPoints(detail.facilityPoints ?? []);
+      })
       .catch((error) => setErrorMessage(getApiErrorMessage(error)));
   }, [accessToken, courseId]);
 
@@ -341,6 +345,7 @@ export default function ActiveRunningScreen() {
       </View>
 
       <CourseMap
+        facilityPoints={facilityPoints}
         currentLocation={currentLocation ?? undefined}
         followCurrentLocation
         routePath={plannedPath}
