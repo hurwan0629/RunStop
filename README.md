@@ -13,17 +13,79 @@
 
 <table>
   <tr>
-    <td align="center" nowrap><strong>인트로</strong><br /><a href="./assets/service-screenshot/1.jpg"><img src="./assets/service-screenshot/1.jpg" height="440" alt="RunStop 인트로" /></a></td>
-    <td align="center" nowrap><strong>로그인</strong><br /><a href="./assets/service-screenshot/2.jpg"><img src="./assets/service-screenshot/2.jpg" height="440" alt="회원 로그인" /></a></td>
-    <td align="center" nowrap><strong>홈 · 러닝 목표</strong><br /><a href="./assets/service-screenshot/3.jpg"><img src="./assets/service-screenshot/3.jpg" height="440" alt="홈 화면의 코스 찾기와 러닝 목표" /></a></td>
-    <td align="center" nowrap><strong>출발지 · 도착지 설정</strong><br /><a href="./assets/service-screenshot/6.jpg"><img src="./assets/service-screenshot/6.jpg" height="440" alt="지도에서 출발지와 도착지 설정" /></a></td>
-    <td align="center" nowrap><strong>러닝 조건 입력</strong><br /><a href="./assets/service-screenshot/4.jpg"><img src="./assets/service-screenshot/4.jpg" height="440" alt="목표 거리와 자연어 조건 입력" /></a></td>
-    <td align="center" nowrap><strong>조건별 중요도 확인</strong><br /><a href="./assets/service-screenshot/5.jpg"><img src="./assets/service-screenshot/5.jpg" height="440" alt="거리, 경사도, 시설, 야간 인프라 중요도 확인" /></a></td>
-    <td align="center" nowrap><strong>추천 코스 비교</strong><br /><a href="./assets/service-screenshot/7.jpg"><img src="./assets/service-screenshot/7.jpg" height="440" alt="추천 코스의 거리, 경사와 추천 이유 비교" /></a></td>
-    <td align="center" nowrap><strong>코스 상세</strong><br /><a href="./assets/service-screenshot/8.jpg"><img src="./assets/service-screenshot/8.jpg" height="440" alt="선택한 코스의 지도와 상세 정보" /></a></td>
-    <td align="center" nowrap><strong>실시간 러닝</strong><br /><a href="./assets/service-screenshot/9.jpg"><img src="./assets/service-screenshot/9.jpg" height="440" alt="GPS 위치와 러닝 시간, 이동 거리, 페이스" /></a></td>
-    <td align="center" nowrap><strong>러닝 테스트 · 오류 표시</strong><br /><a href="./assets/service-screenshot/10.jpg"><img src="./assets/service-screenshot/10.jpg" height="440" alt="실제 이동 궤적과 요청 처리 오류가 표시된 테스트 화면" /></a></td>
-    <td align="center" nowrap><strong>러닝 기록</strong><br /><a href="./assets/service-screenshot/11.jpg"><img src="./assets/service-screenshot/11.jpg" height="440" alt="기간별 러닝 통계와 기록 목록" /></a></td>
+    <td align="center">
+      <strong>인트로</strong><br />
+      <a href="./assets/service-screenshot/1.jpg">
+        <img src="./assets/service-screenshot/1.jpg" width="180" alt="RunStop 인트로" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>로그인</strong><br />
+      <a href="./assets/service-screenshot/2.jpg">
+        <img src="./assets/service-screenshot/2.jpg" width="180" alt="회원 로그인" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>홈 · 러닝 목표</strong><br />
+      <a href="./assets/service-screenshot/3.jpg">
+        <img src="./assets/service-screenshot/3.jpg" width="180" alt="홈 화면" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>출발지 · 도착지 설정</strong><br />
+      <a href="./assets/service-screenshot/6.jpg">
+        <img src="./assets/service-screenshot/6.jpg" width="180" alt="출발지 도착지 설정" />
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <strong>러닝 조건 입력</strong><br />
+      <a href="./assets/service-screenshot/4.jpg">
+        <img src="./assets/service-screenshot/4.jpg" width="180" alt="러닝 조건 입력" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>조건별 중요도 확인</strong><br />
+      <a href="./assets/service-screenshot/5.jpg">
+        <img src="./assets/service-screenshot/5.jpg" width="180" alt="조건별 중요도" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>추천 코스 비교</strong><br />
+      <a href="./assets/service-screenshot/7.jpg">
+        <img src="./assets/service-screenshot/7.jpg" width="180" alt="추천 코스 비교" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>코스 상세</strong><br />
+      <a href="./assets/service-screenshot/8.jpg">
+        <img src="./assets/service-screenshot/8.jpg" width="180" alt="코스 상세" />
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <strong>실시간 러닝</strong><br />
+      <a href="./assets/service-screenshot/9.jpg">
+        <img src="./assets/service-screenshot/9.jpg" width="180" alt="실시간 러닝" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>러닝 테스트</strong><br />
+      <a href="./assets/service-screenshot/10.jpg">
+        <img src="./assets/service-screenshot/10.jpg" width="180" alt="러닝 테스트" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>러닝 기록</strong><br />
+      <a href="./assets/service-screenshot/11.jpg">
+        <img src="./assets/service-screenshot/11.jpg" width="180" alt="러닝 기록" />
+      </a>
+    </td>
+    <td></td>
   </tr>
 </table>
 
