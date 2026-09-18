@@ -137,6 +137,7 @@ export function CourseMap({
         {facilityPoints.map((point, index) => (
           <NaverMapMarkerOverlay
             caption={{
+              minZoom: 15,
               text: `${point.type === 'toilet' ? '화장실' : '편의점'}${point.name ? ` · ${point.name}` : ''}`,
             }}
             width={20}
