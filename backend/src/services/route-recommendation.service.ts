@@ -2,7 +2,7 @@ import { getRouteConditionLlmClient, generateRouteNames } from "../adapters/llm/
 import type { ParsedRouteConditions } from "../adapters/llm/llm.client.js";
 import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
 import type { RouteDetailDTO } from "../dto/route/route-detail.dto.js";
-import { routeFacilityPointsSchema } from "../dto/route/route-detail.dto.js";
+import { routeFacilityPointsSchema, routeMapLayersSchema } from "../dto/route/route-detail.dto.js";
 import type {
   RouteRecommendResponseDTO,
   RouteRecommendationDTO,
@@ -896,5 +896,6 @@ export async function getRouteDetail(
     path: route.path ?? [],
     points,
     facilityPoints: routeFacilityPointsSchema.parse(route.featureValues?.facilityPoints),
+    mapLayers: routeMapLayersSchema.parse(route.featureValues?.mapLayers),
   };
 }

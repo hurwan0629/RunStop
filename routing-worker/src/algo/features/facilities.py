@@ -14,6 +14,7 @@ from src.algo import config
 from src.algo.types import CandidateRoute, Coordinate, FacilityProfile
 
 FACILITY_STATUS_KEYS = ("toilet", "store")
+NIGHT_FACILITY_KEYS = ("light", "security", "walklight")
 
 # 유형(한글, CSV) -> 결과 키(영문)
 FACILITY_TYPE_TO_KEY = {
@@ -52,16 +53,11 @@ def _load_facility_coordinates():
         # 캐시에 아래에 추가해서 등록시켜주기
         _FACILITY_COORDINATES_CACHE[facility_type] = np.column_stack([projected_x, projected_y])
         key = FACILITY_TYPE_TO_KEY.get(facility_type)
-        if key in FACILITY_STATUS_KEYS:
-            _FACILITY_POINTS_CACHE[facility_type] = [
-                {
-                    "type": key,
-                    "name": str(name) if pd.notna(name) else facility_type,
-                    "lat": float(lat),
-                    "lng": float(lng),
-                }
-                for name, lat, lng in facility_group_df[["명칭", "위도", "경도"]].itertuples(index=False, name=None)
-            ]
+        if key in FACILITY_STATUS_KEYS + NIGHT_FACILITY_KEYS:
+            # 조명 전체를 dict로 만들지 않고, 경로 근처 시설만 응답 시 변환한다.
+            _FACILITY_POINTS_CACHE[facility_type] = facility_group_df[
+                ["명칭", "위도", "경도"]
+            ].to_numpy()
     return _FACILITY_COORDINATES_CACHE
 
 
@@ -73,15 +69,39 @@ def get_nearby_facility_points(
     route_coordinates: list[Coordinate],
     buffer_distance_m: float = config.FACILITY_BUFFER_M,
 ) -> list[dict[str, str | float]]:
-    """최종 추천 경로에만 지도용 화장실·편의점을 붙인다. 집계와 동일한 버퍼 기준."""
+    """최종 추천 경로에 지도용 시설을 붙인다. 집계와 동일한 버퍼 기준."""
     coordinates_by_type = _load_facility_coordinates()
     route_buffer = _create_projected_route_line(route_coordinates).buffer(buffer_distance_m)
+    min_x, min_y, max_x, max_y = route_buffer.bounds
     result = []
     for facility_type, facility_points in _FACILITY_POINTS_CACHE.items():
         xy = coordinates_by_type[facility_type]
-        inside = contains_xy(route_buffer, xy[:, 0], xy[:, 1])
-        result.extend(facility_points[index] for index in np.flatnonzero(inside))
+        nearby_indices = np.flatnonzero(
+            (xy[:, 0] >= min_x) & (xy[:, 0] <= max_x)
+            & (xy[:, 1] >= min_y) & (xy[:, 1] <= max_y)
+        )
+        nearby_xy = xy[nearby_indices]
+        inside = contains_xy(route_buffer, nearby_xy[:, 0], nearby_xy[:, 1])
+
+        for index in nearby_indices[inside]:
+            name, lat, lng = facility_points[index]
+            result.append({
+                "type": FACILITY_TYPE_TO_KEY[facility_type],
+                "name": str(name) if pd.notna(name) else facility_type,
+                "lat": float(lat),
+                "lng": float(lng),
+            })
     return result
+
+
+def get_available_night_facility_types() -> list[str]:
+    """해당 경로의 시설 개수와 원본 데이터 부재를 구분한다."""
+    return [
+        FACILITY_TYPE_TO_KEY[facility_type]
+        for facility_type, coordinates in _load_facility_coordinates().items()
+        if FACILITY_TYPE_TO_KEY.get(facility_type) in NIGHT_FACILITY_KEYS
+        and len(coordinates) > 0
+    ]
 
 
 def analyze_nearby_facilities(

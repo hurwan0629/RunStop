@@ -110,7 +110,22 @@ export type RoutePoint = LocationPoint & {
 };
 
 export type RouteFacilityPoint = LocationPoint & {
-  type: 'toilet' | 'store';
+  type: 'toilet' | 'store' | 'light' | 'security' | 'walklight';
+};
+
+/** 추천 완료 후 추가되는 지도 전용 데이터입니다. */
+export type RouteMapLayers = {
+  slopeSegments: {
+    fromIndex: number;
+    toIndex: number;
+    slopePct: number | null;
+  }[];
+  natureSegments: {
+    type: 'park' | 'water';
+    path: LocationPoint[];
+  }[];
+  availability: { slope: boolean; park: boolean; water: boolean };
+  nightFacilityTypes: ('light' | 'security' | 'walklight')[];
 };
 
 export type RouteDetail = {
@@ -124,6 +139,7 @@ export type RouteDetail = {
   path: LocationPoint[];
   points: RoutePoint[];
   facilityPoints?: RouteFacilityPoint[];
+  mapLayers?: RouteMapLayers | null;
 };
 
 export type RouteSelectResponse = {

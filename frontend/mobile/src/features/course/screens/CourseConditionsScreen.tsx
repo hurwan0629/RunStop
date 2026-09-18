@@ -110,20 +110,6 @@ export default function CourseConditionsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{'원하는 러닝 조건'}</Text>
-          <TextInput
-            maxLength={300}
-            multiline
-            onChangeText={(prompt) => updateDraft({ prompt })}
-            placeholder="예) 신호등이 적고 조용한 공원길을 달리고 싶어요."
-            placeholderTextColor="#A1A7B3"
-            style={styles.textArea}
-            value={draft.prompt}
-          />
-          <Text style={styles.characterCount}>{`${draft.prompt.length}/300`}</Text>
-        </View>
-
-        <View style={styles.section}>
           <Text style={styles.sectionTitle}>{'경사도'}</Text>
           <View style={styles.optionRow}>
             {slopeOptions.map((option) => {

@@ -1,6 +1,7 @@
 from .recommend import RouteRecommendRequestDTO
 from typing import Any
 from src.algo.features.facilities import get_nearby_facility_points
+from src.algo.features.map_layers import build_map_layers
 
 def parse_node_request_to_python_recommendation(
     node_req: RouteRecommendRequestDTO
@@ -42,7 +43,9 @@ def parse_python_recommendation_to_node_require(results):
         distance_km = result["actual_distance_m"] / 1000
 
         feature_values = dict(result.get("facilities") or {})
+        # AI 선택이 끝난 후보의 응답에만 지도 레이어를 추가한다.
         feature_values["facilityPoints"] = get_nearby_facility_points(coords)
+        feature_values["mapLayers"] = build_map_layers(coords)
         feature_values["facilityStatus"] = result.get(
             "facility_status",
             {},
