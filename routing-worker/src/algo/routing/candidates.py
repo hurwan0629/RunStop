@@ -12,6 +12,26 @@ from src.algo.routing.course import generate_course, generate_course_via
 from src.algo.routing.shortest_path import path_to_edge_set
 from src.algo import config
 from src.algo.types import CandidateRoute, Coordinate, NodePath, Requirements, RouteMode, Weights
+from src.algo.routing.guidance import guided_anchors
+
+
+def _guided_courses(G, idx, mode, start, target_m, end, vias, weights, requirements, anchors):
+    # 자동 기준점은 사용자 경유지 수나 원래 route type을 바꾸지 않는다.
+    candidates = []
+    for anchor, bearing, source in anchors:
+        try:
+            candidate = generate_course_via(
+                G, idx, mode, start, list(vias) + [anchor], target_m,
+                end=end if mode == "point_to_point" else None,
+                bearing=bearing, weights=weights, requirements=requirements,
+            )
+        except (ValueError, nx.NetworkXException):
+            continue
+        candidate["mode"] = mode
+        candidate["user_via_count"] = len(vias)
+        candidate["generation_source"] = f"guided:{source}"
+        candidates.append(candidate)
+    return candidates
 
 
 def _courses_share_too_many_edges(
@@ -51,10 +71,14 @@ def generate_candidates_via(
     pool: int = 8,
     weights: Weights | None = None,
     requirements: Requirements | None = None,
+    facility_preferences: dict[str, str] | None = None,
 ) -> list[CandidateRoute]:
     """사용자 경유지가 있을 때: 우회점 방향(bearing)만 바꿔가며 후보 풀 생성.
     상위 3개 컷은 안 함 — recommend 가 conditionScore 매긴 뒤 자른다."""
     tail = end if mode == "point_to_point" else None   # LOOP/ROUND_TRIP 는 시작점 복귀
+    requirements = dict(requirements or {})
+    anchors = guided_anchors(G, idx, mode, start, target_m, end, vias,
+                             weights, requirements, facility_preferences, pool)
     out = []
     if mode == "point_to_point":
         n_directions = 6
@@ -67,19 +91,28 @@ def generate_candidates_via(
             continue
         if r["distance_error_pct"] <= config.CAND_DIST_TOL_PCT:
             out.append(r)
-    out.sort(key=lambda r: (r["overlap_ratio"], r["distance_error_pct"]))
-    return _drop_near_duplicate_courses(out)#[:pool]
+    for candidate in out:
+        candidate["mode"] = mode
+        candidate["user_via_count"] = len(vias)
+    guided = _guided_courses(G, idx, mode, start, target_m, end, vias,
+                             weights, requirements, anchors)
+    out = [c for c in guided + out if c["distance_error_pct"] <= config.CAND_DIST_TOL_PCT
+           and (mode == "out_and_back" or c["overlap_ratio"] <= config.CAND_MAX_OVERLAP)]
+    return _drop_near_duplicate_courses(out)
 
 def generate_candidates(G, idx, mode, start, target_distance_m, end=None,
                         n_directions=12, tol_pct=None, max_overlap=None, pool=8,
-                        weights=None, requirements=None) -> list[CandidateRoute]:
-    """반환: 최대 pool 개의 후보 (conditionScore 매기기 전 상태).
-    tol_pct/max_overlap=None 이면 config 값. pipeline 이 여기에 점수를 붙이고 상위 3개를 고른다."""
+                        weights=None, requirements=None, facility_preferences=None) -> list[CandidateRoute]:
+    """방향 후보 + 최대 pool개의 선호 유도 시도. 중복 제거 후 기존 AI에 전달.
+    pool은 전체 후보를 자르는 값이 아니다. tol_pct/max_overlap은 기존 품질 기준."""
     if tol_pct is None:
         tol_pct = config.CAND_DIST_TOL_PCT
     if max_overlap is None:
         max_overlap = config.CAND_MAX_OVERLAP
     results = []
+    requirements = dict(requirements or {})
+    anchors = guided_anchors(G, idx, mode, start, target_distance_m, end, [],
+                             weights, requirements, facility_preferences, pool)
     if mode == "point_to_point":
         n_directions = 6
     for k in range(n_directions):
@@ -98,8 +131,12 @@ def generate_candidates(G, idx, mode, start, target_distance_m, end=None,
             results.append(r)
 
     results.sort(key=lambda r: (r["overlap_ratio"], r["distance_error_pct"]))
+    guided = _guided_courses(G, idx, mode, start, target_distance_m, end, [],
+                             weights, requirements, anchors)
+    results = [c for c in guided + results if c["distance_error_pct"] <= tol_pct
+               and (mode == "out_and_back" or c["overlap_ratio"] <= max_overlap)]
     # print("len befor drop:", len(results))
-    return _drop_near_duplicate_courses(results)#[:pool]
+    return _drop_near_duplicate_courses(results)
 
 
 if __name__ == "__main__":

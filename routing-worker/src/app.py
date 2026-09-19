@@ -116,7 +116,7 @@ def route_recommend(request: RouteRecommendRequestDTO):
         requirements=recommend_args.get("requirements", None),
         facility_preferences=recommend_args.get("facility_preferences"),
         n_directions=12,
-        top_k=3,
+        top_k=recommend_args["top_k"],
         request_id=request_id,
     )
     log("INFO", "routes/recommend:recommended", {

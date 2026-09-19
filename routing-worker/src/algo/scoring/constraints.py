@@ -27,6 +27,8 @@ def extract_slope_pct(edge_data):
     # [가중치 설계 추가] OSMnx grade는 보통 비율이므로 100을 곱해 퍼센트로 바꾼다.
 
     # grade_abs 또는 grade는 경사도를 말함
+    if edge_data.get("routing_slope_pct") is not None:
+        return float(edge_data["routing_slope_pct"])
     raw_slope = edge_data.get("grade_abs", edge_data.get("grade"))
     if raw_slope is None:
         return None

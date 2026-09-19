@@ -1,5 +1,5 @@
 import type { Router } from "express";
-import { listRuns, getRun, getAnalytics } from "../controllers/admin-running.controller.js";
+import { listRuns, getRun, getAnalytics, getRouteRequest } from "../controllers/admin-running.controller.js";
 
 import {
   getUserDetail,
@@ -24,6 +24,7 @@ export function registerAdminRoutes(
   router.get("/api/admin/running-sessions", authenticate, requireAdmin, asyncHandler(listRuns));
   router.get("/api/admin/running-sessions/:sessionIdx", authenticate, requireAdmin, asyncHandler(getRun));
   router.get("/api/admin/running-analytics", authenticate, requireAdmin, asyncHandler(getAnalytics));
+  router.get("/api/admin/route-requests/:requestIdx", authenticate, requireAdmin, asyncHandler(getRouteRequest));
   /**
    * 관리자 회원 목록 조회
    */

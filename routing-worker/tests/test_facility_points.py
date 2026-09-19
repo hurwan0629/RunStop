@@ -29,7 +29,7 @@ class FacilityPointsTest(unittest.TestCase):
             ("도시공원", "공원", *coordinate(50, 0)),
             ("가로등", "가로등 1", *coordinate(40, 10)),
             ("보안등", "보안등 1", *coordinate(50, 10)),
-            ("보행등", "보행등 1", *coordinate(60, 10)),
+            ("CCTV", "CCTV 1", *coordinate(60, 10)),
             ("화장실", "좌표 없음", None, 127.0),
         ]
         frame = pd.DataFrame(rows, columns=["유형", "명칭", "위도", "경도"])

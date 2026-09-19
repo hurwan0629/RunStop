@@ -138,6 +138,11 @@ function buildRecommendationReasons(
   },
 ) {
   const reasons: string[] = [];
+  if (course.slopeConstraint?.status === 'RELAXED') {
+    reasons.push(course.slopeConstraint.evaluation === 'UNAVAILABLE'
+      ? '경사 정보가 부족해 요청 조건 충족 여부를 확인할 수 없는 코스예요.'
+      : '경사 탐색 기준을 완화해 찾은 대안 코스예요. 실제 경사 지표를 확인해 주세요.');
+  }
 
   const appendFacilityReason = (
     facilityName: string,
@@ -257,8 +262,8 @@ function CourseCard({
           value={course.totalAscent === null ? '--' : `${Math.round(course.totalAscent)}m`}
         />
         <Metric
-          label="경사도 편차"
-          value={course.slopeStd === null ? '--' : course.slopeStd.toFixed(1)}
+          label="평균 경사"
+          value={course.slope?.avgSlopePct == null ? '--' : `${course.slope.avgSlopePct.toFixed(1)}%`}
         />
       </View>
 

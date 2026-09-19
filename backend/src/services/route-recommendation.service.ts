@@ -220,6 +220,7 @@ function readSlopeConstraint(
     requestedMaxSlopePct: readNumber(slopeConstraint.requestedMaxSlopePct),
     appliedMaxSlopePct: readNumber(slopeConstraint.appliedMaxSlopePct),
     status: normalizedStatus,
+    evaluation: typeof slopeConstraint.evaluation === "string" ? slopeConstraint.evaluation : undefined,
   };
 }
 
@@ -253,6 +254,7 @@ function toRouteRecommendationDTO(row: {
     slope: readSlopeProfile(row.featureValues),
     featureScores: row.featureScores ?? {},
     facilities: readFacilitySummary(row.featureValues),
+    slopeConstraint: readSlopeConstraint(row.featureValues),
   };
 }
 
@@ -392,10 +394,11 @@ function withSlopeFallbackStatus(
   requestedMaxSlope: number | undefined,
   appliedMaxSlope: number | undefined,
 ): WorkerRouteCandidateDTO {
+  const measuredMaxSlope = readSlopeProfile(candidate.featureValues)?.maxSlopePct;
   const status =
     requestedMaxSlope === undefined
       ? "IGNORE"
-      : requestedMaxSlope === appliedMaxSlope
+      : requestedMaxSlope === appliedMaxSlope && measuredMaxSlope != null && measuredMaxSlope <= requestedMaxSlope
         ? "MET"
         : "RELAXED";
 
@@ -407,6 +410,7 @@ function withSlopeFallbackStatus(
         requestedMaxSlopePct: requestedMaxSlope ?? null,
         appliedMaxSlopePct: appliedMaxSlope ?? null,
         status,
+        evaluation: measuredMaxSlope == null ? "UNAVAILABLE" : "MEASURED",
       },
     },
   };

@@ -9,7 +9,7 @@ test("시설이 없는 과거 경로는 빈 목록으로 반환한다", () => {
 test("시설 종류와 좌표를 검증하고 지도용 정보를 보존한다", () => {
   const point = { type: "toilet", name: "공중화장실", lat: 37.5, lng: 127 };
   expect(routeFacilityPointsSchema.parse([point])).toEqual([point]);
-  for (const type of ["light", "security", "walklight"]) {
+  for (const type of ["light", "security", "cctv", "walklight"]) {
     expect(routeFacilityPointsSchema.parse([{ ...point, type }])[0].type).toBe(type);
   }
   for (const invalid of [
@@ -52,7 +52,7 @@ test("옛 경로의 레이어 부재와 새 경로의 구간 데이터를 구분
     { ...layers, slopeSegments: [{ fromIndex: 3, toIndex: 1, slopePct: 5 }] },
     { ...layers, slopeSegments: [{ fromIndex: 0, toIndex: 1, slopePct: -1 }] },
     { ...layers, natureSegments: [{ type: "water", path: [{ lat: 37.5, lng: 127 }] }] },
-    { ...layers, nightFacilityTypes: ["cctv"] },
+    { ...layers, nightFacilityTypes: ["unknown"] },
   ]) {
     expect(routeMapLayersSchema.safeParse(invalid).success).toBe(false);
   }

@@ -43,6 +43,7 @@ def recommend(
     n_directions: int = 12,
     top_k: int = 3,
     request_id: str | None = None,
+    guided_budget: int = 8,
 ) -> list[CandidateRoute]:
     mode = _MODE.get(route_type)
     if mode is None:
@@ -51,19 +52,26 @@ def recommend(
         raise ValueError("ONE_WAY 는 end 좌표가 필요합니다")
 
     target_m = target_km * 1000
+    # 원본 GraphML에 grade가 없어도 기존 DEM으로 탐색부터 경사를 반영한다.
+    from src.algo.features.elevation import prepare_graph_elevation
+    prepare_graph_elevation(G)
     if vias:
         # [가중치 설계 변경] 후보 생성 단계부터 선호도와 필수조건을 경로 탐색에 반영한다.
         cands = generate_candidates_via(
             G, idx, mode, start, target_m, end, vias, n_directions,
             weights=weights, requirements=requirements,
+            facility_preferences=facility_preferences,
+            pool=guided_budget,
         )
     else:
         # print("generate_candidates")
         cands = generate_candidates(G, idx, mode, start, target_m,
                                     end=end, n_directions=n_directions,
-                                    weights=weights, requirements=requirements)
+                                    weights=weights, requirements=requirements,
+                                    facility_preferences=facility_preferences, pool=guided_budget)
         # print("cands:", len(cands))
 
+    eligible = []
     for c in cands:
         
         # 경사 (DEM)
@@ -72,7 +80,12 @@ def recommend(
         # - max_slope_pct
         # - elevation_gain_m: 경사도 총 
         # - sample_count: slope를 계산할 때 사용한 위경도 종류 뽑아주기
-        c["slope"] = analyze_elevation_profile(c["coords"])          
+        c["slope"] = analyze_elevation_profile(c["coords"])
+        measured_max = c["slope"].get("max_slope_pct")
+        slope_limit = (requirements or {}).get("max_slope_pct")
+        # 탐색용 고도차와 경로 샘플 분석의 차이를 최종 경사 제한으로 재검증한다.
+        if slope_limit is not None and measured_max is not None and measured_max > slope_limit:
+            continue
 
          # 시설 (CSV)
         # - f"{key}_count:  
@@ -103,9 +116,10 @@ def recommend(
             facility_preferences,
         )         # sub_scores + conditionScore
         c.pop("nodes", None)                              # 내부용, 응답엔 불필요
+        eligible.append(c)
 
     return select_candidates_with_ai(
-        cands,
+        eligible,
         weights,
         requirements,
         facility_preferences,

@@ -57,7 +57,7 @@ const LAYER_LABELS = {
 };
 type LayerKey = keyof typeof LAYER_LABELS;
 
-const NIGHT_LABELS = { light: '가로등', security: '보안등', walklight: '보행등' };
+const NIGHT_LABELS = { cctv: 'CCTV', security: '보안등', light: '가로등' };
 const NIGHT_MIN_ZOOM = 16;
 
 function slopeColor(slope: number | null) {
@@ -158,7 +158,7 @@ export function CourseMap({
 
   // 토글이 OFF여도 코스 전체 시설 수는 유지한다. 화면 안 마커 수와 구분한다.
   const counts = useMemo(() => {
-    const result = { toilet: 0, store: 0, light: 0, security: 0, walklight: 0 };
+    const result = { toilet: 0, store: 0, light: 0, security: 0, cctv: 0, walklight: 0 };
     for (const point of facilityPoints) result[point.type] += 1;
     return result;
   }, [facilityPoints]);
@@ -166,7 +166,7 @@ export function CourseMap({
   const summaries = {
     toilet: `${counts.toilet}개`,
     store: `${counts.store}개`,
-    night: `${counts.light + counts.security + counts.walklight}개`,
+    night: `${counts.light + counts.security + counts.cctv}개`,
     slope: averageSlopePct == null ? '평균 정보 없음' : `평균 ${averageSlopePct.toFixed(1)}%`,
     nature: natureCounts
       ? `공원 ${natureCounts.park ?? '—'}개 · 하천 ${natureCounts.water ?? '—'}개`
@@ -178,7 +178,7 @@ export function CourseMap({
     store: true,
     slope: mapLayers?.availability.slope ?? false,
     nature: Boolean(mapLayers?.availability.park || mapLayers?.availability.water),
-    night: Boolean(mapLayers?.nightFacilityTypes.length),
+    night: counts.light + counts.security + counts.cctv > 0,
   };
 
   const layerPath = featurePath ?? routePath;
@@ -193,7 +193,7 @@ export function CourseMap({
   // 조명은 확대된 화면 안의 시설만 마운트해 수백 개의 화면 밖 마커 생성을 피한다.
   const nightPoints = visible.night && viewport.zoom >= NIGHT_MIN_ZOOM
     ? facilityPoints.filter(point => {
-      if (point.type === 'toilet' || point.type === 'store') return false;
+      if (!(point.type in NIGHT_LABELS)) return false;
       const region = viewport.region;
       return region !== undefined
         && point.lat >= region.latitude
@@ -338,7 +338,7 @@ export function CourseMap({
         ))}
 
         {nightPoints.map((point, index) => {
-          if (point.type === 'toilet' || point.type === 'store') return null;
+          if (point.type === 'toilet' || point.type === 'store' || point.type === 'walklight') return null;
 
           return (
             <NaverMapMarkerOverlay
@@ -367,6 +367,15 @@ export function CourseMap({
             latitude={currentLocation.lat}
             longitude={currentLocation.lng}
           />
+        ) : null}
+        {/* 실제 GPS의 단절 구간은 각각의 overlay로 지도 안에 그린다. */}
+        {(trackedRoutePaths ?? []).filter(path => path.length >= 2).map((path, index) => (
+          <NaverMapPathOverlay key={`record-${index}`} coords={path.map(toMapCoordinate)}
+            color="#169E84" width={5} outlineColor="#FFFFFF" outlineWidth={1} zIndex={4} />
+        ))}
+        {highlightedPath && highlightedPath.length >= 2 ? (
+          <NaverMapPathOverlay coords={highlightedPath.map(toMapCoordinate)}
+            color="#F06D24" width={8} outlineWidth={1} outlineColor="#FFFFFF" zIndex={5} />
         ) : null}
       </NaverMapView>
 
@@ -415,9 +424,10 @@ export function CourseMap({
             ) : null}
             {visible.night && available.night ? (
               <Text style={styles.legendText}>
-                {mapLayers?.nightFacilityTypes.map(type => `${NIGHT_LABELS[type]} ${counts[type]}개`).join(' · ')}
+                {(Object.keys(NIGHT_LABELS) as (keyof typeof NIGHT_LABELS)[])
+                  .filter(type => counts[type] > 0)
+                  .map(type => `${NIGHT_LABELS[type]} ${counts[type]}개`).join(' · ')}
                 {viewport.zoom < NIGHT_MIN_ZOOM ? ' · 확대하면 표시됩니다' : ' · 경로 주변 50m'}
-                {!mapLayers?.nightFacilityTypes.includes('walklight') ? ' · 보행등 데이터 없음' : ''}
               </Text>
             ) : null}
           </View>
@@ -440,14 +450,6 @@ export function CourseMap({
           </Pressable>
         ) : null}
 
-        {(trackedRoutePaths ?? []).filter(path => path.length >= 2).map((path, index) => (
-          <NaverMapPathOverlay key={`record-${index}`} coords={path.map(toMapCoordinate)}
-            color="#169E84" width={5} outlineColor="#FFFFFF" outlineWidth={1} zIndex={4} />
-        ))}
-        {highlightedPath && highlightedPath.length >= 2 ? (
-          <NaverMapPathOverlay coords={highlightedPath.map(toMapCoordinate)}
-            color="#F06D24" width={8} outlineWidth={1} outlineColor="#FFFFFF" zIndex={5} />
-        ) : null}
         {onToggleExpanded ? (
           <Pressable accessibilityRole="button" onPress={onToggleExpanded} style={styles.layerButton}>
             <Text style={styles.layerButtonText}>{mapExpanded ? '러닝 UI 보기' : '지도 크게 보기'}</Text>

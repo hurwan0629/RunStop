@@ -34,6 +34,9 @@ PREFERENCE_LEVEL_MIN     = 0.0
 PREFERENCE_LEVEL_MAX     = 5.0
 PREFERENCE_LEVEL_DEFAULT = 3.0
 
+# 약간 경사짐의 탐색 목표. compare_preferences.py --rolling-target으로 비교한다.
+ROLLING_TARGET_SLOPE_PCT = 5.0
+
 EDGE_COST_SCALE_ELEVATION = 1.2    # [참고자료 검증] Valhalla는 경사를 factor가 아닌 grade-bucket 비용으로 처리해 직접 대응값 없음 — 러닝 특성상 최우선 유지
 EDGE_COST_SCALE_SAFETY    = 0.8    # [참고자료 검증] Valhalla use_lit(0~1)은 다이얼만 있고 배율 미문서화 — 유지
 EDGE_COST_SCALE_NATURE    = 0.6    # [참고자료 검증] Valhalla 보행 costing엔 자연환경 선호 개념 자체가 없음 — 유지

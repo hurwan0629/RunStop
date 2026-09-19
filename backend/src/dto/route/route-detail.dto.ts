@@ -4,7 +4,7 @@ import { routeRequestPointSchema } from "./route-request-point.dto.js";
 import { routeSlopeProfileSchema } from "./route-recommendation.dto.js";
 
 export const routeFacilityPointSchema = z.object({
-  type: z.enum(["toilet", "store", "light", "security", "walklight"]),
+  type: z.enum(["toilet", "store", "light", "security", "cctv", "walklight"]),
   name: z.string(),
   lat: routeCoordinateSchema.shape.lat,
   lng: routeCoordinateSchema.shape.lng,
@@ -28,7 +28,7 @@ export const routeMapLayersSchema = z.object({
     park: z.boolean(),
     water: z.boolean(),
   }),
-  nightFacilityTypes: z.array(z.enum(["light", "security", "walklight"])),
+  nightFacilityTypes: z.array(z.enum(["light", "security", "cctv", "walklight"])),
   natureCounts: z.object({
     park: z.number().int().nonnegative().nullable(),
     water: z.number().int().nonnegative().nullable(),

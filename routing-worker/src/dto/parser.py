@@ -28,6 +28,9 @@ def parse_node_request_to_python_recommendation(
     if node_req.elementConditions.maxSlope is not None:
         requirements["max_slope_pct"] = node_req.elementConditions.maxSlope
 
+    if node_req.elementConditions.slopePreference is not None:
+        requirements["slope_preference"] = node_req.elementConditions.slopePreference
+
     result["requirements"] = requirements
     result["facility_preferences"] = node_req.elementConditions.facilityPreferences
 
@@ -43,6 +46,14 @@ def parse_python_recommendation_to_node_require(results):
         distance_km = result["actual_distance_m"] / 1000
 
         feature_values = dict(result.get("facilities") or {})
+        # 기존 JSON에 진단값만 추가한다. score는 기존 heuristic 의미를 유지한다.
+        feature_values.update({
+            "distanceErrorPct": result.get("distance_error_pct"),
+            "overlapRatio": result.get("overlap_ratio"),
+            "aiScore": result.get("ai_score"),
+            "rankingSource": result.get("ranking_source"),
+            "generationSource": result.get("generation_source", "direction"),
+        })
         # AI 선택이 끝난 후보의 응답에만 지도 레이어를 추가한다.
         feature_values["facilityPoints"] = get_nearby_facility_points(coords)
         feature_values["mapLayers"] = build_map_layers(coords)

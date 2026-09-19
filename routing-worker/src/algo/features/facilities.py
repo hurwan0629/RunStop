@@ -14,7 +14,7 @@ from src.algo import config
 from src.algo.types import CandidateRoute, Coordinate, FacilityProfile
 
 FACILITY_STATUS_KEYS = ("toilet", "store")
-NIGHT_FACILITY_KEYS = ("light", "security", "walklight")
+NIGHT_FACILITY_KEYS = ("cctv", "security", "light")
 
 # 유형(한글, CSV) -> 결과 키(영문)
 FACILITY_TYPE_TO_KEY = {

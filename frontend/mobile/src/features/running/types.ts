@@ -1,4 +1,17 @@
-import type { LocationPoint, RouteFacilityPoint, RouteMapLayers, RouteSlopeProfile } from '@/features/course/types';
+import type { LocationPoint, RouteFacilityPoint, RouteMapLayers, RouteSlopeProfile, RouteRequest } from '@/features/course/types';
+
+export type RecordedRouteFeatures = {
+  [key: string]: unknown;
+  slope?: RouteSlopeProfile;
+  nature?: { parkRatio?: number | null; waterRatio?: number | null };
+  surface?: { signal_per_km?: number | null; crossing_per_km?: number | null };
+  overlapRatio?: number;
+  slopeConstraint?: {
+    status: 'MET' | 'RELAXED' | 'IGNORE';
+    evaluation?: string;
+    appliedMaxSlopePct?: number | null;
+  };
+};
 
 export type RunningDetail = {
   sessionIdx: number;
@@ -7,7 +20,11 @@ export type RunningDetail = {
   finishedAt: string | null;
   distance: number | null;
   averagePace: number | null;
-  route: { idx: number; name: string; path: LocationPoint[]; totalDistance: number | null } | null;
+  route: {
+    idx: number; name: string; path: LocationPoint[]; totalDistance: number | null;
+    totalAscent?: number | null; featureValues?: RecordedRouteFeatures | null;
+  } | null;
+  request?: { idx: number; elementConditions?: Partial<RouteRequest['elementConditions']> | null } | null;
   trackPaths: LocationPoint[][];
   excludedPointCount: number;
   gapCount: number;

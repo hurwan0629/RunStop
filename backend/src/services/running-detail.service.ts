@@ -11,6 +11,7 @@ import {
 } from "../repositories/running-sessions.repository.js";
 import { findTrackpointsBySessionIdx } from "../repositories/running-trackpoints.repository.js";
 import { findRouteDetailByIdx } from "../repositories/route-recommendations.repository.js";
+import { findRouteRequestByIdxAndUserIdx, findRouteRequestPoints } from "../repositories/route-requests.repository.js";
 import { buildRunningSegments } from "./running-segments.js";
 
 const trackAnalysisSchema = z.object({
@@ -29,13 +30,16 @@ export async function getRunningDetail(userIdx: number, sessionIdx: number) {
     findTrackpointsBySessionIdx(sessionIdx),
   ]);
   const track = buildRunningSegments(trackpoints);
+  const request = route ? await findRouteRequestByIdxAndUserIdx(route.routeRequestIdx, userIdx) : null;
+  const requestPoints = request ? await findRouteRequestPoints(request.idx) : [];
   let analysisStatus = session.status === "IN_PROGRESS" ? "IN_PROGRESS" : "INSUFFICIENT";
 
   // 완료 기록만 분석·캐시한다. 뒤늦게 저장된 GPS가 있으면 해시가 달라져 다시 계산한다.
   if (track.segments.length && session.status !== "IN_PROGRESS") {
     analysisStatus = "UNAVAILABLE";
     const paths = track.segments.map(segment => segment.path);
-    const fingerprint = createHash("sha256").update(JSON.stringify(paths)).digest("hex");
+    // CCTV가 빠졌던 이전 분석 캐시는 한 번 갱신한다.
+    const fingerprint = createHash("sha256").update("night-cctv-v2:" + JSON.stringify(paths)).digest("hex");
     try {
       const cached = trackAnalysisSchema.safeParse(await findRunningTrackAnalysis(sessionIdx));
       let environments: z.infer<typeof runningEnvironmentSchema>[];
@@ -67,6 +71,7 @@ export async function getRunningDetail(userIdx: number, sessionIdx: number) {
     finishedAt: session.finishedAt?.toISOString() ?? null,
     distance: session.distance, averagePace: session.averagePace,
     route: route ? { ...route, path: route.path ?? [] } : null,
+    request: request ? { ...request, points: requestPoints } : null,
     ...track, analysisStatus,
   });
 }

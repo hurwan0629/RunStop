@@ -95,7 +95,7 @@ def build_ai_feature_rows(
             "candidate_overlap_ratio": _number(candidate.get("overlap_ratio")),
             "candidate_target_distance_m": _number(candidate.get("target_distance_m")),
             "request_target_distance_m": _number(candidate.get("target_distance_m")),
-            "request_via_count": 1.0 if candidate.get("mode") == "via" else 0.0,
+            "request_via_count": float(candidate.get("user_via_count", 1 if candidate.get("mode") == "via" else 0)),
             "requirements_max_slope_pct": _number(ai_requirements.get("max_slope_pct")),
             "requirements_no_stairs": _number(ai_requirements.get("no_stairs")),
             "requirements_park": _number(ai_requirements.get("park")),

@@ -42,8 +42,8 @@ export type CourseDraft = {
   prompt: string;
   slopePreference: SlopePreference;
   facilities: FacilityPreference[];
-  distanceImportance: ImportanceLevel;
-  slopeImportance: ImportanceLevel;
+  preferNature: boolean;
+  preferFlow: boolean;
   nightImportance: ImportanceLevel;
 };
 
@@ -56,6 +56,9 @@ export type RouteRequest = {
   elementConditions: {
     targetDistance: number;
     maxSlope?: number;
+    slopePreference?: SlopePreference;
+    preferNature?: boolean;
+    preferFlow?: boolean;
     weights: Record<string, number>;
     requirements?: Record<string, boolean>;
     facilityPreferences: {
@@ -97,6 +100,12 @@ export type RouteRecommendation = {
   slope?: RouteSlopeProfile | null;
   featureScores?: Record<string, number | null>;
   facilities?: RouteFacilitySummary;
+  slopeConstraint?: {
+    requestedMaxSlopePct: number | null;
+    appliedMaxSlopePct: number | null;
+    status: FacilityStatus;
+    evaluation?: string;
+  };
 };
 
 export type RouteRecommendResponse = {
@@ -110,7 +119,7 @@ export type RoutePoint = LocationPoint & {
 };
 
 export type RouteFacilityPoint = LocationPoint & {
-  type: 'toilet' | 'store' | 'light' | 'security' | 'walklight';
+  type: 'toilet' | 'store' | 'light' | 'security' | 'cctv' | 'walklight';
 };
 
 /** 추천 완료 후 추가되는 지도 전용 데이터입니다. */
@@ -125,7 +134,7 @@ export type RouteMapLayers = {
     path: LocationPoint[];
   }[];
   availability: { slope: boolean; park: boolean; water: boolean };
-  nightFacilityTypes: ('light' | 'security' | 'walklight')[];
+  nightFacilityTypes: ('light' | 'security' | 'cctv' | 'walklight')[];
   natureCounts?: { park: number | null; water: number | null };
 };
 

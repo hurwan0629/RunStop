@@ -14,7 +14,9 @@ vi.mock("../src/repositories/running-trackpoints.repository.js", () => ({ findTr
 vi.mock("../src/repositories/route-recommendations.repository.js", () => ({
   findRouteDetailByIdx: vi.fn(), findRouteRecommendationsByRequestIdx: vi.fn(),
 }));
-vi.mock("../src/repositories/route-requests.repository.js", () => ({ findRouteRequestByIdxAndUserIdx: vi.fn() }));
+vi.mock("../src/repositories/route-requests.repository.js", () => ({
+  findRouteRequestByIdxAndUserIdx: vi.fn(), findRouteRequestPoints: vi.fn(), findRouteRequestOwner: vi.fn(),
+}));
 vi.mock("../src/repositories/admin-running.repository.js", () => ({
   findSessionOwner: vi.fn(), findAdminRuns: vi.fn(), findRunningAnalytics: vi.fn(),
 }));
@@ -50,6 +52,7 @@ beforeEach(() => {
   vi.mocked(tracks.findTrackpointsBySessionIdx).mockResolvedValue(points);
   vi.mocked(routes.findRouteDetailByIdx).mockResolvedValue(route as Awaited<ReturnType<typeof routes.findRouteDetailByIdx>>);
   vi.mocked(sessions.findRunningTrackAnalysis).mockResolvedValue(null);
+  vi.mocked(requests.findRouteRequestPoints).mockResolvedValue([]);
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json([environment, environment])));
 });
 afterEach(() => vi.unstubAllGlobals());
@@ -130,6 +133,20 @@ test("GPS가 없는 기존 러닝은 선택 코스만 제공한다", async () =>
   expect(result.analysisStatus).toBe("INSUFFICIENT");
   expect(result.route?.idx).toBe(20);
   expect(fetch).not.toHaveBeenCalled();
+});
+
+test("선택 추천의 실제 feature와 원래 요청 조건을 중복 저장 없이 함께 조회한다", async () => {
+  const featureValues = { toilet_count: 4, cctv_count: 7, overlapRatio: .1, aiScore: 1.4 };
+  vi.mocked(routes.findRouteDetailByIdx).mockResolvedValue({ ...route, featureValues } as Awaited<ReturnType<typeof routes.findRouteDetailByIdx>>);
+  vi.mocked(requests.findRouteRequestByIdxAndUserIdx).mockResolvedValue({
+    idx: 10, elementConditions: { targetDistance: 1500, slopePreference: "NORMAL" },
+  } as Awaited<ReturnType<typeof requests.findRouteRequestByIdxAndUserIdx>>);
+  vi.mocked(requests.findRouteRequestPoints).mockResolvedValue([{ sequence: 0, pointType: "START", lat: 37.5, lng: 127 }]);
+  const detail = await getRunningDetail(4, 7);
+  expect(detail.route?.featureValues).toEqual(featureValues);
+  expect(detail.request?.elementConditions?.slopePreference).toBe("NORMAL");
+  expect(detail.request?.points).toHaveLength(1);
+  expect(requests.findRouteRequestByIdxAndUserIdx).toHaveBeenCalledWith(10, 4);
 });
 
 test("관리자는 같은 추천 요청의 미선택 코스만 함께 조회한다", async () => {

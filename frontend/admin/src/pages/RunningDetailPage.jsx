@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getRun } from '../api/runningApi'
 import RunningMap from '../components/RunningMap'
+import RouteRequestComparison from '../components/RouteRequestComparison'
 import './RunningPage.css'
 
 const statusLabels = { COMPLETED: '완료', IN_PROGRESS: '진행 중', STOPPED: '중단', CANCELLED: '취소', FAILED: '실패' }
@@ -175,6 +176,8 @@ export default function RunningDetailPage() {
       </aside>
     </div>
 
+    <RouteRequestComparison key={detail.sessionIdx} detail={detail} />
+
     {/* 구간 목록과 선택한 구간의 환경 정보를 분리한다. */}
     <section className="run-card">
       <div className="run-section-heading"><div><h2>구간별 기록</h2><p>구간을 누르면 지도에서 해당 이동 경로를 볼 수 있습니다.</p></div></div>
@@ -197,7 +200,7 @@ export default function RunningDetailPage() {
               {[
                 ['평균 경사', environment?.slope?.avgSlopePct == null ? '—' : `${environment.slope.avgSlopePct.toFixed(1)}%`],
                 ['화장실', facilityCount(['toilet'])], ['편의점', facilityCount(['store'])],
-                ['야간 조명', facilityCount(['light', 'security', 'walklight'])],
+                ['야간 인프라', facilityCount(['cctv', 'security', 'light'])],
                 ['공원', environment?.mapLayers?.natureCounts?.park == null ? '—' : `${environment.mapLayers.natureCounts.park}개`],
                 ['하천', environment?.mapLayers?.natureCounts?.water == null ? '—' : `${environment.mapLayers.natureCounts.water}개`],
               ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}

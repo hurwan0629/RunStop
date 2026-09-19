@@ -5,6 +5,7 @@ from .coord import CoordinateDTO
 class ElementConditionsDTO(BaseModel):
     targetDistance: float = Field(gt=0)
     maxSlope: float | None = Field(default=None, ge=0)
+    slopePreference: Literal["GENTLE", "NORMAL", "ANY"] | None = None
     weights: dict[str, int]
     requirements: dict[str, bool] = Field(default_factory=dict)
     facilityPreferences: dict[str, Literal["PREFER", "IGNORE"]]

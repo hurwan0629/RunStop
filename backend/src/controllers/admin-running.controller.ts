@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { ApiError } from "../middleware/error.js";
 import { findAdminRuns, findRunningAnalytics } from "../repositories/admin-running.repository.js";
-import { getAdminRunningDetail } from "../services/admin-running.service.js";
+import { getAdminRunningDetail, getAdminRouteRequestDetail } from "../services/admin-running.service.js";
 
 const kstDate = (daysAgo: number) => new Date(Date.now() + 9 * 3600000 - daysAgo * 86400000).toISOString().slice(0, 10);
 export const adminRunningQuerySchema = z.object({
@@ -27,6 +27,12 @@ export async function getRun(req: Request, res: Response) {
   const parsed = z.coerce.number().int().positive().safeParse(req.params.sessionIdx);
   if (!parsed.success) throw new ApiError({ status: 400, code: "INVALID_SESSION", message: "러닝 번호를 확인해 주세요." });
   res.json({ success: true, data: await getAdminRunningDetail(parsed.data) });
+}
+
+export async function getRouteRequest(req: Request, res: Response) {
+  const parsed = z.coerce.number().int().positive().safeParse(req.params.requestIdx);
+  if (!parsed.success) throw new ApiError({ status: 400, code: "INVALID_REQUEST", message: "추천 요청 번호를 확인해 주세요." });
+  res.json({ success: true, data: await getAdminRouteRequestDetail(parsed.data) });
 }
 
 export async function getAnalytics(req: Request, res: Response) {

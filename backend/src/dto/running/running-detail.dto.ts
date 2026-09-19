@@ -26,6 +26,19 @@ export const recordedRouteSchema = z.object({
   totalDistance: z.number().nullable(),
   totalAscent: z.number().nullable(),
   path: z.array(routeCoordinateSchema),
+  featureValues: z.record(z.string(), z.unknown()).nullable().optional(),
+  featureScores: z.record(z.string(), z.number().nullable()).nullable().optional(),
+});
+
+// 과거 JSON을 새 추천 입력 규칙으로 다시 해석하지 않고 저장된 그대로 조회한다.
+export const recordedRequestSchema = z.object({
+  idx: z.number().int().positive(),
+  routeType: z.string().nullable().optional(),
+  elementConditions: z.record(z.string(), z.unknown()).nullable().optional(),
+  selectedRecommendationIdx: z.number().nullable().optional(),
+  points: z.array(routeCoordinateSchema.extend({
+    sequence: z.number().int(), pointType: z.enum(["START", "WAYPOINT", "END"]),
+  })).default([]),
 });
 
 export const runningDetailSchema = z.object({
@@ -37,6 +50,7 @@ export const runningDetailSchema = z.object({
   distance: z.number().nullable(),
   averagePace: z.number().nullable(),
   route: recordedRouteSchema.nullable(),
+  request: recordedRequestSchema.nullable().optional(),
   trackPaths: z.array(z.array(routeCoordinateSchema)),
   segments: z.array(runningSegmentSchema),
   excludedPointCount: z.number().int().nonnegative(),

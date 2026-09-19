@@ -1,5 +1,11 @@
 # 노드 API 서버 프로젝트
 
+## 추천 조건과 기록 상세
+
+- 새 선택은 optional `slopePreference`, `preferNature`, `preferFlow`로 받아 기존 weights/maxSlope로 정규화한다. `NORMAL` 표시명은 약간 경사짐이다.
+- 기록 상세에는 기존 요청 조건과 선택 코스의 `featureValues`를 추가 조회한다. 관리자 요청 비교는 `GET /api/admin/route-requests/:requestIdx`를 사용한다.
+- 신규 DB migration 없이 기존 JSON과 관계를 재사용한다. [변경·실험·배포 안내](../docs/2026-09-19-route-preferences.md).
+
 ## 러닝 지도·구간 조회
 
 - 사용자: `GET /api/running-sessions/:sessionIdx/detail` (본인 기록만).

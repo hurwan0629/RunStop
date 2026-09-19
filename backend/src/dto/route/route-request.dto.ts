@@ -38,7 +38,7 @@ export function sanitizeRouteWeights(value: Record<string, unknown>): Record<str
 
     const numberValue = Number(raw);
     if (Number.isFinite(numberValue)) {
-      out[key] = Math.min(5, Math.max(1, Math.round(numberValue)));
+      out[key] = Math.min(5, Math.max(0, Math.round(numberValue)));
     }
   }
 
@@ -67,9 +67,13 @@ export function sanitizeRouteRequirements(
   return out;
 }
 
-export const routeElementConditionsSchema = z.object({
+export const routeElementConditionsInputSchema = z.object({
   targetDistance: z.number().positive(),
   maxSlope: z.number().nonnegative().optional(),
+  // 기존 클라이언트는 생략 가능. NORMAL의 사용자 문구는 '약간 경사짐'이다.
+  slopePreference: z.enum(["GENTLE", "NORMAL", "ANY"]).optional(),
+  preferNature: z.boolean().optional(),
+  preferFlow: z.boolean().optional(),
   facilityPreferences: z.object({
     toilet: z.enum(["PREFER", "IGNORE"]),
     store: z.enum(["PREFER", "IGNORE"]),
@@ -77,6 +81,26 @@ export const routeElementConditionsSchema = z.object({
   weights: z.record(z.string(), z.unknown()).default({}).transform(sanitizeRouteWeights),
   requirements: z.record(z.string(), z.unknown()).default({}).transform(sanitizeRouteRequirements),
 }).catchall(z.unknown());
+
+export const routeElementConditionsSchema = routeElementConditionsInputSchema.transform((conditions) => {
+  const weights = { ...conditions.weights };
+  let maxSlope = conditions.maxSlope;
+
+  // 새 UI의 단일 선택을 여기서 해석한다. 기존 요청의 가중치는 그대로 지원한다.
+  if (conditions.slopePreference !== undefined) {
+    maxSlope = { GENTLE: 5, NORMAL: 8, ANY: undefined }[conditions.slopePreference];
+    weights.elevation = conditions.slopePreference === "ANY" ? 0 : 5;
+    weights.distance = 3; // 목표 거리 오차는 사용자 중요도와 별개인 내부 품질 기준.
+    delete weights.overlap; // 탐색·점수의 기존 내부 기본값을 사용한다.
+  }
+  if (conditions.preferNature !== undefined) {
+    weights.nature = weights.park = conditions.preferNature ? 5 : 0;
+  }
+  if (conditions.preferFlow !== undefined) {
+    weights.flow = conditions.preferFlow ? 5 : 0;
+  }
+  return { ...conditions, maxSlope, weights };
+});
 
 export const routeRequestSchema = z.object({
   prompt: z.string().trim().min(1).optional(),

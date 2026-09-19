@@ -8,6 +8,10 @@ export async function getRun(sessionIdx, signal) {
   return (await apiClient.get(`/admin/running-sessions/${sessionIdx}`, { signal })).data.data
 }
 
+export async function getRouteRequest(requestIdx, signal) {
+  return (await apiClient.get(`/admin/route-requests/${requestIdx}`, { signal })).data.data
+}
+
 export async function getAnalytics(params, signal) {
   return (await apiClient.get('/admin/running-analytics', { params, signal })).data.data
 }

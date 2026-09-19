@@ -1,0 +1,4258 @@
+{
+  "any": {
+    "pool": {
+      "count": 26,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.7307692307692307,
+          "median": 0.5,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_route_length_km": {
+          "mean": 2.9673076923076924,
+          "median": 2.99,
+          "min": 2.7,
+          "max": 3.23
+        },
+        "facilities_cctv_per_km": {
+          "mean": 9.928846153846154,
+          "median": 8.99,
+          "min": 3.63,
+          "max": 18.29
+        },
+        "facilities_store_per_km": {
+          "mean": 4.027692307692307,
+          "median": 3.83,
+          "min": 0.71,
+          "max": 8.36
+        },
+        "slope_avg_slope_pct": {
+          "mean": 2.5576923076923075,
+          "median": 2.185,
+          "min": 0.37,
+          "max": 6.75
+        },
+        "facilities_park_nearest_m": {
+          "mean": 69.49545454545455,
+          "median": 46.75,
+          "min": 3.9,
+          "max": 197.4
+        },
+        "facilities_security_count": {
+          "mean": 163.92307692307693,
+          "median": 150.5,
+          "min": 2,
+          "max": 458
+        },
+        "surface_crossing_per_km": {
+          "mean": 3.939230769230769,
+          "median": 3.5999999999999996,
+          "min": 0.0,
+          "max": 11.71
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.1769230769230767,
+          "median": 2.0949999999999998,
+          "min": 0.74,
+          "max": 4.17
+        },
+        "slope_max_slope_pct": {
+          "mean": 13.143461538461539,
+          "median": 12.635,
+          "min": 1.81,
+          "max": 43.5
+        },
+        "facilities_store_count": {
+          "mean": 11.961538461538462,
+          "median": 11.0,
+          "min": 2,
+          "max": 23
+        },
+        "condition_score": {
+          "mean": 65.93461538461538,
+          "median": 67.0,
+          "min": 31.1,
+          "max": 92.9
+        },
+        "surface_length_m": {
+          "mean": 3021.923076923077,
+          "median": 3038.5,
+          "min": 2755,
+          "max": 3273
+        },
+        "actual_distance_m": {
+          "mean": 3021.923076923077,
+          "median": 3038.5,
+          "min": 2755,
+          "max": 3273
+        },
+        "facilities_light_count": {
+          "mean": 1.4615384615384615,
+          "median": 0.0,
+          "min": 0,
+          "max": 14
+        },
+        "facilities_light_per_km": {
+          "mean": 0.49730769230769234,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 4.57
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7308846153846154,
+          "median": 0.7965,
+          "min": 0.141,
+          "max": 1.0
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.8038461538461539,
+          "median": 0.45,
+          "min": 0.0,
+          "max": 5.1
+        },
+        "slope_sample_count": {
+          "mean": 42.03846153846154,
+          "median": 41.5,
+          "min": 32,
+          "max": 52
+        },
+        "slope_elevation_loss_m": {
+          "mean": 33.95384615384616,
+          "median": 30.45,
+          "min": 4.7,
+          "max": 97.4
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.2705,
+          "median": 0.2035,
+          "min": 0.0,
+          "max": 0.859
+        },
+        "nature_park_ratio": {
+          "mean": 0.05765384615384615,
+          "median": 0.043,
+          "min": 0.0,
+          "max": 0.161
+        },
+        "surface_signal_per_km": {
+          "mean": 0.30653846153846154,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "facilities_toilet_count": {
+          "mean": 6.5,
+          "median": 6.0,
+          "min": 2,
+          "max": 13
+        },
+        "facilities_security_per_km": {
+          "mean": 55.06730769230769,
+          "median": 51.905,
+          "min": 0.69,
+          "max": 153.63
+        },
+        "distance_error_pct": {
+          "mean": 3.315384615384615,
+          "median": 2.95,
+          "min": 0.4,
+          "max": 9.1
+        },
+        "night_score": {
+          "mean": 53.89038461538461,
+          "median": 51.3,
+          "min": 15.7,
+          "max": 95.05000000000001
+        },
+        "facilities_light_nearest_m": {
+          "mean": 128.51111111111112,
+          "median": 79.9,
+          "min": 0.3,
+          "max": 399.6
+        },
+        "facilities_cctv_count": {
+          "mean": 29.576923076923077,
+          "median": 27.0,
+          "min": 11,
+          "max": 59
+        },
+        "facilities_store_nearest_m": {
+          "mean": 9.092307692307692,
+          "median": 8.3,
+          "min": 2.6,
+          "max": 24.8
+        },
+        "nature_water_ratio": {
+          "mean": 0.003923076923076923,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.027
+        },
+        "ai_score": {
+          "mean": -0.7060668758716009,
+          "median": -0.750492261458177,
+          "min": -5.979394529923629,
+          "max": 4.257620471305775
+        },
+        "overlap_ratio": {
+          "mean": 0.02046153846153846,
+          "median": 0.014,
+          "min": 0.0,
+          "max": 0.078
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.5,
+          "median": 0.0,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 9.53076923076923,
+          "median": 7.1,
+          "min": 2.2,
+          "max": 23.3
+        },
+        "facilities_park_per_km": {
+          "mean": 0.24307692307692308,
+          "median": 0.155,
+          "min": 0.0,
+          "max": 0.98
+        },
+        "slope_elevation_gain_m": {
+          "mean": 33.95384615384616,
+          "median": 30.45,
+          "min": 4.7,
+          "max": 97.4
+        },
+        "facilities_security_nearest_m": {
+          "mean": 1.9230769230769231,
+          "median": 0.25,
+          "min": 0.0,
+          "max": 30.3
+        },
+        "origin": {
+          "mean": 0.9615384615384616,
+          "median": 1.0,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 3.0415384615384617,
+          "median": 2.745,
+          "min": 0.48,
+          "max": 7.97
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50.0,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "top3": {
+      "count": 9,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.8888888888888888,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_route_length_km": {
+          "mean": 2.9833333333333334,
+          "median": 3.03,
+          "min": 2.8,
+          "max": 3.11
+        },
+        "facilities_cctv_per_km": {
+          "mean": 9.082222222222223,
+          "median": 8.13,
+          "min": 3.63,
+          "max": 16.06
+        },
+        "facilities_store_per_km": {
+          "mean": 4.581111111111111,
+          "median": 4.74,
+          "min": 3.06,
+          "max": 5.9
+        },
+        "slope_avg_slope_pct": {
+          "mean": 1.8399999999999999,
+          "median": 1.66,
+          "min": 0.63,
+          "max": 3.38
+        },
+        "facilities_park_nearest_m": {
+          "mean": 67.325,
+          "median": 43.95,
+          "min": 3.9,
+          "max": 150.0
+        },
+        "facilities_security_count": {
+          "mean": 148.33333333333334,
+          "median": 152,
+          "min": 31,
+          "max": 273
+        },
+        "surface_crossing_per_km": {
+          "mean": 2.776666666666667,
+          "median": 2.6,
+          "min": 0.0,
+          "max": 6.05
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.52,
+          "median": 2.72,
+          "min": 1.32,
+          "max": 4.17
+        },
+        "slope_max_slope_pct": {
+          "mean": 12.33,
+          "median": 12.89,
+          "min": 3.93,
+          "max": 26.46
+        },
+        "facilities_store_count": {
+          "mean": 13.666666666666666,
+          "median": 14,
+          "min": 9,
+          "max": 18
+        },
+        "condition_score": {
+          "mean": 65.53333333333333,
+          "median": 68.3,
+          "min": 48.8,
+          "max": 78.8
+        },
+        "surface_length_m": {
+          "mean": 3032.8888888888887,
+          "median": 3061,
+          "min": 2844,
+          "max": 3195
+        },
+        "actual_distance_m": {
+          "mean": 3032.8888888888887,
+          "median": 3061,
+          "min": 2844,
+          "max": 3195
+        },
+        "facilities_light_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_light_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7753333333333333,
+          "median": 0.851,
+          "min": 0.316,
+          "max": 0.966
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.8222222222222222,
+          "median": 0.6,
+          "min": 0.2,
+          "max": 2.5
+        },
+        "slope_sample_count": {
+          "mean": 40.111111111111114,
+          "median": 41,
+          "min": 32,
+          "max": 49
+        },
+        "slope_elevation_loss_m": {
+          "mean": 23.544444444444444,
+          "median": 25.0,
+          "min": 7.3,
+          "max": 43.9
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.22866666666666666,
+          "median": 0.149,
+          "min": 0.034,
+          "max": 0.684
+        },
+        "nature_park_ratio": {
+          "mean": 0.04566666666666667,
+          "median": 0.023,
+          "min": 0.0,
+          "max": 0.134
+        },
+        "surface_signal_per_km": {
+          "mean": 0.21666666666666667,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.31
+        },
+        "facilities_toilet_count": {
+          "mean": 7.555555555555555,
+          "median": 8,
+          "min": 4,
+          "max": 13
+        },
+        "facilities_security_per_km": {
+          "mean": 49.59222222222222,
+          "median": 51.62,
+          "min": 10.23,
+          "max": 87.66
+        },
+        "distance_error_pct": {
+          "mean": 3.2888888888888888,
+          "median": 3.1,
+          "min": 0.8,
+          "max": 6.5
+        },
+        "night_score": {
+          "mean": 49.83333333333333,
+          "median": 45.95,
+          "min": 16.2,
+          "max": 85.6
+        },
+        "facilities_light_nearest_m": {
+          "mean": 249.25,
+          "median": 249.25,
+          "min": 161.3,
+          "max": 337.2
+        },
+        "facilities_cctv_count": {
+          "mean": 27.22222222222222,
+          "median": 23,
+          "min": 11,
+          "max": 50
+        },
+        "facilities_store_nearest_m": {
+          "mean": 9.377777777777778,
+          "median": 9.1,
+          "min": 6.7,
+          "max": 13.1
+        },
+        "nature_water_ratio": {
+          "mean": 0.005888888888888889,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.027
+        },
+        "ai_score": {
+          "mean": 1.367679952019579,
+          "median": 1.1893966775910525,
+          "min": -3.1886779315930855,
+          "max": 4.257620471305775
+        },
+        "overlap_ratio": {
+          "mean": 0.02388888888888889,
+          "median": 0.012,
+          "min": 0.0,
+          "max": 0.076
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.8888888888888888,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 8.411111111111111,
+          "median": 7.1,
+          "min": 2.2,
+          "max": 22.8
+        },
+        "facilities_park_per_km": {
+          "mean": 0.2966666666666667,
+          "median": 0.34,
+          "min": 0.0,
+          "max": 0.68
+        },
+        "slope_elevation_gain_m": {
+          "mean": 23.544444444444444,
+          "median": 25.0,
+          "min": 7.3,
+          "max": 43.9
+        },
+        "facilities_security_nearest_m": {
+          "mean": 0.5777777777777777,
+          "median": 0.2,
+          "min": 0.0,
+          "max": 2.0
+        },
+        "origin": {
+          "mean": 1,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 2.6233333333333335,
+          "median": 2.07,
+          "min": 0.94,
+          "max": 5.46
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "user_selected": {
+      "count": 0,
+      "metrics": {}
+    }
+  },
+  "gentle": {
+    "pool": {
+      "count": 14,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.5,
+          "median": 0.0,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_route_length_km": {
+          "mean": 2.887857142857143,
+          "median": 2.92,
+          "min": 2.51,
+          "max": 3.01
+        },
+        "facilities_cctv_per_km": {
+          "mean": 6.8707142857142856,
+          "median": 6.779999999999999,
+          "min": 3.19,
+          "max": 10.43
+        },
+        "facilities_store_per_km": {
+          "mean": 4.257857142857143,
+          "median": 4.575,
+          "min": 2.39,
+          "max": 5.79
+        },
+        "slope_avg_slope_pct": {
+          "mean": 0.7607142857142857,
+          "median": 0.73,
+          "min": 0.37,
+          "max": 1.22
+        },
+        "facilities_park_nearest_m": {
+          "mean": 98.53076923076922,
+          "median": 82.8,
+          "min": 7.0,
+          "max": 367.4
+        },
+        "facilities_security_count": {
+          "mean": 125.78571428571429,
+          "median": 119.0,
+          "min": 2,
+          "max": 307
+        },
+        "surface_crossing_per_km": {
+          "mean": 4.9,
+          "median": 4.855,
+          "min": 0.0,
+          "max": 11.71
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.579285714285714,
+          "median": 2.195,
+          "min": 0.74,
+          "max": 6.27
+        },
+        "slope_max_slope_pct": {
+          "mean": 3.847857142857143,
+          "median": 3.585,
+          "min": 1.77,
+          "max": 10.54
+        },
+        "facilities_store_count": {
+          "mean": 12.357142857142858,
+          "median": 13.5,
+          "min": 6,
+          "max": 17
+        },
+        "condition_score": {
+          "mean": 71.4,
+          "median": 74.65,
+          "min": 39.7,
+          "max": 90.6
+        },
+        "surface_length_m": {
+          "mean": 2952.8571428571427,
+          "median": 2957.5,
+          "min": 2767,
+          "max": 3090
+        },
+        "actual_distance_m": {
+          "mean": 2952.8571428571427,
+          "median": 2957.5,
+          "min": 2767,
+          "max": 3090
+        },
+        "facilities_light_count": {
+          "mean": 5.285714285714286,
+          "median": 0.0,
+          "min": 0,
+          "max": 49
+        },
+        "facilities_light_per_km": {
+          "mean": 2.0314285714285716,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 19.53
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.6971428571428572,
+          "median": 0.7284999999999999,
+          "min": 0.16,
+          "max": 0.984
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 1.2428571428571429,
+          "median": 0.6,
+          "min": 0.0,
+          "max": 4.6
+        },
+        "slope_sample_count": {
+          "mean": 40.42857142857143,
+          "median": 39.0,
+          "min": 30,
+          "max": 52
+        },
+        "slope_elevation_loss_m": {
+          "mean": 10.757142857142856,
+          "median": 9.55,
+          "min": 4.7,
+          "max": 21.7
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.3055,
+          "median": 0.281,
+          "min": 0.016,
+          "max": 0.84
+        },
+        "nature_park_ratio": {
+          "mean": 0.030857142857142857,
+          "median": 0.0285,
+          "min": 0.0,
+          "max": 0.083
+        },
+        "surface_signal_per_km": {
+          "mean": 0.4642857142857143,
+          "median": 0.33,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "facilities_toilet_count": {
+          "mean": 7.5,
+          "median": 6.5,
+          "min": 2,
+          "max": 18
+        },
+        "facilities_security_per_km": {
+          "mean": 43.324285714285715,
+          "median": 40.92,
+          "min": 0.69,
+          "max": 103.31
+        },
+        "distance_error_pct": {
+          "mean": 2.6857142857142855,
+          "median": 2.3499999999999996,
+          "min": 0.3,
+          "max": 7.8
+        },
+        "night_score": {
+          "mean": 40.93214285714286,
+          "median": 38.55,
+          "min": 15.7,
+          "max": 76.85
+        },
+        "facilities_light_nearest_m": {
+          "mean": 56.775,
+          "median": 0.85,
+          "min": 0.3,
+          "max": 225.1
+        },
+        "facilities_cctv_count": {
+          "mean": 19.928571428571427,
+          "median": 20.0,
+          "min": 8,
+          "max": 31
+        },
+        "facilities_store_nearest_m": {
+          "mean": 7.564285714285715,
+          "median": 7.2,
+          "min": 0.4,
+          "max": 19.6
+        },
+        "nature_water_ratio": {
+          "mean": 0.0034285714285714284,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.019
+        },
+        "ai_score": {
+          "mean": 0.07773554871247626,
+          "median": 0.5063856778167757,
+          "min": -4.736781498269168,
+          "max": 4.234956185310303
+        },
+        "overlap_ratio": {
+          "mean": 0.04271428571428571,
+          "median": 0.0155,
+          "min": 0.0,
+          "max": 0.2
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.42857142857142855,
+          "median": 0.0,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 6.55,
+          "median": 5.45,
+          "min": 2.2,
+          "max": 13.5
+        },
+        "facilities_park_per_km": {
+          "mean": 0.17714285714285716,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.11
+        },
+        "slope_elevation_gain_m": {
+          "mean": 10.757142857142856,
+          "median": 9.55,
+          "min": 4.7,
+          "max": 21.7
+        },
+        "facilities_security_nearest_m": {
+          "mean": 4.242857142857143,
+          "median": 0.5,
+          "min": 0.1,
+          "max": 30.3
+        },
+        "origin": {
+          "mean": 0.7857142857142857,
+          "median": 0.5,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 0.9714285714285714,
+          "median": 0.98,
+          "min": 0.48,
+          "max": 1.77
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50.0,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "top3": {
+      "count": 9,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.5555555555555556,
+          "median": 0,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_route_length_km": {
+          "mean": 2.8566666666666665,
+          "median": 2.87,
+          "min": 2.51,
+          "max": 3.01
+        },
+        "facilities_cctv_per_km": {
+          "mean": 6.66,
+          "median": 7.0,
+          "min": 3.19,
+          "max": 9.04
+        },
+        "facilities_store_per_km": {
+          "mean": 4.3933333333333335,
+          "median": 4.88,
+          "min": 2.39,
+          "max": 5.79
+        },
+        "slope_avg_slope_pct": {
+          "mean": 0.78,
+          "median": 0.78,
+          "min": 0.37,
+          "max": 1.22
+        },
+        "facilities_park_nearest_m": {
+          "mean": 111.33749999999999,
+          "median": 71.05,
+          "min": 7.0,
+          "max": 367.4
+        },
+        "facilities_security_count": {
+          "mean": 98.55555555555556,
+          "median": 67,
+          "min": 24,
+          "max": 223
+        },
+        "surface_crossing_per_km": {
+          "mean": 4.526666666666666,
+          "median": 4.85,
+          "min": 0.0,
+          "max": 11.71
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.65,
+          "median": 2.34,
+          "min": 0.74,
+          "max": 6.27
+        },
+        "slope_max_slope_pct": {
+          "mean": 3.648888888888889,
+          "median": 3.63,
+          "min": 1.81,
+          "max": 5.23
+        },
+        "facilities_store_count": {
+          "mean": 12.666666666666666,
+          "median": 14,
+          "min": 6,
+          "max": 17
+        },
+        "condition_score": {
+          "mean": 66.88888888888889,
+          "median": 66.4,
+          "min": 39.7,
+          "max": 82.1
+        },
+        "surface_length_m": {
+          "mean": 2941.4444444444443,
+          "median": 2932,
+          "min": 2767,
+          "max": 3090
+        },
+        "actual_distance_m": {
+          "mean": 2941.4444444444443,
+          "median": 2932,
+          "min": 2767,
+          "max": 3090
+        },
+        "facilities_light_count": {
+          "mean": 6.888888888888889,
+          "median": 0,
+          "min": 0,
+          "max": 49
+        },
+        "facilities_light_per_km": {
+          "mean": 2.7022222222222223,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 19.53
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.6895555555555556,
+          "median": 0.689,
+          "min": 0.405,
+          "max": 0.966
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 1.1444444444444444,
+          "median": 0.7,
+          "min": 0.2,
+          "max": 4.6
+        },
+        "slope_sample_count": {
+          "mean": 38.111111111111114,
+          "median": 38,
+          "min": 30,
+          "max": 48
+        },
+        "slope_elevation_loss_m": {
+          "mean": 11.9,
+          "median": 12.0,
+          "min": 4.7,
+          "max": 21.7
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.31044444444444447,
+          "median": 0.311,
+          "min": 0.034,
+          "max": 0.595
+        },
+        "nature_park_ratio": {
+          "mean": 0.03133333333333333,
+          "median": 0.026,
+          "min": 0.0,
+          "max": 0.083
+        },
+        "surface_signal_per_km": {
+          "mean": 0.30777777777777776,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.45
+        },
+        "facilities_toilet_count": {
+          "mean": 7.666666666666667,
+          "median": 7,
+          "min": 2,
+          "max": 18
+        },
+        "facilities_security_per_km": {
+          "mean": 34.50666666666667,
+          "median": 25.91,
+          "min": 8.85,
+          "max": 78.78
+        },
+        "distance_error_pct": {
+          "mean": 3.4555555555555553,
+          "median": 3.0,
+          "min": 0.3,
+          "max": 7.8
+        },
+        "night_score": {
+          "mean": 36.666666666666664,
+          "median": 34.85,
+          "min": 23.5,
+          "max": 58.85
+        },
+        "facilities_light_nearest_m": {
+          "mean": 75.6,
+          "median": 1.4,
+          "min": 0.3,
+          "max": 225.1
+        },
+        "facilities_cctv_count": {
+          "mean": 19.11111111111111,
+          "median": 21,
+          "min": 8,
+          "max": 27
+        },
+        "facilities_store_nearest_m": {
+          "mean": 7.644444444444445,
+          "median": 5.4,
+          "min": 0.4,
+          "max": 19.6
+        },
+        "nature_water_ratio": {
+          "mean": 0.0016666666666666666,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.011
+        },
+        "ai_score": {
+          "mean": -0.17521949969725592,
+          "median": -0.6257357832796573,
+          "min": -4.123705369305124,
+          "max": 4.234956185310303
+        },
+        "overlap_ratio": {
+          "mean": 0.059222222222222225,
+          "median": 0.043,
+          "min": 0.0,
+          "max": 0.2
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.6666666666666666,
+          "median": 0,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 7.122222222222222,
+          "median": 7.1,
+          "min": 2.2,
+          "max": 13.5
+        },
+        "facilities_park_per_km": {
+          "mean": 0.20111111111111113,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.11
+        },
+        "slope_elevation_gain_m": {
+          "mean": 11.9,
+          "median": 12.0,
+          "min": 4.7,
+          "max": 21.7
+        },
+        "facilities_security_nearest_m": {
+          "mean": 3.177777777777778,
+          "median": 1.7,
+          "min": 0.2,
+          "max": 9.3
+        },
+        "origin": {
+          "mean": 1,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 0.9844444444444445,
+          "median": 1.02,
+          "min": 0.48,
+          "max": 1.42
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "user_selected": {
+      "count": 0,
+      "metrics": {}
+    }
+  },
+  "rolling": {
+    "pool": {
+      "count": 25,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.68,
+          "median": 1,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_route_length_km": {
+          "mean": 2.9412,
+          "median": 2.94,
+          "min": 2.67,
+          "max": 3.14
+        },
+        "facilities_cctv_per_km": {
+          "mean": 8.3124,
+          "median": 8.82,
+          "min": 3.41,
+          "max": 17.89
+        },
+        "facilities_store_per_km": {
+          "mean": 4.3692,
+          "median": 4.39,
+          "min": 1.5,
+          "max": 6.83
+        },
+        "slope_avg_slope_pct": {
+          "mean": 1.3548,
+          "median": 1.22,
+          "min": 0.59,
+          "max": 3.67
+        },
+        "facilities_security_count": {
+          "mean": 135.48,
+          "median": 122,
+          "min": 4,
+          "max": 318
+        },
+        "surface_crossing_per_km": {
+          "mean": 4.3276,
+          "median": 4.64,
+          "min": 0.0,
+          "max": 11.14
+        },
+        "facilities_park_nearest_m": {
+          "mean": 70.15,
+          "median": 45.25,
+          "min": 0.4,
+          "max": 271.5
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.3556,
+          "median": 1.7,
+          "min": 0.75,
+          "max": 6.13
+        },
+        "slope_max_slope_pct": {
+          "mean": 5.6596,
+          "median": 6.27,
+          "min": 1.77,
+          "max": 9.23
+        },
+        "facilities_store_count": {
+          "mean": 12.88,
+          "median": 13,
+          "min": 4,
+          "max": 20
+        },
+        "condition_score": {
+          "mean": 58.632,
+          "median": 57.8,
+          "min": 24.4,
+          "max": 85.3
+        },
+        "surface_length_m": {
+          "mean": 2985.04,
+          "median": 3002,
+          "min": 2725,
+          "max": 3194
+        },
+        "actual_distance_m": {
+          "mean": 2985.04,
+          "median": 3002,
+          "min": 2725,
+          "max": 3194
+        },
+        "facilities_light_count": {
+          "mean": 2,
+          "median": 0,
+          "min": 0,
+          "max": 19
+        },
+        "facilities_light_per_km": {
+          "mean": 0.6796,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 6.5
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.65908,
+          "median": 0.682,
+          "min": 0.114,
+          "max": 0.977
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.828,
+          "median": 0.5,
+          "min": 0.0,
+          "max": 4.1
+        },
+        "slope_sample_count": {
+          "mean": 41.52,
+          "median": 41,
+          "min": 31,
+          "max": 52
+        },
+        "slope_elevation_loss_m": {
+          "mean": 18.284,
+          "median": 15.8,
+          "min": 6.8,
+          "max": 42.0
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.34472,
+          "median": 0.318,
+          "min": 0.023,
+          "max": 0.886
+        },
+        "nature_park_ratio": {
+          "mean": 0.03724,
+          "median": 0.025,
+          "min": 0.0,
+          "max": 0.131
+        },
+        "surface_signal_per_km": {
+          "mean": 0.3552,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "facilities_toilet_count": {
+          "mean": 6.92,
+          "median": 5,
+          "min": 2,
+          "max": 18
+        },
+        "facilities_security_per_km": {
+          "mean": 45.7732,
+          "median": 41.32,
+          "min": 1.37,
+          "max": 103.44
+        },
+        "distance_error_pct": {
+          "mean": 2.6919999999999997,
+          "median": 2.6,
+          "min": 0.0,
+          "max": 9.2
+        },
+        "night_score": {
+          "mean": 46.006,
+          "median": 44.2,
+          "min": 17.15,
+          "max": 92.5
+        },
+        "facilities_light_nearest_m": {
+          "mean": 35.34,
+          "median": 1.4,
+          "min": 0.6,
+          "max": 161.3
+        },
+        "facilities_cctv_count": {
+          "mean": 24.56,
+          "median": 25,
+          "min": 10,
+          "max": 55
+        },
+        "facilities_store_nearest_m": {
+          "mean": 8.368,
+          "median": 6.7,
+          "min": 0.4,
+          "max": 29.6
+        },
+        "nature_water_ratio": {
+          "mean": 0.00316,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.019
+        },
+        "ai_score": {
+          "mean": -0.8571254193513559,
+          "median": -0.19338774429264602,
+          "min": -7.571679229779065,
+          "max": 3.7990021688211035
+        },
+        "overlap_ratio": {
+          "mean": 0.02844,
+          "median": 0.013,
+          "min": 0.0,
+          "max": 0.119
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.76,
+          "median": 0,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 7.804,
+          "median": 6.2,
+          "min": 1.7,
+          "max": 26.8
+        },
+        "facilities_park_per_km": {
+          "mean": 0.2336,
+          "median": 0.33,
+          "min": 0.0,
+          "max": 1.03
+        },
+        "slope_elevation_gain_m": {
+          "mean": 18.284,
+          "median": 15.8,
+          "min": 6.8,
+          "max": 42.0
+        },
+        "facilities_security_nearest_m": {
+          "mean": 2.988,
+          "median": 0.5,
+          "min": 0.0,
+          "max": 30.3
+        },
+        "origin": {
+          "mean": 0.8,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 1.4068,
+          "median": 1.52,
+          "min": 0.5,
+          "max": 2.5
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "top3": {
+      "count": 9,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.4444444444444444,
+          "median": 0,
+          "min": 0,
+          "max": 1
+        },
+        "facilities_route_length_km": {
+          "mean": 2.9566666666666666,
+          "median": 2.94,
+          "min": 2.82,
+          "max": 3.12
+        },
+        "facilities_cctv_per_km": {
+          "mean": 7.161111111111111,
+          "median": 7.83,
+          "min": 3.41,
+          "max": 10.81
+        },
+        "facilities_store_per_km": {
+          "mean": 4.541111111111111,
+          "median": 4.39,
+          "min": 3.77,
+          "max": 5.32
+        },
+        "slope_avg_slope_pct": {
+          "mean": 0.9166666666666666,
+          "median": 0.9,
+          "min": 0.59,
+          "max": 1.35
+        },
+        "facilities_park_nearest_m": {
+          "mean": 97.9125,
+          "median": 63.4,
+          "min": 27.6,
+          "max": 271.5
+        },
+        "facilities_security_count": {
+          "mean": 121.22222222222223,
+          "median": 108,
+          "min": 41,
+          "max": 222
+        },
+        "surface_crossing_per_km": {
+          "mean": 3.4899999999999998,
+          "median": 3.96,
+          "min": 0.0,
+          "max": 7.46
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 3.0633333333333335,
+          "median": 3.04,
+          "min": 1.03,
+          "max": 6.13
+        },
+        "slope_max_slope_pct": {
+          "mean": 5.065555555555556,
+          "median": 3.93,
+          "min": 2.5,
+          "max": 7.98
+        },
+        "facilities_store_count": {
+          "mean": 13.444444444444445,
+          "median": 13,
+          "min": 11,
+          "max": 16
+        },
+        "condition_score": {
+          "mean": 57.12222222222222,
+          "median": 58.0,
+          "min": 47.8,
+          "max": 65.0
+        },
+        "surface_length_m": {
+          "mean": 2998.8888888888887,
+          "median": 2999,
+          "min": 2848,
+          "max": 3194
+        },
+        "actual_distance_m": {
+          "mean": 2998.8888888888887,
+          "median": 2999,
+          "min": 2848,
+          "max": 3194
+        },
+        "facilities_light_count": {
+          "mean": 2.111111111111111,
+          "median": 0,
+          "min": 0,
+          "max": 19
+        },
+        "facilities_light_per_km": {
+          "mean": 0.7222222222222222,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 6.5
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7163333333333334,
+          "median": 0.676,
+          "min": 0.39,
+          "max": 0.967
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.8333333333333334,
+          "median": 1.0,
+          "min": 0.0,
+          "max": 1.5
+        },
+        "slope_sample_count": {
+          "mean": 39.888888888888886,
+          "median": 38,
+          "min": 31,
+          "max": 50
+        },
+        "slope_elevation_loss_m": {
+          "mean": 12.866666666666667,
+          "median": 11.2,
+          "min": 7.3,
+          "max": 19.2
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.2836666666666667,
+          "median": 0.324,
+          "min": 0.033,
+          "max": 0.61
+        },
+        "nature_park_ratio": {
+          "mean": 0.026444444444444444,
+          "median": 0.008,
+          "min": 0.0,
+          "max": 0.087
+        },
+        "surface_signal_per_km": {
+          "mean": 0.22555555555555556,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.68
+        },
+        "facilities_toilet_count": {
+          "mean": 9,
+          "median": 9,
+          "min": 3,
+          "max": 18
+        },
+        "facilities_security_per_km": {
+          "mean": 41.09777777777778,
+          "median": 37.25,
+          "min": 13.85,
+          "max": 77.88
+        },
+        "distance_error_pct": {
+          "mean": 2.488888888888889,
+          "median": 1.6,
+          "min": 0.0,
+          "max": 6.5
+        },
+        "night_score": {
+          "mean": 40.69444444444444,
+          "median": 40.949999999999996,
+          "min": 19.85,
+          "max": 61.9
+        },
+        "facilities_light_nearest_m": {
+          "mean": 81.30000000000001,
+          "median": 81.30000000000001,
+          "min": 1.3,
+          "max": 161.3
+        },
+        "facilities_cctv_count": {
+          "mean": 21.22222222222222,
+          "median": 23,
+          "min": 10,
+          "max": 32
+        },
+        "facilities_store_nearest_m": {
+          "mean": 6.444444444444445,
+          "median": 4.0,
+          "min": 0.4,
+          "max": 14.9
+        },
+        "nature_water_ratio": {
+          "mean": 0.0034444444444444444,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.017
+        },
+        "ai_score": {
+          "mean": 1.2055235441956944,
+          "median": 0.9225507883125547,
+          "min": -1.5225402755915856,
+          "max": 3.7990021688211035
+        },
+        "overlap_ratio": {
+          "mean": 0.02788888888888889,
+          "median": 0.039,
+          "min": 0.0,
+          "max": 0.068
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.6666666666666666,
+          "median": 0,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 6.966666666666667,
+          "median": 7.1,
+          "min": 1.7,
+          "max": 14.7
+        },
+        "facilities_park_per_km": {
+          "mean": 0.1511111111111111,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.35
+        },
+        "slope_elevation_gain_m": {
+          "mean": 12.866666666666667,
+          "median": 11.2,
+          "min": 7.3,
+          "max": 19.2
+        },
+        "facilities_security_nearest_m": {
+          "mean": 0.8444444444444444,
+          "median": 0.2,
+          "min": 0.1,
+          "max": 3.7
+        },
+        "origin": {
+          "mean": 1,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 1.1377777777777778,
+          "median": 0.86,
+          "min": 0.62,
+          "max": 1.67
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "user_selected": {
+      "count": 0,
+      "metrics": {}
+    }
+  },
+  "nature": {
+    "pool": {
+      "count": 27,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.5925925925925926,
+          "median": 0,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_route_length_km": {
+          "mean": 2.9737037037037037,
+          "median": 2.98,
+          "min": 2.8,
+          "max": 3.14
+        },
+        "facilities_cctv_per_km": {
+          "mean": 9.034814814814816,
+          "median": 8.16,
+          "min": 2.87,
+          "max": 16.93
+        },
+        "facilities_store_per_km": {
+          "mean": 3.947037037037037,
+          "median": 3.73,
+          "min": 0.71,
+          "max": 8.17
+        },
+        "slope_avg_slope_pct": {
+          "mean": 2.318888888888889,
+          "median": 1.66,
+          "min": 0.37,
+          "max": 6.75
+        },
+        "facilities_security_count": {
+          "mean": 151.33333333333334,
+          "median": 148,
+          "min": 2,
+          "max": 458
+        },
+        "surface_crossing_per_km": {
+          "mean": 3.844074074074074,
+          "median": 3.61,
+          "min": 0.0,
+          "max": 11.71
+        },
+        "facilities_park_nearest_m": {
+          "mean": 63.476190476190474,
+          "median": 45.9,
+          "min": 3.9,
+          "max": 184.2
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.0696296296296297,
+          "median": 2.01,
+          "min": 0.66,
+          "max": 3.99
+        },
+        "slope_max_slope_pct": {
+          "mean": 11.446666666666667,
+          "median": 11.54,
+          "min": 1.81,
+          "max": 43.5
+        },
+        "facilities_store_count": {
+          "mean": 11.777777777777779,
+          "median": 11,
+          "min": 2,
+          "max": 25
+        },
+        "condition_score": {
+          "mean": 42.69259259259259,
+          "median": 40.1,
+          "min": 19.6,
+          "max": 68.4
+        },
+        "surface_length_m": {
+          "mean": 3027.3703703703704,
+          "median": 3031,
+          "min": 2844,
+          "max": 3188
+        },
+        "actual_distance_m": {
+          "mean": 3027.3703703703704,
+          "median": 3031,
+          "min": 2844,
+          "max": 3188
+        },
+        "facilities_light_count": {
+          "mean": 4.481481481481482,
+          "median": 0,
+          "min": 0,
+          "max": 80
+        },
+        "facilities_light_per_km": {
+          "mean": 1.451111111111111,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 25.49
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7042222222222222,
+          "median": 0.738,
+          "min": 0.141,
+          "max": 0.984
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.8111111111111111,
+          "median": 0.3,
+          "min": 0.0,
+          "max": 5.1
+        },
+        "slope_sample_count": {
+          "mean": 41.333333333333336,
+          "median": 41,
+          "min": 29,
+          "max": 52
+        },
+        "slope_elevation_loss_m": {
+          "mean": 31.014814814814816,
+          "median": 25.0,
+          "min": 4.7,
+          "max": 95.0
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.2971111111111111,
+          "median": 0.262,
+          "min": 0.016,
+          "max": 0.859
+        },
+        "nature_park_ratio": {
+          "mean": 0.05444444444444444,
+          "median": 0.028,
+          "min": 0.0,
+          "max": 0.161
+        },
+        "surface_signal_per_km": {
+          "mean": 0.39,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "facilities_toilet_count": {
+          "mean": 6.148148148148148,
+          "median": 6,
+          "min": 2,
+          "max": 12
+        },
+        "facilities_security_per_km": {
+          "mean": 51.05888888888889,
+          "median": 48.35,
+          "min": 0.69,
+          "max": 153.63
+        },
+        "distance_error_pct": {
+          "mean": 2.588888888888889,
+          "median": 2.2,
+          "min": 0.3,
+          "max": 6.3
+        },
+        "night_score": {
+          "mean": 50.18703703703704,
+          "median": 48.8,
+          "min": 15.7,
+          "max": 95.05000000000001
+        },
+        "facilities_light_nearest_m": {
+          "mean": 49.900000000000006,
+          "median": 8.2,
+          "min": 0.1,
+          "max": 161.3
+        },
+        "facilities_cctv_count": {
+          "mean": 26.85185185185185,
+          "median": 25,
+          "min": 9,
+          "max": 52
+        },
+        "facilities_store_nearest_m": {
+          "mean": 8.28888888888889,
+          "median": 8.4,
+          "min": 0.4,
+          "max": 24.8
+        },
+        "nature_water_ratio": {
+          "mean": 0.004037037037037037,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.029
+        },
+        "ai_score": {
+          "mean": 0.2988890588857954,
+          "median": 0.35725559108447313,
+          "min": -7.183730749045173,
+          "max": 5.6784219509994305
+        },
+        "overlap_ratio": {
+          "mean": 0.028444444444444446,
+          "median": 0.016,
+          "min": 0.0,
+          "max": 0.14
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.7037037037037037,
+          "median": 0,
+          "min": 0,
+          "max": 4
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 8.966666666666667,
+          "median": 7.1,
+          "min": 2.2,
+          "max": 22.8
+        },
+        "facilities_park_per_km": {
+          "mean": 0.20037037037037037,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.68
+        },
+        "slope_elevation_gain_m": {
+          "mean": 31.014814814814816,
+          "median": 25.0,
+          "min": 4.7,
+          "max": 95.0
+        },
+        "facilities_security_nearest_m": {
+          "mean": 2.037037037037037,
+          "median": 0.3,
+          "min": 0.0,
+          "max": 30.3
+        },
+        "origin": {
+          "mean": 0.9629629629629629,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 2.693703703703704,
+          "median": 2.06,
+          "min": 0.48,
+          "max": 8.49
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "top3": {
+      "count": 9,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.6666666666666666,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_route_length_km": {
+          "mean": 2.948888888888889,
+          "median": 2.93,
+          "min": 2.8,
+          "max": 3.1
+        },
+        "facilities_cctv_per_km": {
+          "mean": 10.302222222222222,
+          "median": 9.68,
+          "min": 6.89,
+          "max": 16.39
+        },
+        "facilities_store_per_km": {
+          "mean": 5.141111111111111,
+          "median": 5.18,
+          "min": 2.75,
+          "max": 8.17
+        },
+        "slope_avg_slope_pct": {
+          "mean": 1.8233333333333333,
+          "median": 1.66,
+          "min": 0.63,
+          "max": 3.5
+        },
+        "facilities_park_nearest_m": {
+          "mean": 68.3,
+          "median": 43.95,
+          "min": 3.9,
+          "max": 150.0
+        },
+        "facilities_security_count": {
+          "mean": 153.55555555555554,
+          "median": 148,
+          "min": 49,
+          "max": 275
+        },
+        "surface_crossing_per_km": {
+          "mean": 2.428888888888889,
+          "median": 2.11,
+          "min": 0.0,
+          "max": 5.11
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.1066666666666665,
+          "median": 2.05,
+          "min": 0.69,
+          "max": 3.28
+        },
+        "slope_max_slope_pct": {
+          "mean": 10.654444444444445,
+          "median": 12.89,
+          "min": 3.93,
+          "max": 14.84
+        },
+        "facilities_store_count": {
+          "mean": 15.222222222222221,
+          "median": 15,
+          "min": 8,
+          "max": 25
+        },
+        "condition_score": {
+          "mean": 42.8,
+          "median": 40.1,
+          "min": 23.3,
+          "max": 68.4
+        },
+        "surface_length_m": {
+          "mean": 2996.3333333333335,
+          "median": 2992,
+          "min": 2844,
+          "max": 3142
+        },
+        "actual_distance_m": {
+          "mean": 2996.3333333333335,
+          "median": 2992,
+          "min": 2844,
+          "max": 3142
+        },
+        "facilities_light_count": {
+          "mean": 0.6666666666666666,
+          "median": 0,
+          "min": 0,
+          "max": 6
+        },
+        "facilities_light_per_km": {
+          "mean": 0.21777777777777776,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 1.96
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7796666666666666,
+          "median": 0.765,
+          "min": 0.604,
+          "max": 0.966
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.7111111111111111,
+          "median": 0.5,
+          "min": 0.2,
+          "max": 1.8
+        },
+        "slope_sample_count": {
+          "mean": 43,
+          "median": 43,
+          "min": 36,
+          "max": 49
+        },
+        "slope_elevation_loss_m": {
+          "mean": 24.9,
+          "median": 25.0,
+          "min": 7.3,
+          "max": 47.4
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.22433333333333333,
+          "median": 0.235,
+          "min": 0.034,
+          "max": 0.396
+        },
+        "nature_park_ratio": {
+          "mean": 0.04666666666666667,
+          "median": 0.026,
+          "min": 0.0,
+          "max": 0.134
+        },
+        "surface_signal_per_km": {
+          "mean": 0.07555555555555556,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.68
+        },
+        "facilities_toilet_count": {
+          "mean": 6.222222222222222,
+          "median": 6,
+          "min": 2,
+          "max": 10
+        },
+        "facilities_security_per_km": {
+          "mean": 52.19,
+          "median": 48.35,
+          "min": 16.58,
+          "max": 93.88
+        },
+        "distance_error_pct": {
+          "mean": 2.7888888888888888,
+          "median": 3.1,
+          "min": 0.3,
+          "max": 5.2
+        },
+        "night_score": {
+          "mean": 54.80555555555556,
+          "median": 50.3,
+          "min": 39.85,
+          "max": 88.3
+        },
+        "facilities_light_nearest_m": {
+          "mean": 84.75,
+          "median": 84.75,
+          "min": 8.2,
+          "max": 161.3
+        },
+        "facilities_cctv_count": {
+          "mean": 30.444444444444443,
+          "median": 30,
+          "min": 21,
+          "max": 48
+        },
+        "facilities_store_nearest_m": {
+          "mean": 8.477777777777778,
+          "median": 9.1,
+          "min": 0.9,
+          "max": 13.1
+        },
+        "nature_water_ratio": {
+          "mean": 0.006222222222222223,
+          "median": 0.001,
+          "min": 0.0,
+          "max": 0.029
+        },
+        "ai_score": {
+          "mean": 2.259956709115286,
+          "median": 2.053771626829062,
+          "min": -1.6712283384297146,
+          "max": 5.6784219509994305
+        },
+        "overlap_ratio": {
+          "mean": 0.03177777777777778,
+          "median": 0.025,
+          "min": 0.0,
+          "max": 0.081
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.8888888888888888,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 9.3,
+          "median": 7.1,
+          "min": 2.2,
+          "max": 22.8
+        },
+        "facilities_park_per_km": {
+          "mean": 0.2288888888888889,
+          "median": 0.34,
+          "min": 0.0,
+          "max": 0.68
+        },
+        "slope_elevation_gain_m": {
+          "mean": 24.9,
+          "median": 25.0,
+          "min": 7.3,
+          "max": 47.4
+        },
+        "facilities_security_nearest_m": {
+          "mean": 0.4444444444444444,
+          "median": 0.2,
+          "min": 0.0,
+          "max": 2.0
+        },
+        "origin": {
+          "mean": 1,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 2.3155555555555556,
+          "median": 2.06,
+          "min": 0.94,
+          "max": 3.49
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "user_selected": {
+      "count": 0,
+      "metrics": {}
+    }
+  },
+  "flow": {
+    "pool": {
+      "count": 28,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.75,
+          "median": 1.0,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_route_length_km": {
+          "mean": 2.949642857142857,
+          "median": 2.9450000000000003,
+          "min": 2.75,
+          "max": 3.22
+        },
+        "facilities_cctv_per_km": {
+          "mean": 10.535714285714285,
+          "median": 9.524999999999999,
+          "min": 3.63,
+          "max": 19.47
+        },
+        "facilities_store_per_km": {
+          "mean": 3.9039285714285716,
+          "median": 3.7249999999999996,
+          "min": 0.71,
+          "max": 8.85
+        },
+        "slope_avg_slope_pct": {
+          "mean": 2.947142857142857,
+          "median": 2.665,
+          "min": 0.63,
+          "max": 6.75
+        },
+        "facilities_park_nearest_m": {
+          "mean": 58.24166666666667,
+          "median": 39.7,
+          "min": 3.9,
+          "max": 184.2
+        },
+        "facilities_security_count": {
+          "mean": 181.78571428571428,
+          "median": 167.0,
+          "min": 2,
+          "max": 458
+        },
+        "surface_crossing_per_km": {
+          "mean": 3.1425,
+          "median": 2.9450000000000003,
+          "min": 0.0,
+          "max": 7.12
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0.0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.0385714285714287,
+          "median": 1.75,
+          "min": 0.34,
+          "max": 4.93
+        },
+        "slope_max_slope_pct": {
+          "mean": 16.127857142857142,
+          "median": 13.125,
+          "min": 3.56,
+          "max": 47.92
+        },
+        "facilities_store_count": {
+          "mean": 11.535714285714286,
+          "median": 11.0,
+          "min": 2,
+          "max": 26
+        },
+        "condition_score": {
+          "mean": 48.653571428571425,
+          "median": 48.55,
+          "min": 30.2,
+          "max": 71.6
+        },
+        "surface_length_m": {
+          "mean": 3007.8571428571427,
+          "median": 3022.5,
+          "min": 2792,
+          "max": 3256
+        },
+        "actual_distance_m": {
+          "mean": 3007.8571428571427,
+          "median": 3022.5,
+          "min": 2792,
+          "max": 3256
+        },
+        "facilities_light_count": {
+          "mean": 1.5714285714285714,
+          "median": 0.0,
+          "min": 0,
+          "max": 14
+        },
+        "facilities_light_per_km": {
+          "mean": 0.5396428571428571,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 4.58
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7452142857142857,
+          "median": 0.787,
+          "min": 0.125,
+          "max": 0.984
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.675,
+          "median": 0.3,
+          "min": 0.0,
+          "max": 3.9
+        },
+        "slope_sample_count": {
+          "mean": 43.07142857142857,
+          "median": 42.5,
+          "min": 32,
+          "max": 53
+        },
+        "slope_elevation_loss_m": {
+          "mean": 39.582142857142856,
+          "median": 34.4,
+          "min": 7.3,
+          "max": 97.4
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.25607142857142856,
+          "median": 0.213,
+          "min": 0.016,
+          "max": 0.875
+        },
+        "nature_park_ratio": {
+          "mean": 0.057107142857142856,
+          "median": 0.044,
+          "min": 0.0,
+          "max": 0.161
+        },
+        "surface_signal_per_km": {
+          "mean": 0.24035714285714285,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "facilities_toilet_count": {
+          "mean": 6.071428571428571,
+          "median": 5.0,
+          "min": 1,
+          "max": 15
+        },
+        "facilities_security_per_km": {
+          "mean": 61.535714285714285,
+          "median": 54.875,
+          "min": 0.69,
+          "max": 153.63
+        },
+        "distance_error_pct": {
+          "mean": 2.675,
+          "median": 2.35,
+          "min": 0.3,
+          "max": 8.5
+        },
+        "night_score": {
+          "mean": 58.00714285714286,
+          "median": 53.1,
+          "min": 15.7,
+          "max": 95.05000000000001
+        },
+        "facilities_light_nearest_m": {
+          "mean": 55.8875,
+          "median": 17.9,
+          "min": 0.3,
+          "max": 161.3
+        },
+        "facilities_cctv_count": {
+          "mean": 31.142857142857142,
+          "median": 29.0,
+          "min": 11,
+          "max": 60
+        },
+        "facilities_store_nearest_m": {
+          "mean": 8.967857142857143,
+          "median": 8.7,
+          "min": 0.9,
+          "max": 24.8
+        },
+        "nature_water_ratio": {
+          "mean": 0.004035714285714286,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.029
+        },
+        "ai_score": {
+          "mean": -1.245065295011749,
+          "median": -1.4969775937609437,
+          "min": -5.283726472683482,
+          "max": 4.668129309074203
+        },
+        "overlap_ratio": {
+          "mean": 0.025714285714285714,
+          "median": 0.0155,
+          "min": 0.0,
+          "max": 0.098
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.6428571428571429,
+          "median": 0.0,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 10.810714285714285,
+          "median": 7.6499999999999995,
+          "min": 1.7,
+          "max": 34.7
+        },
+        "facilities_park_per_km": {
+          "mean": 0.255,
+          "median": 0.33,
+          "min": 0.0,
+          "max": 0.71
+        },
+        "slope_elevation_gain_m": {
+          "mean": 39.582142857142856,
+          "median": 34.4,
+          "min": 7.3,
+          "max": 97.4
+        },
+        "facilities_security_nearest_m": {
+          "mean": 1.6285714285714286,
+          "median": 0.3,
+          "min": 0.0,
+          "max": 30.3
+        },
+        "origin": {
+          "mean": 0.9642857142857143,
+          "median": 1.0,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 3.563214285714286,
+          "median": 2.955,
+          "min": 0.94,
+          "max": 8.56
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50.0,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "top3": {
+      "count": 9,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.7777777777777778,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_route_length_km": {
+          "mean": 2.942222222222222,
+          "median": 2.93,
+          "min": 2.75,
+          "max": 3.1
+        },
+        "facilities_cctv_per_km": {
+          "mean": 10.437777777777779,
+          "median": 9.68,
+          "min": 6.89,
+          "max": 16.39
+        },
+        "facilities_store_per_km": {
+          "mean": 4.423333333333333,
+          "median": 4.27,
+          "min": 1.45,
+          "max": 8.85
+        },
+        "slope_avg_slope_pct": {
+          "mean": 2.46,
+          "median": 2.17,
+          "min": 0.63,
+          "max": 5.75
+        },
+        "facilities_park_nearest_m": {
+          "mean": 50.666666666666664,
+          "median": 38.4,
+          "min": 3.9,
+          "max": 150.0
+        },
+        "facilities_security_count": {
+          "mean": 163.44444444444446,
+          "median": 161,
+          "min": 71,
+          "max": 275
+        },
+        "surface_crossing_per_km": {
+          "mean": 2.417777777777778,
+          "median": 2.92,
+          "min": 0.0,
+          "max": 5.11
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.5866666666666664,
+          "median": 2.83,
+          "min": 0.73,
+          "max": 4.93
+        },
+        "slope_max_slope_pct": {
+          "mean": 14.27,
+          "median": 12.89,
+          "min": 3.93,
+          "max": 26.46
+        },
+        "facilities_store_count": {
+          "mean": 13.11111111111111,
+          "median": 13,
+          "min": 4,
+          "max": 26
+        },
+        "condition_score": {
+          "mean": 54.288888888888884,
+          "median": 49.4,
+          "min": 43.9,
+          "max": 71.6
+        },
+        "surface_length_m": {
+          "mean": 3008.3333333333335,
+          "median": 2992,
+          "min": 2882,
+          "max": 3142
+        },
+        "actual_distance_m": {
+          "mean": 3008.3333333333335,
+          "median": 2992,
+          "min": 2882,
+          "max": 3142
+        },
+        "facilities_light_count": {
+          "mean": 0.6666666666666666,
+          "median": 0,
+          "min": 0,
+          "max": 6
+        },
+        "facilities_light_per_km": {
+          "mean": 0.24222222222222223,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.18
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.8057777777777778,
+          "median": 0.827,
+          "min": 0.627,
+          "max": 0.966
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.3333333333333333,
+          "median": 0.3,
+          "min": 0.0,
+          "max": 0.8
+        },
+        "slope_sample_count": {
+          "mean": 42.111111111111114,
+          "median": 42,
+          "min": 36,
+          "max": 51
+        },
+        "slope_elevation_loss_m": {
+          "mean": 32.4,
+          "median": 29.7,
+          "min": 7.3,
+          "max": 76.6
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.19822222222222222,
+          "median": 0.173,
+          "min": 0.034,
+          "max": 0.373
+        },
+        "nature_park_ratio": {
+          "mean": 0.05477777777777778,
+          "median": 0.056,
+          "min": 0.006,
+          "max": 0.105
+        },
+        "surface_signal_per_km": {
+          "mean": 0.11222222222222222,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.69
+        },
+        "facilities_toilet_count": {
+          "mean": 7.666666666666667,
+          "median": 8,
+          "min": 2,
+          "max": 15
+        },
+        "facilities_security_per_km": {
+          "mean": 55.474444444444444,
+          "median": 52.82,
+          "min": 24.16,
+          "max": 93.88
+        },
+        "distance_error_pct": {
+          "mean": 2.4,
+          "median": 2.7,
+          "min": 0.3,
+          "max": 4.7
+        },
+        "night_score": {
+          "mean": 56.36666666666667,
+          "median": 51.199999999999996,
+          "min": 40.4,
+          "max": 88.3
+        },
+        "facilities_light_nearest_m": {
+          "mean": 94.45,
+          "median": 94.45,
+          "min": 27.6,
+          "max": 161.3
+        },
+        "facilities_cctv_count": {
+          "mean": 30.666666666666668,
+          "median": 30,
+          "min": 21,
+          "max": 48
+        },
+        "facilities_store_nearest_m": {
+          "mean": 10.6,
+          "median": 12.2,
+          "min": 3.6,
+          "max": 16.8
+        },
+        "nature_water_ratio": {
+          "mean": 0.006111111111111111,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.029
+        },
+        "ai_score": {
+          "mean": 1.3993653488461835,
+          "median": 1.4004342385041122,
+          "min": -1.310726750182487,
+          "max": 4.668129309074203
+        },
+        "overlap_ratio": {
+          "mean": 0.02422222222222222,
+          "median": 0.025,
+          "min": 0.0,
+          "max": 0.075
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 1,
+          "median": 1,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 9.18888888888889,
+          "median": 5.6,
+          "min": 2.2,
+          "max": 34.7
+        },
+        "facilities_park_per_km": {
+          "mean": 0.26555555555555554,
+          "median": 0.34,
+          "min": 0.0,
+          "max": 0.66
+        },
+        "slope_elevation_gain_m": {
+          "mean": 32.4,
+          "median": 29.7,
+          "min": 7.3,
+          "max": 76.6
+        },
+        "facilities_security_nearest_m": {
+          "mean": 0.5222222222222223,
+          "median": 0.2,
+          "min": 0.0,
+          "max": 2.0
+        },
+        "origin": {
+          "mean": 1,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 2.968888888888889,
+          "median": 2.9,
+          "min": 0.94,
+          "max": 5.28
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "user_selected": {
+      "count": 0,
+      "metrics": {}
+    }
+  },
+  "toilet": {
+    "pool": {
+      "count": 33,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.6060606060606061,
+          "median": 0,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_route_length_km": {
+          "mean": 2.9684848484848483,
+          "median": 2.98,
+          "min": 2.7,
+          "max": 3.23
+        },
+        "facilities_cctv_per_km": {
+          "mean": 9.64,
+          "median": 8.86,
+          "min": 3.63,
+          "max": 18.29
+        },
+        "facilities_store_per_km": {
+          "mean": 4.015151515151516,
+          "median": 3.93,
+          "min": 0.71,
+          "max": 8.36
+        },
+        "slope_avg_slope_pct": {
+          "mean": 2.5042424242424244,
+          "median": 2.2,
+          "min": 0.45,
+          "max": 7.05
+        },
+        "facilities_park_nearest_m": {
+          "mean": 76.32592592592593,
+          "median": 49.5,
+          "min": 3.9,
+          "max": 271.5
+        },
+        "facilities_security_count": {
+          "mean": 156.78787878787878,
+          "median": 136,
+          "min": 2,
+          "max": 458
+        },
+        "surface_crossing_per_km": {
+          "mean": 3.861818181818182,
+          "median": 3.59,
+          "min": 0.0,
+          "max": 12.42
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.495151515151515,
+          "median": 2.18,
+          "min": 0.74,
+          "max": 7.44
+        },
+        "slope_max_slope_pct": {
+          "mean": 12.719393939393939,
+          "median": 11.62,
+          "min": 1.56,
+          "max": 43.5
+        },
+        "facilities_store_count": {
+          "mean": 11.93939393939394,
+          "median": 11,
+          "min": 2,
+          "max": 23
+        },
+        "condition_score": {
+          "mean": 73.27272727272727,
+          "median": 73.6,
+          "min": 40.0,
+          "max": 94.7
+        },
+        "surface_length_m": {
+          "mean": 3022.3939393939395,
+          "median": 3031,
+          "min": 2755,
+          "max": 3273
+        },
+        "actual_distance_m": {
+          "mean": 3022.3939393939395,
+          "median": 3031,
+          "min": 2755,
+          "max": 3273
+        },
+        "facilities_light_count": {
+          "mean": 2,
+          "median": 0,
+          "min": 0,
+          "max": 23
+        },
+        "facilities_light_per_km": {
+          "mean": 0.676969696969697,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 7.66
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7169393939393939,
+          "median": 0.742,
+          "min": 0.141,
+          "max": 1.0
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.7272727272727273,
+          "median": 0.3,
+          "min": 0.0,
+          "max": 5.1
+        },
+        "slope_sample_count": {
+          "mean": 42.515151515151516,
+          "median": 42,
+          "min": 32,
+          "max": 55
+        },
+        "slope_elevation_loss_m": {
+          "mean": 33.1,
+          "median": 28.9,
+          "min": 5.6,
+          "max": 97.4
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.28415151515151515,
+          "median": 0.258,
+          "min": 0.0,
+          "max": 0.859
+        },
+        "nature_park_ratio": {
+          "mean": 0.05381818181818182,
+          "median": 0.047,
+          "min": 0.0,
+          "max": 0.161
+        },
+        "surface_signal_per_km": {
+          "mean": 0.36,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "facilities_toilet_count": {
+          "mean": 7.424242424242424,
+          "median": 6,
+          "min": 2,
+          "max": 21
+        },
+        "facilities_security_per_km": {
+          "mean": 52.60757575757576,
+          "median": 46.42,
+          "min": 0.69,
+          "max": 153.63
+        },
+        "distance_error_pct": {
+          "mean": 3.1333333333333333,
+          "median": 2.8,
+          "min": 0.4,
+          "max": 9.1
+        },
+        "night_score": {
+          "mean": 52.56818181818182,
+          "median": 45.95,
+          "min": 15.7,
+          "max": 95.05000000000001
+        },
+        "facilities_light_nearest_m": {
+          "mean": 106.11818181818182,
+          "median": 9.4,
+          "min": 0.3,
+          "max": 399.6
+        },
+        "facilities_cctv_count": {
+          "mean": 28.696969696969695,
+          "median": 27,
+          "min": 11,
+          "max": 59
+        },
+        "facilities_store_nearest_m": {
+          "mean": 9.357575757575757,
+          "median": 8.4,
+          "min": 2.6,
+          "max": 24.8
+        },
+        "nature_water_ratio": {
+          "mean": 0.0036666666666666666,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.027
+        },
+        "ai_score": {
+          "mean": -0.6830688664727566,
+          "median": -0.9693590544810003,
+          "min": -5.979394529923629,
+          "max": 4.552347750770794
+        },
+        "overlap_ratio": {
+          "mean": 0.025212121212121213,
+          "median": 0.015,
+          "min": 0.0,
+          "max": 0.087
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.6060606060606061,
+          "median": 0,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 10.3,
+          "median": 8.9,
+          "min": 2.2,
+          "max": 23.3
+        },
+        "facilities_park_per_km": {
+          "mean": 0.2018181818181818,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.98
+        },
+        "slope_elevation_gain_m": {
+          "mean": 33.1,
+          "median": 28.9,
+          "min": 5.6,
+          "max": 97.4
+        },
+        "facilities_security_nearest_m": {
+          "mean": 1.5666666666666667,
+          "median": 0.2,
+          "min": 0.0,
+          "max": 30.3
+        },
+        "origin": {
+          "mean": 0.9696969696969697,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 2.8887878787878787,
+          "median": 2.71,
+          "min": 0.45,
+          "max": 7.97
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "top3": {
+      "count": 9,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.7777777777777778,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_route_length_km": {
+          "mean": 3.0077777777777777,
+          "median": 3.03,
+          "min": 2.83,
+          "max": 3.2
+        },
+        "facilities_cctv_per_km": {
+          "mean": 9.268888888888888,
+          "median": 8.43,
+          "min": 4.66,
+          "max": 16.06
+        },
+        "facilities_store_per_km": {
+          "mean": 4.6322222222222225,
+          "median": 4.59,
+          "min": 3.06,
+          "max": 5.93
+        },
+        "slope_avg_slope_pct": {
+          "mean": 1.5877777777777777,
+          "median": 1.13,
+          "min": 0.63,
+          "max": 3.43
+        },
+        "facilities_park_nearest_m": {
+          "mean": 84.2375,
+          "median": 43.95,
+          "min": 6.0,
+          "max": 271.5
+        },
+        "facilities_security_count": {
+          "mean": 162.88888888888889,
+          "median": 152,
+          "min": 64,
+          "max": 273
+        },
+        "surface_crossing_per_km": {
+          "mean": 2.8577777777777778,
+          "median": 1.93,
+          "min": 0.0,
+          "max": 6.05
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.9944444444444445,
+          "median": 2.83,
+          "min": 1.0,
+          "max": 4.92
+        },
+        "slope_max_slope_pct": {
+          "mean": 10.636666666666667,
+          "median": 12.89,
+          "min": 2.49,
+          "max": 26.46
+        },
+        "facilities_store_count": {
+          "mean": 14,
+          "median": 14,
+          "min": 9,
+          "max": 19
+        },
+        "condition_score": {
+          "mean": 72.85555555555555,
+          "median": 76.2,
+          "min": 52.5,
+          "max": 84.1
+        },
+        "surface_length_m": {
+          "mean": 3054.3333333333335,
+          "median": 3094,
+          "min": 2882,
+          "max": 3218
+        },
+        "actual_distance_m": {
+          "mean": 3054.3333333333335,
+          "median": 3094,
+          "min": 2882,
+          "max": 3218
+        },
+        "facilities_light_count": {
+          "mean": 3.111111111111111,
+          "median": 0,
+          "min": 0,
+          "max": 23
+        },
+        "facilities_light_per_km": {
+          "mean": 1.0455555555555556,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 7.66
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7743333333333333,
+          "median": 0.848,
+          "min": 0.407,
+          "max": 0.966
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.5777777777777777,
+          "median": 0.5,
+          "min": 0.1,
+          "max": 1.4
+        },
+        "slope_sample_count": {
+          "mean": 41.111111111111114,
+          "median": 42,
+          "min": 36,
+          "max": 46
+        },
+        "slope_elevation_loss_m": {
+          "mean": 19.711111111111112,
+          "median": 13.7,
+          "min": 7.3,
+          "max": 43.9
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.22966666666666666,
+          "median": 0.152,
+          "min": 0.034,
+          "max": 0.593
+        },
+        "nature_park_ratio": {
+          "mean": 0.03244444444444444,
+          "median": 0.013,
+          "min": 0.0,
+          "max": 0.103
+        },
+        "surface_signal_per_km": {
+          "mean": 0.24666666666666667,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.93
+        },
+        "facilities_toilet_count": {
+          "mean": 9,
+          "median": 8,
+          "min": 3,
+          "max": 15
+        },
+        "facilities_security_per_km": {
+          "mean": 54.09222222222222,
+          "median": 51.62,
+          "min": 22.36,
+          "max": 87.66
+        },
+        "distance_error_pct": {
+          "mean": 3.6888888888888887,
+          "median": 3.4,
+          "min": 0.8,
+          "max": 7.3
+        },
+        "night_score": {
+          "mean": 52.75555555555555,
+          "median": 45.15,
+          "min": 35.65,
+          "max": 85.6
+        },
+        "facilities_light_nearest_m": {
+          "mean": 115.96666666666667,
+          "median": 9.4,
+          "min": 1.3,
+          "max": 337.2
+        },
+        "facilities_cctv_count": {
+          "mean": 28,
+          "median": 26,
+          "min": 14,
+          "max": 50
+        },
+        "facilities_store_nearest_m": {
+          "mean": 8.688888888888888,
+          "median": 8.6,
+          "min": 6.1,
+          "max": 13.1
+        },
+        "nature_water_ratio": {
+          "mean": 0.0057777777777777775,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.027
+        },
+        "ai_score": {
+          "mean": 2.0870054404656724,
+          "median": 2.556362969181389,
+          "min": -1.1827992886093084,
+          "max": 4.552347750770794
+        },
+        "overlap_ratio": {
+          "mean": 0.02422222222222222,
+          "median": 0.012,
+          "min": 0.0,
+          "max": 0.087
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.8888888888888888,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 9.077777777777778,
+          "median": 8.9,
+          "min": 2.4,
+          "max": 18.9
+        },
+        "facilities_park_per_km": {
+          "mean": 0.26,
+          "median": 0.34,
+          "min": 0.0,
+          "max": 0.66
+        },
+        "slope_elevation_gain_m": {
+          "mean": 19.711111111111112,
+          "median": 13.7,
+          "min": 7.3,
+          "max": 43.9
+        },
+        "facilities_security_nearest_m": {
+          "mean": 0.2111111111111111,
+          "median": 0.2,
+          "min": 0.0,
+          "max": 0.6
+        },
+        "origin": {
+          "mean": 1,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 2.2044444444444444,
+          "median": 2.06,
+          "min": 0.78,
+          "max": 5.15
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "user_selected": {
+      "count": 0,
+      "metrics": {}
+    }
+  },
+  "store": {
+    "pool": {
+      "count": 35,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.6571428571428571,
+          "median": 0,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_route_length_km": {
+          "mean": 2.984,
+          "median": 3.02,
+          "min": 2.7,
+          "max": 3.23
+        },
+        "facilities_cctv_per_km": {
+          "mean": 9.689142857142857,
+          "median": 8.67,
+          "min": 3.63,
+          "max": 18.29
+        },
+        "facilities_store_per_km": {
+          "mean": 4.223428571428571,
+          "median": 4.08,
+          "min": 0.71,
+          "max": 8.36
+        },
+        "slope_avg_slope_pct": {
+          "mean": 2.286,
+          "median": 1.66,
+          "min": 0.37,
+          "max": 6.75
+        },
+        "facilities_park_nearest_m": {
+          "mean": 65.58888888888889,
+          "median": 45.9,
+          "min": 3.9,
+          "max": 197.4
+        },
+        "facilities_security_count": {
+          "mean": 166.85714285714286,
+          "median": 149,
+          "min": 2,
+          "max": 458
+        },
+        "surface_crossing_per_km": {
+          "mean": 3.892857142857143,
+          "median": 3.61,
+          "min": 0.0,
+          "max": 11.71
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.263714285714286,
+          "median": 2.27,
+          "min": 0.69,
+          "max": 5.26
+        },
+        "slope_max_slope_pct": {
+          "mean": 12.171714285714286,
+          "median": 10.55,
+          "min": 1.81,
+          "max": 43.5
+        },
+        "facilities_store_count": {
+          "mean": 12.628571428571428,
+          "median": 12,
+          "min": 2,
+          "max": 23
+        },
+        "condition_score": {
+          "mean": 73.08,
+          "median": 72.4,
+          "min": 48.3,
+          "max": 94.7
+        },
+        "surface_length_m": {
+          "mean": 3038,
+          "median": 3061,
+          "min": 2755,
+          "max": 3273
+        },
+        "actual_distance_m": {
+          "mean": 3038,
+          "median": 3061,
+          "min": 2755,
+          "max": 3273
+        },
+        "facilities_light_count": {
+          "mean": 1.5142857142857142,
+          "median": 0,
+          "min": 0,
+          "max": 15
+        },
+        "facilities_light_per_km": {
+          "mean": 0.514,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 5.06
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7376,
+          "median": 0.828,
+          "min": 0.141,
+          "max": 1.0
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.7257142857142858,
+          "median": 0.3,
+          "min": 0.0,
+          "max": 5.1
+        },
+        "slope_sample_count": {
+          "mean": 42.457142857142856,
+          "median": 42,
+          "min": 32,
+          "max": 52
+        },
+        "slope_elevation_loss_m": {
+          "mean": 30.96,
+          "median": 26.8,
+          "min": 4.7,
+          "max": 97.4
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.2634285714285714,
+          "median": 0.172,
+          "min": 0.0,
+          "max": 0.859
+        },
+        "nature_park_ratio": {
+          "mean": 0.05051428571428571,
+          "median": 0.03,
+          "min": 0.0,
+          "max": 0.161
+        },
+        "surface_signal_per_km": {
+          "mean": 0.31085714285714283,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "facilities_toilet_count": {
+          "mean": 6.8,
+          "median": 7,
+          "min": 2,
+          "max": 16
+        },
+        "facilities_security_per_km": {
+          "mean": 55.705999999999996,
+          "median": 51.62,
+          "min": 0.67,
+          "max": 153.63
+        },
+        "distance_error_pct": {
+          "mean": 3.2542857142857144,
+          "median": 3.1,
+          "min": 0.1,
+          "max": 9.1
+        },
+        "night_score": {
+          "mean": 53.56428571428572,
+          "median": 45.95,
+          "min": 15.7,
+          "max": 95.75
+        },
+        "facilities_light_nearest_m": {
+          "mean": 115.69,
+          "median": 44.050000000000004,
+          "min": 0.3,
+          "max": 399.6
+        },
+        "facilities_cctv_count": {
+          "mean": 29,
+          "median": 26,
+          "min": 11,
+          "max": 59
+        },
+        "facilities_store_nearest_m": {
+          "mean": 9.002857142857144,
+          "median": 8.4,
+          "min": 2.6,
+          "max": 24.8
+        },
+        "nature_water_ratio": {
+          "mean": 0.0036857142857142857,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.027
+        },
+        "ai_score": {
+          "mean": -0.41231679904835317,
+          "median": -0.4891451679092839,
+          "min": -5.948405797121521,
+          "max": 4.317632504353351
+        },
+        "overlap_ratio": {
+          "mean": 0.028885714285714285,
+          "median": 0.018,
+          "min": 0.0,
+          "max": 0.098
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.7142857142857143,
+          "median": 0,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 9.502857142857144,
+          "median": 7.4,
+          "min": 2.2,
+          "max": 23.3
+        },
+        "facilities_park_per_km": {
+          "mean": 0.21828571428571428,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.98
+        },
+        "slope_elevation_gain_m": {
+          "mean": 30.96,
+          "median": 26.8,
+          "min": 4.7,
+          "max": 97.4
+        },
+        "facilities_security_nearest_m": {
+          "mean": 2.3771428571428572,
+          "median": 0.2,
+          "min": 0.0,
+          "max": 30.3
+        },
+        "origin": {
+          "mean": 0.8857142857142857,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 2.806857142857143,
+          "median": 2.51,
+          "min": 0.48,
+          "max": 7.97
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "top3": {
+      "count": 9,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.8888888888888888,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_route_length_km": {
+          "mean": 2.997777777777778,
+          "median": 3.03,
+          "min": 2.83,
+          "max": 3.11
+        },
+        "facilities_cctv_per_km": {
+          "mean": 9.976666666666667,
+          "median": 9.68,
+          "min": 6.89,
+          "max": 16.06
+        },
+        "facilities_store_per_km": {
+          "mean": 4.846666666666667,
+          "median": 4.74,
+          "min": 3.06,
+          "max": 6.17
+        },
+        "slope_avg_slope_pct": {
+          "mean": 1.8477777777777777,
+          "median": 1.66,
+          "min": 0.63,
+          "max": 3.38
+        },
+        "facilities_park_nearest_m": {
+          "mean": 55.225,
+          "median": 43.95,
+          "min": 3.9,
+          "max": 150.0
+        },
+        "facilities_security_count": {
+          "mean": 163.22222222222223,
+          "median": 155,
+          "min": 49,
+          "max": 273
+        },
+        "surface_crossing_per_km": {
+          "mean": 2.65,
+          "median": 2.6,
+          "min": 0.0,
+          "max": 6.05
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.5433333333333334,
+          "median": 2.72,
+          "min": 0.69,
+          "max": 4.17
+        },
+        "slope_max_slope_pct": {
+          "mean": 12.381111111111112,
+          "median": 13.23,
+          "min": 3.41,
+          "max": 26.46
+        },
+        "facilities_store_count": {
+          "mean": 14.555555555555555,
+          "median": 14,
+          "min": 9,
+          "max": 19
+        },
+        "condition_score": {
+          "mean": 75.81111111111112,
+          "median": 76.2,
+          "min": 63.3,
+          "max": 84.1
+        },
+        "surface_length_m": {
+          "mean": 3050.6666666666665,
+          "median": 3072,
+          "min": 2882,
+          "max": 3195
+        },
+        "actual_distance_m": {
+          "mean": 3050.6666666666665,
+          "median": 3072,
+          "min": 2882,
+          "max": 3195
+        },
+        "facilities_light_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_light_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.8216666666666667,
+          "median": 0.851,
+          "min": 0.612,
+          "max": 0.966
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.47777777777777775,
+          "median": 0.4,
+          "min": 0.0,
+          "max": 1.4
+        },
+        "slope_sample_count": {
+          "mean": 42.22222222222222,
+          "median": 43,
+          "min": 36,
+          "max": 49
+        },
+        "slope_elevation_loss_m": {
+          "mean": 24.044444444444444,
+          "median": 25.0,
+          "min": 7.3,
+          "max": 43.9
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.18233333333333332,
+          "median": 0.149,
+          "min": 0.034,
+          "max": 0.388
+        },
+        "nature_park_ratio": {
+          "mean": 0.04488888888888889,
+          "median": 0.016,
+          "min": 0.0,
+          "max": 0.134
+        },
+        "surface_signal_per_km": {
+          "mean": 0.17888888888888888,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.97
+        },
+        "facilities_toilet_count": {
+          "mean": 7.666666666666667,
+          "median": 8,
+          "min": 2,
+          "max": 13
+        },
+        "facilities_security_per_km": {
+          "mean": 54.446666666666665,
+          "median": 52.82,
+          "min": 16.58,
+          "max": 87.66
+        },
+        "distance_error_pct": {
+          "mean": 2.966666666666667,
+          "median": 3.1,
+          "min": 0.8,
+          "max": 6.5
+        },
+        "night_score": {
+          "mean": 54.71111111111111,
+          "median": 50.3,
+          "min": 40.85,
+          "max": 85.6
+        },
+        "facilities_light_nearest_m": {
+          "mean": 249.25,
+          "median": 249.25,
+          "min": 161.3,
+          "max": 337.2
+        },
+        "facilities_cctv_count": {
+          "mean": 30,
+          "median": 30,
+          "min": 21,
+          "max": 50
+        },
+        "facilities_store_nearest_m": {
+          "mean": 9.422222222222222,
+          "median": 9.1,
+          "min": 6.7,
+          "max": 13.1
+        },
+        "nature_water_ratio": {
+          "mean": 0.005888888888888889,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.027
+        },
+        "ai_score": {
+          "mean": 2.359716021136114,
+          "median": 2.7676544180920613,
+          "min": -0.9693590544810003,
+          "max": 4.317632504353351
+        },
+        "overlap_ratio": {
+          "mean": 0.030333333333333334,
+          "median": 0.012,
+          "min": 0.0,
+          "max": 0.098
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.8888888888888888,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 7.733333333333333,
+          "median": 7.1,
+          "min": 2.2,
+          "max": 20.1
+        },
+        "facilities_park_per_km": {
+          "mean": 0.2966666666666667,
+          "median": 0.34,
+          "min": 0.0,
+          "max": 0.68
+        },
+        "slope_elevation_gain_m": {
+          "mean": 24.044444444444444,
+          "median": 25.0,
+          "min": 7.3,
+          "max": 43.9
+        },
+        "facilities_security_nearest_m": {
+          "mean": 0.4444444444444444,
+          "median": 0.2,
+          "min": 0.0,
+          "max": 2.0
+        },
+        "origin": {
+          "mean": 1,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 2.59,
+          "median": 2.07,
+          "min": 0.89,
+          "max": 5.46
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "user_selected": {
+      "count": 0,
+      "metrics": {}
+    }
+  },
+  "night": {
+    "pool": {
+      "count": 37,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.6216216216216216,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_route_length_km": {
+          "mean": 2.9745945945945946,
+          "median": 2.97,
+          "min": 2.8,
+          "max": 3.14
+        },
+        "facilities_cctv_per_km": {
+          "mean": 9.862162162162162,
+          "median": 9.48,
+          "min": 2.87,
+          "max": 18.83
+        },
+        "facilities_store_per_km": {
+          "mean": 3.9994594594594597,
+          "median": 3.72,
+          "min": 0.71,
+          "max": 8.17
+        },
+        "slope_avg_slope_pct": {
+          "mean": 2.441081081081081,
+          "median": 2.11,
+          "min": 0.37,
+          "max": 6.75
+        },
+        "facilities_park_nearest_m": {
+          "mean": 62.013333333333335,
+          "median": 44.95,
+          "min": 3.9,
+          "max": 197.4
+        },
+        "facilities_security_count": {
+          "mean": 170.43243243243242,
+          "median": 155,
+          "min": 2,
+          "max": 406
+        },
+        "surface_crossing_per_km": {
+          "mean": 4.07945945945946,
+          "median": 4.07,
+          "min": 0.0,
+          "max": 11.71
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.148108108108108,
+          "median": 2.08,
+          "min": 0.32,
+          "max": 3.99
+        },
+        "slope_max_slope_pct": {
+          "mean": 13.214054054054055,
+          "median": 12.85,
+          "min": 1.81,
+          "max": 43.5
+        },
+        "facilities_store_count": {
+          "mean": 11.91891891891892,
+          "median": 11,
+          "min": 2,
+          "max": 25
+        },
+        "condition_score": {
+          "mean": 61.73513513513514,
+          "median": 57.3,
+          "min": 30.5,
+          "max": 93.9
+        },
+        "surface_length_m": {
+          "mean": 3027.6216216216217,
+          "median": 3022,
+          "min": 2844,
+          "max": 3191
+        },
+        "actual_distance_m": {
+          "mean": 3027.6216216216217,
+          "median": 3022,
+          "min": 2844,
+          "max": 3191
+        },
+        "facilities_light_count": {
+          "mean": 3.675675675675676,
+          "median": 0,
+          "min": 0,
+          "max": 80
+        },
+        "facilities_light_per_km": {
+          "mean": 1.1954054054054053,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 25.49
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7174054054054054,
+          "median": 0.738,
+          "min": 0.141,
+          "max": 0.984
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.6972972972972973,
+          "median": 0.3,
+          "min": 0.0,
+          "max": 5.1
+        },
+        "slope_sample_count": {
+          "mean": 42.513513513513516,
+          "median": 44,
+          "min": 29,
+          "max": 50
+        },
+        "slope_elevation_loss_m": {
+          "mean": 32.87027027027027,
+          "median": 26.3,
+          "min": 4.7,
+          "max": 97.4
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.28356756756756757,
+          "median": 0.262,
+          "min": 0.016,
+          "max": 0.859
+        },
+        "nature_park_ratio": {
+          "mean": 0.056324324324324326,
+          "median": 0.04,
+          "min": 0.0,
+          "max": 0.199
+        },
+        "surface_signal_per_km": {
+          "mean": 0.31216216216216214,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.4
+        },
+        "facilities_toilet_count": {
+          "mean": 6.378378378378378,
+          "median": 6,
+          "min": 1,
+          "max": 12
+        },
+        "facilities_security_per_km": {
+          "mean": 57.604864864864865,
+          "median": 52.19,
+          "min": 0.69,
+          "max": 140.56
+        },
+        "distance_error_pct": {
+          "mean": 2.497297297297297,
+          "median": 2.0,
+          "min": 0.1,
+          "max": 6.4
+        },
+        "night_score": {
+          "mean": 55.27972972972973,
+          "median": 50.5,
+          "min": 15.7,
+          "max": 95.05000000000001
+        },
+        "facilities_light_nearest_m": {
+          "mean": 68.03076923076924,
+          "median": 8.2,
+          "min": 0.1,
+          "max": 399.6
+        },
+        "facilities_cctv_count": {
+          "mean": 29.2972972972973,
+          "median": 29,
+          "min": 9,
+          "max": 55
+        },
+        "facilities_store_nearest_m": {
+          "mean": 8.013513513513514,
+          "median": 8.1,
+          "min": 0.4,
+          "max": 24.8
+        },
+        "nature_water_ratio": {
+          "mean": 0.004486486486486486,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.029
+        },
+        "ai_score": {
+          "mean": -0.5532981577546092,
+          "median": -0.2986693905752204,
+          "min": -5.409531441309952,
+          "max": 4.3042368172989365
+        },
+        "overlap_ratio": {
+          "mean": 0.027432432432432433,
+          "median": 0.015,
+          "min": 0.0,
+          "max": 0.175
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 0.6216216216216216,
+          "median": 0,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 9.905405405405405,
+          "median": 7.1,
+          "min": 2.2,
+          "max": 34.7
+        },
+        "facilities_park_per_km": {
+          "mean": 0.21,
+          "median": 0.32,
+          "min": 0.0,
+          "max": 0.68
+        },
+        "slope_elevation_gain_m": {
+          "mean": 32.87027027027027,
+          "median": 26.3,
+          "min": 4.7,
+          "max": 97.4
+        },
+        "facilities_security_nearest_m": {
+          "mean": 1.518918918918919,
+          "median": 0.2,
+          "min": 0.0,
+          "max": 30.3
+        },
+        "origin": {
+          "mean": 0.918918918918919,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 3.057837837837838,
+          "median": 2.72,
+          "min": 0.48,
+          "max": 8.24
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "top3": {
+      "count": 9,
+      "metrics": {
+        "facilities_park_count": {
+          "mean": 0.7777777777777778,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "facilities_route_length_km": {
+          "mean": 2.96,
+          "median": 2.93,
+          "min": 2.83,
+          "max": 3.1
+        },
+        "facilities_cctv_per_km": {
+          "mean": 11.491111111111111,
+          "median": 9.68,
+          "min": 6.89,
+          "max": 18.83
+        },
+        "facilities_store_per_km": {
+          "mean": 5.188888888888889,
+          "median": 5.3,
+          "min": 2.8,
+          "max": 8.17
+        },
+        "slope_avg_slope_pct": {
+          "mean": 2.13,
+          "median": 2.17,
+          "min": 0.63,
+          "max": 4.22
+        },
+        "facilities_park_nearest_m": {
+          "mean": 54.85,
+          "median": 39.349999999999994,
+          "min": 6.0,
+          "max": 150.0
+        },
+        "facilities_security_count": {
+          "mean": 180.22222222222223,
+          "median": 161,
+          "min": 118,
+          "max": 275
+        },
+        "surface_crossing_per_km": {
+          "mean": 2.0244444444444443,
+          "median": 1.01,
+          "min": 0.0,
+          "max": 5.21
+        },
+        "facilities_walklight_count": {
+          "mean": 0,
+          "median": 0,
+          "min": 0,
+          "max": 0
+        },
+        "facilities_toilet_per_km": {
+          "mean": 2.1077777777777778,
+          "median": 2.29,
+          "min": 0.67,
+          "max": 3.28
+        },
+        "slope_max_slope_pct": {
+          "mean": 11.374444444444444,
+          "median": 13.23,
+          "min": 3.93,
+          "max": 14.84
+        },
+        "facilities_store_count": {
+          "mean": 15.444444444444445,
+          "median": 15,
+          "min": 8,
+          "max": 25
+        },
+        "condition_score": {
+          "mean": 65.14444444444445,
+          "median": 58.8,
+          "min": 54.6,
+          "max": 85.2
+        },
+        "surface_length_m": {
+          "mean": 3002.777777777778,
+          "median": 2992,
+          "min": 2882,
+          "max": 3142
+        },
+        "actual_distance_m": {
+          "mean": 3002.777777777778,
+          "median": 2992,
+          "min": 2882,
+          "max": 3142
+        },
+        "facilities_light_count": {
+          "mean": 1.3333333333333333,
+          "median": 0,
+          "min": 0,
+          "max": 6
+        },
+        "facilities_light_per_km": {
+          "mean": 0.44555555555555554,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 2.05
+        },
+        "surface_walkable_ratio": {
+          "mean": 0.7777777777777778,
+          "median": 0.773,
+          "min": 0.589,
+          "max": 0.966
+        },
+        "facilities_cctv_nearest_m": {
+          "mean": 0.5444444444444444,
+          "median": 0.5,
+          "min": 0.2,
+          "max": 1.8
+        },
+        "slope_sample_count": {
+          "mean": 43.666666666666664,
+          "median": 44,
+          "min": 38,
+          "max": 48
+        },
+        "slope_elevation_loss_m": {
+          "mean": 29.011111111111113,
+          "median": 29.7,
+          "min": 7.3,
+          "max": 57.2
+        },
+        "surface_bigroad_ratio": {
+          "mean": 0.2262222222222222,
+          "median": 0.227,
+          "min": 0.034,
+          "max": 0.411
+        },
+        "nature_park_ratio": {
+          "mean": 0.03744444444444445,
+          "median": 0.026,
+          "min": 0.006,
+          "max": 0.107
+        },
+        "surface_signal_per_km": {
+          "mean": 0.15000000000000002,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.68
+        },
+        "facilities_toilet_count": {
+          "mean": 6.222222222222222,
+          "median": 7,
+          "min": 2,
+          "max": 10
+        },
+        "facilities_security_per_km": {
+          "mean": 61.19222222222222,
+          "median": 52.82,
+          "min": 40.75,
+          "max": 93.88
+        },
+        "distance_error_pct": {
+          "mean": 2.3666666666666667,
+          "median": 3.1,
+          "min": 0.1,
+          "max": 4.7
+        },
+        "night_score": {
+          "mean": 61.25555555555555,
+          "median": 52.6,
+          "min": 44.3,
+          "max": 88.3
+        },
+        "facilities_light_nearest_m": {
+          "mean": 6.35,
+          "median": 6.35,
+          "min": 4.5,
+          "max": 8.2
+        },
+        "facilities_cctv_count": {
+          "mean": 34,
+          "median": 30,
+          "min": 21,
+          "max": 55
+        },
+        "facilities_store_nearest_m": {
+          "mean": 6.622222222222222,
+          "median": 6.7,
+          "min": 0.9,
+          "max": 13.1
+        },
+        "nature_water_ratio": {
+          "mean": 0.006111111111111111,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.029
+        },
+        "ai_score": {
+          "mean": 2.1094033667092504,
+          "median": 1.4773579171037192,
+          "min": -0.2986693905752204,
+          "max": 4.3042368172989365
+        },
+        "overlap_ratio": {
+          "mean": 0.027,
+          "median": 0.015,
+          "min": 0.0,
+          "max": 0.081
+        },
+        "facilities_walklight_per_km": {
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "surface_stairs_count": {
+          "mean": 1.1111111111111112,
+          "median": 1,
+          "min": 0,
+          "max": 3
+        },
+        "facilities_toilet_nearest_m": {
+          "mean": 8.777777777777777,
+          "median": 7.1,
+          "min": 2.4,
+          "max": 15.0
+        },
+        "facilities_park_per_km": {
+          "mean": 0.26666666666666666,
+          "median": 0.34,
+          "min": 0.0,
+          "max": 0.68
+        },
+        "slope_elevation_gain_m": {
+          "mean": 29.011111111111113,
+          "median": 29.7,
+          "min": 7.3,
+          "max": 57.2
+        },
+        "facilities_security_nearest_m": {
+          "mean": 0.2111111111111111,
+          "median": 0.1,
+          "min": 0.0,
+          "max": 0.6
+        },
+        "origin": {
+          "mean": 1,
+          "median": 1,
+          "min": 0,
+          "max": 2
+        },
+        "slope_slope_std_pct": {
+          "mean": 2.5477777777777777,
+          "median": 2.79,
+          "min": 0.94,
+          "max": 3.78
+        },
+        "facilities_buffer_m": {
+          "mean": 50,
+          "median": 50,
+          "min": 50,
+          "max": 50
+        }
+      }
+    },
+    "user_selected": {
+      "count": 0,
+      "metrics": {}
+    }
+  }
+}

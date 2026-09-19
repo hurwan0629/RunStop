@@ -17,28 +17,14 @@ import { RecommendationFeedback } from '../components/RecommendationFeedback';
 import { useCourseDraft } from '../context/CourseDraftContext';
 import type {
   CourseDraft,
-  ImportanceLevel,
   SlopePreference,
 } from '../types';
 import { ImportanceSelector } from './CourseConditionsScreen';
 import { courseFlowStyles as styles } from './CourseFlow.styles';
 
-type ImportanceKey =
-  | 'distanceImportance'
-  | 'slopeImportance'
-  | 'nightImportance';
-
-const importanceItems: {
-  key: ImportanceKey;
-  label: string;
-}[] = [
-    { key: 'distanceImportance', label: '거리' },
-    { key: 'slopeImportance', label: '경사도' },
-  ];
-
 const slopeLabels: Record<SlopePreference, string> = {
   GENTLE: '완만',
-  NORMAL: '보통',
+  NORMAL: '약간 경사짐',
   ANY: '상관없음',
 };
 // 경사도 기준과 적용
@@ -65,13 +51,6 @@ export default function CourseConditionConfirmScreen() {
     pendingRequest.current = null;
     setIsLoading(false);
     setFailure(null);
-  };
-
-  const setImportance = (
-    key: ImportanceKey,
-    value: ImportanceLevel,
-  ) => {
-    updateDraft({ [key]: value } as Pick<CourseDraft, ImportanceKey>);
   };
 
   const handleRecommend = async () => {
@@ -105,6 +84,9 @@ export default function CourseConditionConfirmScreen() {
         elementConditions: {
           targetDistance: Math.round(draft.targetDistanceKm * 1000),
           maxSlope: maxSlopeByPreference[draft.slopePreference],
+          slopePreference: draft.slopePreference,
+          preferNature: draft.preferNature,
+          preferFlow: draft.preferFlow,
           facilityPreferences: {
             toilet: draft.facilities.includes('TOILET') ? 'PREFER' : 'IGNORE',
             store: draft.facilities.includes('CONVENIENCE_STORE')
@@ -112,8 +94,6 @@ export default function CourseConditionConfirmScreen() {
               : 'IGNORE',
           },
           weights: {
-            distance: draft.distanceImportance,
-            elevation: draft.slopeImportance,
             night: draft.nightImportance,
           },
           // 시설의 체크 여부는 facilityPreferences에서만 판단합니다.
@@ -163,13 +143,13 @@ export default function CourseConditionConfirmScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
         <View style={styles.completeBadge}>
-          <Text style={styles.completeBadgeText}>{'✓ AI 조건 분석 완료'}</Text>
+          <Text style={styles.completeBadgeText}>{'✓ 러닝 조건 확인'}</Text>
         </View>
         <Text style={[styles.introTitle, { marginTop: 14 }]}>
           {'이 조건으로 찾아볼까요?'}
         </Text>
         <Text style={styles.introText}>
-          {'중요도를 조절하면 어떤 조건을 먼저 볼지 정할 수 있어요.'}
+          {'선택한 조건을 반영해 코스 후보를 만들어요.'}
         </Text>
 
         <View style={styles.summaryCard}>
@@ -197,24 +177,12 @@ export default function CourseConditionConfirmScreen() {
             label="필요 시설"
             value={formatFacilities(draft)}
           />
+          <SummaryRow label="공원·하천" value={draft.preferNature ? '선호' : '상관없음'} />
+          <SummaryRow label="신호등·횡단보도 적게" value={draft.preferFlow ? '선호' : '상관없음'} />
         </View>
 
         <View style={styles.importanceSection}>
-          <Text style={styles.sectionTitle}>{'조건별 중요도'}</Text>
-          {importanceItems.map((item) => (
-            <View key={item.key} style={styles.importanceItem}>
-              <View style={styles.importanceLabelRow}>
-                <Text style={styles.importanceLabel}>{item.label}</Text>
-                <Text style={styles.importanceValue}>
-                  {`${draft[item.key]} / 5`}
-                </Text>
-              </View>
-              <ImportanceSelector
-                onChange={(value) => setImportance(item.key, value)}
-                value={draft[item.key]}
-              />
-            </View>
-          ))}
+          <Text style={styles.sectionTitle}>{'시설 선호'}</Text>
           <FacilityStatusRow
             label="화장실"
             selected={draft.facilities.includes('TOILET')}
@@ -231,7 +199,7 @@ export default function CourseConditionConfirmScreen() {
               </Text>
             </View>
             <ImportanceSelector
-              onChange={(value) => setImportance('nightImportance', value)}
+              onChange={(nightImportance) => updateDraft({ nightImportance })}
               value={draft.nightImportance}
             />
           </View>

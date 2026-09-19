@@ -24,7 +24,7 @@ const slopeOptions: {
   value: SlopePreference;
 }[] = [
   { label: '완만', description: '경사 최소화', value: 'GENTLE' },
-  { label: '보통', description: '일반 코스', value: 'NORMAL' },
+  { label: '약간 경사짐', description: '가벼운 오르내림', value: 'NORMAL' },
   { label: '상관없음', description: '모든 경사', value: 'ANY' },
 ];
 
@@ -148,6 +148,24 @@ export default function CourseConditionsScreen() {
           </View>
         </View>
 
+        {/* 환경 선호는 필수조건이 아니라 후보 탐색 방향으로 전달한다. */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>선호 환경</Text>
+          {([
+            ['preferNature', '공원·하천이 많은 길'],
+            ['preferFlow', '신호등·횡단보도가 적은 길'],
+          ] as const).map(([key, label]) => (
+            <Pressable key={key} accessibilityRole="checkbox" accessibilityState={{ checked: draft[key] }}
+              onPress={() => updateDraft({ [key]: !draft[key] })}
+              style={[styles.facilityButton, { marginBottom: 8 }, draft[key] && styles.facilityButtonActive]}>
+              <View style={[styles.checkCircle, draft[key] && styles.checkCircleActive]}>
+                {draft[key] ? <Text style={styles.checkText}>✓</Text> : null}
+              </View>
+              <Text style={styles.optionText}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{'필요한 시설'}</Text>
           <View style={styles.optionRow}>
@@ -190,6 +208,7 @@ export default function CourseConditionsScreen() {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{'야간 인프라 중요도'}</Text>
+          <Text style={styles.sectionHelp}>CCTV · 보안등 · 가로등</Text>
           <ImportanceSelector
             onChange={(nightImportance) => updateDraft({ nightImportance })}
             value={draft.nightImportance}

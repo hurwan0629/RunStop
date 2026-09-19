@@ -61,6 +61,38 @@ export default function RecordDetailScreen() {
   const segment = selectedSegment === null ? null : pace?.segments[selectedSegment];
   const averagePace =
     pace?.averagePace ?? (Number(params.averagePace) || null);
+  const conditions = pace?.request?.elementConditions;
+  const features = pace?.route?.featureValues;
+  const slopeLabel = conditions?.slopePreference
+    ? { GENTLE: '완만', NORMAL: '약간 경사짐', ANY: '상관없음' }[conditions.slopePreference]
+    : conditions?.maxSlope != null ? `최대 ${conditions.maxSlope}% 요청` : '과거 조건 정보 없음';
+  const requestedConditions = conditions ? [
+    ['목표 거리', metric(conditions.targetDistance, 'km', .001)],
+    ['경사', slopeLabel],
+    ['공원·하천', preference(conditions.preferNature)],
+    ['신호등·횡단보도 적게', preference(conditions.preferFlow)],
+    ['화장실', facilityPreference(conditions.facilityPreferences?.toilet)],
+    ['편의점', facilityPreference(conditions.facilityPreferences?.store)],
+    ['야간 중요도', metric(conditions.weights?.night, '/5')],
+  ] : [];
+
+  // 선택한 추천 경로의 feature를 사용한다. 실제 GPS 구간 분석과 구분해서 표시.
+  const routeMetrics = [
+    ['실제 코스 거리', metric(pace?.route?.totalDistance, 'km', .001)],
+    ['평균 경사', metric(features?.slope?.avgSlopePct, '%')],
+    ['최대 경사', metric(features?.slope?.maxSlopePct, '%')],
+    ['누적 상승', metric(features?.slope?.elevationGainM ?? pace?.route?.totalAscent, 'm')],
+    ['화장실', metric(features?.toilet_count, '개')],
+    ['편의점', metric(features?.store_count, '개')],
+    ['공원 인접률', metric(features?.nature?.parkRatio, '%', 100)],
+    ['하천 인접률', metric(features?.nature?.waterRatio, '%', 100)],
+    ...([['cctv_count', 'CCTV'], ['security_count', '보안등'], ['light_count', '가로등']] as const)
+      .filter(([key]) => typeof features?.[key] === 'number' && (features[key] as number) > 0)
+      .map(([key, label]) => [label, metric(features?.[key], '개')]),
+    ['신호등 /km', metric(features?.surface?.signal_per_km)],
+    ['횡단보도 /km', metric(features?.surface?.crossing_per_km)],
+    ['경로 중복률', metric(features?.overlapRatio, '%', 100)],
+  ];
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -105,6 +137,27 @@ export default function RecordDetailScreen() {
             ) : null}
           </>
         ) : null}
+
+        {pace ? <>
+          <Text style={styles.sectionTitle}>추천받을 때의 요청 조건</Text>
+          <View style={styles.messageCard}>
+            {requestedConditions.length ? requestedConditions.map(([label, value]) => (
+              <View style={styles.segmentRow} key={label}><Text style={styles.segmentLabel}>{label}</Text><Text style={styles.segmentValue}>{value}</Text></View>
+            )) : <Text style={styles.messageText}>저장된 요청 조건이 없습니다.</Text>}
+          </View>
+          <Text style={styles.sectionTitle}>선택한 추천 경로의 특징</Text>
+          <View style={styles.messageCard}>
+            {routeMetrics.map(([label, value]) => <View style={styles.segmentRow} key={label}>
+              <Text style={styles.segmentLabel}>{label}</Text><Text style={styles.segmentValue}>{value}</Text>
+            </View>)}
+            {features?.slopeConstraint?.status === 'RELAXED' ? (
+              <Text style={styles.messageText}>{features.slopeConstraint.evaluation === 'UNAVAILABLE'
+                ? '경사 정보가 부족해 요청 조건 충족 여부를 확인할 수 없어요.'
+                : '경사 탐색 기준을 완화해 찾은 대안 코스예요. 실제 경사 지표를 확인해 주세요.'}</Text>
+            ) : null}
+            <Text style={styles.mapNotice}>—는 과거 기록에 저장되지 않은 정보입니다.</Text>
+          </View>
+        </> : null}
 
         <Text style={styles.sectionTitle}>{'구간별 기록 · 눌러서 지도 확인'}</Text>
         {isLoading ? <ActivityIndicator color="#100078" /> : null}
@@ -153,6 +206,19 @@ function Metric({ label, value }: { label: string; value: string }) {
       <Text style={styles.metricLabel}>{label}</Text>
     </View>
   );
+}
+
+function metric(value: unknown, unit = '', scale = 1) {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? `${(value * scale).toLocaleString('ko-KR', { maximumFractionDigits: 2 })}${unit}` : '—';
+}
+
+function preference(value?: boolean) {
+  return value === undefined ? '기록 없음' : value ? '선호' : '상관없음';
+}
+
+function facilityPreference(value?: string) {
+  return value === 'PREFER' ? '선호' : value === 'IGNORE' ? '상관없음' : '기록 없음';
 }
 
 function getDuration(startedAt?: string, finishedAt?: string) {
