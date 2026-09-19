@@ -3,6 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { getRuns, period } from '../api/runningApi'
 import './RunningPage.css'
 
+const statusLabels = { COMPLETED: '완료', IN_PROGRESS: '진행 중', STOPPED: '중단', CANCELLED: '취소', FAILED: '실패' }
+
 export default function RunningPage() {
   const [params, setParams] = useSearchParams()
   const range = period(30)
@@ -31,8 +33,10 @@ export default function RunningPage() {
   }
 
   return <main className="running-page">
-    <h1>러닝 기록</h1>
-    <p>러닝을 선택하면 선택한 코스·실제 주행·같이 추천된 다른 코스를 비교할 수 있습니다.</p>
+    <header className="run-page-title">
+      <h1>러닝 기록</h1>
+      <p>회원의 실제 이동 경로와 추천 코스를 확인하세요.</p>
+    </header>
     <form className="run-filters" onSubmit={event => {
       event.preventDefault()
       const data = new FormData(event.currentTarget)
@@ -41,10 +45,10 @@ export default function RunningPage() {
       <label>시작일<input name="from" type="date" defaultValue={from} required /></label>
       <label>종료일<input name="to" type="date" defaultValue={to} required /></label>
       <label>회원 번호<input name="userIdx" type="number" min="1" defaultValue={userIdx} placeholder="전체 회원" /></label>
-      <button>조회</button>
+      <button type="submit">기록 조회</button>
     </form>
     {error ? <p role="alert">{error}</p> : !result ? <p role="status">조회 중…</p> : <>
-      <table className="run-table">
+      <div className="run-table-wrap"><table className="run-table">
         <thead><tr><th>러닝</th><th>사용자</th><th>시작 시각 (KST)</th><th>선택한 코스</th><th>거리</th><th>상태</th></tr></thead>
         <tbody>{result.items.map(run => <tr key={run.sessionIdx}>
           <td><Link to={`/running/${run.sessionIdx}`}>#{run.sessionIdx} 지도 보기</Link></td>
@@ -52,14 +56,15 @@ export default function RunningPage() {
           <td>{new Date(run.startedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</td>
           <td>{run.routeName || '코스 정보 없음'}</td>
           <td>{run.distance == null ? '—' : `${(run.distance / 1000).toFixed(2)}km`}</td>
-          <td>{run.status}</td>
+          <td><span className={`run-status ${run.status === 'COMPLETED' ? 'complete' : ''}`}>{statusLabels[run.status] || run.status}</span></td>
         </tr>)}</tbody>
       </table>
-      {!result.items.length && <p>해당 기간의 러닝이 없습니다.</p>}
-      <div className="run-filters">
-        <button disabled={page <= 1} onClick={() => update({ page: String(page - 1) })}>이전</button>
+      {!result.items.length && <p className="run-empty">해당 기간의 러닝이 없습니다. 조회 기간을 변경해 보세요.</p>}
+      </div>
+      <div className="run-pagination">
+        <button className="run-button" disabled={page <= 1} onClick={() => update({ page: String(page - 1) })}>이전</button>
         <span>{page}페이지</span>
-        <button disabled={!result.hasMore} onClick={() => update({ page: String(page + 1) })}>다음</button>
+        <button className="run-button" disabled={!result.hasMore} onClick={() => update({ page: String(page + 1) })}>다음</button>
       </div>
     </>}
   </main>

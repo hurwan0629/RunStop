@@ -18,7 +18,9 @@ function Header({ onLogout }) {
     useState(false)
 
   const pageTitle =
-    pageTitles[location.pathname] ?? '관리자'
+    location.pathname.startsWith('/running')
+      ? '러닝 기록'
+      : pageTitles[location.pathname] ?? '관리자'
 
   const handleLogout = () => {
     setIsProfileOpen(false)
