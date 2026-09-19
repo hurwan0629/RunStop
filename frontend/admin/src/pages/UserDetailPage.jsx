@@ -137,6 +137,7 @@ function UserDetailPage() {
       </button>
 
       <header className="user-detail-header">
+        <button type="button" onClick={() => navigate(`/running?userIdx=${userIdx}`)}>러닝 기록·지도 보기</button>
         <div className="detail-profile">
           <span className="detail-avatar">
             {user.nickname.charAt(0)}

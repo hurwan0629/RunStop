@@ -9,8 +9,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getRunningPace } from '@/features/running/api/runningApi';
-import type { RunningPaceResponse } from '@/features/running/types';
+import { getRunningDetail } from '@/features/running/api/runningApi';
+import type { RunningDetail } from '@/features/running/types';
+import { CourseMap } from '@/features/course/components/CourseMap';
 import { useAuth } from '@/providers/AuthProvider';
 import { getApiErrorMessage } from '@/services/api/errors';
 
@@ -27,7 +28,8 @@ export default function RecordDetailScreen() {
   }>();
   const { accessToken } = useAuth();
   const sessionId = Number(params.sessionId);
-  const [pace, setPace] = useState<RunningPaceResponse | null>(null);
+  const [pace, setPace] = useState<RunningDetail | null>(null);
+  const [selectedSegment, setSelectedSegment] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -41,7 +43,8 @@ export default function RecordDetailScreen() {
     setErrorMessage('');
 
     try {
-      setPace(await getRunningPace(accessToken, sessionId));
+      setPace(await getRunningDetail(accessToken, sessionId));
+      setSelectedSegment(null);
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error));
     } finally {
@@ -53,8 +56,9 @@ export default function RecordDetailScreen() {
     void loadPace();
   }, [loadPace]);
 
-  const distance = Number(params.distance) || 0;
-  const duration = getDuration(params.startedAt, params.finishedAt);
+  const distance = pace?.distance ?? (Number(params.distance) || 0);
+  const duration = getDuration(pace?.startedAt ?? params.startedAt, pace?.finishedAt ?? params.finishedAt);
+  const segment = selectedSegment === null ? null : pace?.segments[selectedSegment];
   const averagePace =
     pace?.averagePace ?? (Number(params.averagePace) || null);
 
@@ -69,7 +73,7 @@ export default function RecordDetailScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.recordDate}>
-          {params.startedAt ? formatDate(params.startedAt) : `러닝 #${sessionId}`}
+          {pace?.startedAt ? formatDate(pace.startedAt) : `러닝 #${sessionId}`}
         </Text>
         <View style={styles.summaryCard}>
           <Metric label="거리" value={distance ? `${(distance / 1000).toFixed(2)}km` : '--'} />
@@ -77,7 +81,32 @@ export default function RecordDetailScreen() {
           <Metric label="평균 페이스" value={formatPace(averagePace)} />
         </View>
 
-        <Text style={styles.sectionTitle}>{'1km 구간별 페이스'}</Text>
+        {pace ? (
+          <>
+            <Text style={styles.sectionTitle}>코스와 실제 주행</Text>
+            <CourseMap
+              startPoint={pace.route?.path[0] ?? pace.trackPaths[0]?.[0]}
+              routePath={pace.route?.path ?? []}
+              trackedRoutePaths={pace.trackPaths}
+              highlightedPath={segment?.path}
+              featurePath={segment?.path}
+              mapLayers={segment?.environment?.mapLayers}
+              facilityPoints={segment?.environment?.facilityPoints}
+              averageSlopePct={segment?.environment?.slope?.avgSlopePct}
+              showLayerControls={Boolean(segment?.environment)}
+            />
+            <Text style={styles.mapNotice}>남색: 선택한 코스 · 초록: 실제 주행 · 주황: 선택 구간</Text>
+            {!pace.trackPaths.length ? <Text style={styles.messageText}>표시할 유효 GPS 기록이 없습니다.</Text> : null}
+            {pace.gapCount || pace.excludedPointCount ? (
+              <Text style={styles.messageText}>낮은 정확도 {pace.excludedPointCount}개 제외 · 기록 단절 {pace.gapCount}곳</Text>
+            ) : null}
+            {pace.analysisStatus === 'UNAVAILABLE' ? (
+              <Text style={styles.messageText}>구간 환경 정보를 불러오지 못했습니다. 지도와 주행 기록은 확인할 수 있어요.</Text>
+            ) : null}
+          </>
+        ) : null}
+
+        <Text style={styles.sectionTitle}>{'구간별 기록 · 눌러서 지도 확인'}</Text>
         {isLoading ? <ActivityIndicator color="#100078" /> : null}
         {errorMessage ? (
           <View style={styles.messageCard}>
@@ -94,15 +123,23 @@ export default function RecordDetailScreen() {
             </Text>
           </View>
         ) : null}
-        {pace?.segments.map((segment, index) => (
-          <View key={`${segment.distanceFrom}-${segment.distanceTo}`} style={styles.segmentRow}>
-            <Text style={styles.segmentLabel}>{`${index + 1}km 구간`}</Text>
-            <Text style={styles.segmentValue}>{formatPace(segment.pace)}</Text>
-          </View>
+        {pace?.segments.map((part, index) => (
+          <Pressable key={index} accessibilityRole="button" accessibilityState={{ selected: index === selectedSegment }}
+            onPress={() => setSelectedSegment(index === selectedSegment ? null : index)}
+            style={[styles.segmentRow, index === selectedSegment && { backgroundColor: '#FFF0E3' }]}>
+            <View>
+              <Text style={styles.segmentLabel}>{`${(part.distanceFrom / 1000).toFixed(2)}–${(part.distanceTo / 1000).toFixed(2)}km`}</Text>
+              <Text style={styles.segmentLabel}>{formatDuration(Math.round(part.durationSeconds))}</Text>
+              <Text style={styles.segmentLabel}>
+                {part.environment?.slope?.avgSlopePct == null ? '경사 정보 없음' : `평균 경사 ${part.environment.slope.avgSlopePct.toFixed(1)}%`}
+              </Text>
+            </View>
+            <Text style={styles.segmentValue}>{formatPace(part.pace)}</Text>
+          </Pressable>
         ))}
 
         <Text style={styles.mapNotice}>
-          {'과거 이동 경로 지도는 서버의 트랙포인트 조회 API가 추가되면 연결할 수 있어요.'}
+          {'구간 시간·페이스는 유효 GPS 기록 기준입니다. 기록이 끊긴 구간은 연결하지 않으며, 경사는 고도 데이터로 계산한 추정값입니다.'}
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -156,8 +193,9 @@ function formatPace(value: number | null) {
     return '--';
   }
 
-  const minutes = Math.floor(value / 60);
-  const seconds = String(Math.round(value % 60)).padStart(2, '0');
+  const rounded = Math.round(value);
+  const minutes = Math.floor(rounded / 60);
+  const seconds = String(rounded % 60).padStart(2, '0');
 
   return `${minutes}'${seconds}"/km`;
 }

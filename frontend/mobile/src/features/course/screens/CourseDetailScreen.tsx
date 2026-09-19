@@ -197,6 +197,7 @@ export default function CourseDetailScreen() {
           <CourseMap
             facilityPoints={course.facilityPoints}
             mapLayers={course.mapLayers}
+            averageSlopePct={course.slope?.avgSlopePct}
             endPoint={points.endPoint}
             routePath={course.path}
             showStartDirection

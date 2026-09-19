@@ -13,6 +13,8 @@ import UserPage from '../pages/UserPage'
 import AdminRoute from './AdminRoute'
 import AdminLayout from '../components/AdminLayout'
 import UserDetailPage from '../pages/UserDetailPage'
+import RunningPage from '../pages/RunningPage'
+import RunningDetailPage from '../pages/RunningDetailPage'
 
 function Router() {
   return (
@@ -25,6 +27,8 @@ function Router() {
 
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
+            <Route path="/running" element={<RunningPage />} />
+            <Route path="/running/:sessionIdx" element={<RunningDetailPage />} />
             <Route
               path="/dashboard"
               element={<DashboardPage />}

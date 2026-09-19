@@ -14,6 +14,10 @@ function Sidebar({ onLogout }) {
         </div>
 
         <nav className="sidebar-menu">
+          <NavLink to="/running" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <span className="sidebar-icon"><SidebarMenuIcon type="dashboard" /></span>
+            <span>러닝 기록</span>
+          </NavLink>
           <NavLink
             to="/dashboard"
             className={({ isActive }) =>

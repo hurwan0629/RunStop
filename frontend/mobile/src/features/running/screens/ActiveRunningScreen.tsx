@@ -38,6 +38,8 @@ export default function ActiveRunningScreen() {
   const [plannedPath, setPlannedPath] = useState<LocationPoint[]>([]);
   const [facilityPoints, setFacilityPoints] = useState<RouteFacilityPoint[]>([]);
   const [mapLayers, setMapLayers] = useState<RouteMapLayers | null>(null);
+  const [averageSlopePct, setAverageSlopePct] = useState<number | null>(null);
+  const [mapExpanded, setMapExpanded] = useState(false);
   const [trackedPath, setTrackedPath] = useState<LocationPoint[]>([]);
   const [currentLocation, setCurrentLocation] =
     useState<LocationPoint | null>(null);
@@ -72,6 +74,7 @@ export default function ActiveRunningScreen() {
         setPlannedPath(detail.path);
         setFacilityPoints(detail.facilityPoints ?? []);
         setMapLayers(detail.mapLayers ?? null);
+        setAverageSlopePct(detail.slope?.avgSlopePct ?? null);
       })
       .catch((error) => setErrorMessage(getApiErrorMessage(error)));
   }, [accessToken, courseId]);
@@ -337,18 +340,21 @@ export default function ActiveRunningScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <View style={styles.runningHeader}>
+      {!mapExpanded ? <View style={styles.runningHeader}>
         <Text style={styles.runningTitle}>
           {isPaused ? '일시정지 중' : '러닝 중'}
         </Text>
         <Text style={styles.gpsState}>
           {isLocating ? 'GPS 확인 중' : 'GPS 연결됨'}
         </Text>
-      </View>
+      </View> : null}
 
       <CourseMap
         facilityPoints={facilityPoints}
         mapLayers={mapLayers}
+        averageSlopePct={averageSlopePct}
+        mapExpanded={mapExpanded}
+        onToggleExpanded={() => setMapExpanded(previous => !previous)}
         currentLocation={currentLocation ?? undefined}
         followCurrentLocation
         routePath={plannedPath}
@@ -358,7 +364,8 @@ export default function ActiveRunningScreen() {
         trackedRoutePath={trackedPath}
       />
 
-      <View style={styles.livePanel}>
+      {/* 지도만 보더라도 위의 GPS·타이머·기록 저장 효과는 계속 실행된다. */}
+      {!mapExpanded ? <View style={styles.livePanel}>
         <Text style={styles.timeValue}>{formatDuration(elapsedSeconds)}</Text>
         <Text style={styles.timeLabel}>{'러닝 시간'}</Text>
         <View style={styles.metricRow}>
@@ -400,7 +407,7 @@ export default function ActiveRunningScreen() {
             )}
           </Pressable>
         </View>
-      </View>
+      </View> : null}
     </SafeAreaView>
   );
 }

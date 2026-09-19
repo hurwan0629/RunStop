@@ -2,6 +2,7 @@
 
 from math import isfinite
 
+import pandas as pd
 from shapely import LineString
 
 from src.algo import config
@@ -51,6 +52,7 @@ def build_map_layers(coords: list[Coordinate]) -> dict:
         "water": layers.get("water") is not None,
     }
     nature_segments = []
+    nature_counts = {kind: 0 if availability[kind] else None for kind in ("park", "water")}
 
     # 경로 전체가 아니라 공원·하천에서 50m 이내에 있는 실제 선 구간만 추출한다.
     if len(coords) >= 2:
@@ -65,6 +67,20 @@ def build_map_layers(coords: list[Coordinate]) -> dict:
             indices = layer.sindex.query(route_buffer, predicate="intersects")
             if len(indices) == 0:
                 continue
+
+            # 같은 이름의 공원·하천은 한 번만 센다. 이름이 없으면 원본 ID를 사용한다.
+            identities = set()
+            for _, feature in layer.iloc[indices].iterrows():
+                name = feature.get("name")
+                source_id = feature.get("id")
+                if pd.notna(name) and str(name).strip():
+                    identity = ("name", str(name).strip())
+                elif pd.notna(source_id):
+                    identity = (str(feature.get("element", "")), str(source_id))
+                else:
+                    identity = ("geometry", feature.geometry.wkb)
+                identities.add(identity)
+            nature_counts[kind] = len(identities)
 
             nearby_area = layer.geometry.iloc[indices].union_all().buffer(config.NATURE_BUFFER_M)
             clipped = route_line.intersection(nearby_area)
@@ -83,6 +99,7 @@ def build_map_layers(coords: list[Coordinate]) -> dict:
     return {
         "slopeSegments": slope_segments,
         "natureSegments": nature_segments,
+        "natureCounts": nature_counts,
         "availability": availability,
         "nightFacilityTypes": get_available_night_facility_types(),
     }

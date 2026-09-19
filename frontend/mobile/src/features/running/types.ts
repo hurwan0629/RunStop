@@ -1,4 +1,30 @@
-import type { LocationPoint } from '@/features/course/types';
+import type { LocationPoint, RouteFacilityPoint, RouteMapLayers, RouteSlopeProfile } from '@/features/course/types';
+
+export type RunningDetail = {
+  sessionIdx: number;
+  status: string;
+  startedAt: string;
+  finishedAt: string | null;
+  distance: number | null;
+  averagePace: number | null;
+  route: { idx: number; name: string; path: LocationPoint[]; totalDistance: number | null } | null;
+  trackPaths: LocationPoint[][];
+  excludedPointCount: number;
+  gapCount: number;
+  analysisStatus: 'AVAILABLE' | 'UNAVAILABLE' | 'INSUFFICIENT' | 'IN_PROGRESS';
+  segments: {
+    distanceFrom: number;
+    distanceTo: number;
+    durationSeconds: number;
+    pace: number;
+    path: LocationPoint[];
+    environment: {
+      facilityPoints: RouteFacilityPoint[];
+      mapLayers: RouteMapLayers | null;
+      slope: RouteSlopeProfile | null;
+    } | null;
+  }[];
+};
 
 export type RunningTrackpoint = LocationPoint & {
   clientTrackpointId: string;

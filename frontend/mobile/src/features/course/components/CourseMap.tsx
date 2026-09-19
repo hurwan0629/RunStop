@@ -27,12 +27,19 @@ type CourseMapProps = {
   waypoints?: LocationPoint[];
   facilityPoints?: RouteFacilityPoint[];
   mapLayers?: RouteMapLayers | null;
+  averageSlopePct?: number | null;
+  mapExpanded?: boolean;
+  onToggleExpanded?: () => void;
   routePath?: LocationPoint[];
   trackedRoutePath?: LocationPoint[];
+  trackedRoutePaths?: LocationPoint[][];
+  highlightedPath?: LocationPoint[];
+  featurePath?: LocationPoint[];
   currentLocation?: LocationPoint;
   followCurrentLocation?: boolean;
   style?: StyleProp<ViewStyle>;
   showStartDirection?: boolean;
+  showLayerControls?: boolean;
 };
 
 const DEFAULT_LOCATION: LocationPoint = {
@@ -51,7 +58,6 @@ const LAYER_LABELS = {
 type LayerKey = keyof typeof LAYER_LABELS;
 
 const NIGHT_LABELS = { light: '가로등', security: '보안등', walklight: '보행등' };
-const NIGHT_COLORS = { light: '#D99A00', security: '#9865CE', walklight: '#E57835' };
 const NIGHT_MIN_ZOOM = 16;
 
 function slopeColor(slope: number | null) {
@@ -77,11 +83,18 @@ export function CourseMap({
   waypoints = [],
   facilityPoints = [],
   mapLayers,
+  averageSlopePct,
+  mapExpanded = false,
+  onToggleExpanded,
   routePath = [],
   trackedRoutePath = [],
+  trackedRoutePaths,
+  highlightedPath,
+  featurePath,
   currentLocation,
   followCurrentLocation = false,
   showStartDirection = false,
+  showLayerControls = true,
   style,
 }: CourseMapProps) {
   // 표시 토글은 지도 안에서만 관리한다. 변경 시 추천 API를 다시 호출하지 않는다.
@@ -94,19 +107,71 @@ export function CourseMap({
   });
   const [viewport, setViewport] = useState<{ zoom: number; region?: Region }>({ zoom: 15 });
   const mapRef = useRef<NaverMapViewRef>(null);
+  const [mapReady, setMapReady] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(followCurrentLocation);
 
   const focusPoint = followCurrentLocation
     ? currentLocation ?? startPoint ?? DEFAULT_LOCATION
     : startPoint ?? currentLocation ?? DEFAULT_LOCATION;
+  const startLat = startPoint?.lat;
+  const startLng = startPoint?.lng;
+  const currentLat = currentLocation?.lat;
+  const currentLng = currentLocation?.lng;
 
-  // 위치 추적 중에도 사용자가 선택한 확대 수준을 유지한다.
+  // 기록 지도는 전체 코스·주행을 맞추고, 구간 선택 시 굽은 부분까지 포함한다.
+  const recordBounds = useMemo(() => {
+    const points = highlightedPath ?? (trackedRoutePaths ? routePath.concat(...trackedRoutePaths) : []);
+    if (!points.length) return null;
+    return points.reduce((bounds, point) => ({
+      south: Math.min(bounds.south, point.lat), north: Math.max(bounds.north, point.lat),
+      west: Math.min(bounds.west, point.lng), east: Math.max(bounds.east, point.lng),
+    }), { south: 90, north: -90, west: 180, east: -180 });
+  }, [highlightedPath, routePath, trackedRoutePaths]);
+
   useEffect(() => {
-    mapRef.current?.animateCameraTo({
-      latitude: focusPoint.lat,
-      longitude: focusPoint.lng,
+    if (!mapReady || !recordBounds) return;
+    mapRef.current?.animateCameraWithTwoCoords({
+      coord1: { latitude: recordBounds.south - 0.0002, longitude: recordBounds.west - 0.0002 },
+      coord2: { latitude: recordBounds.north + 0.0002, longitude: recordBounds.east + 0.0002 },
       duration: 500,
     });
-  }, [focusPoint.lat, focusPoint.lng]);
+  }, [mapReady, recordBounds]);
+
+  // 출발지 선택과 GPS 추적을 분리해 추적 OFF 시 카메라가 출발지로 튀지 않게 한다.
+  useEffect(() => {
+    if (trackedRoutePaths || startLat === undefined || startLng === undefined) return;
+    mapRef.current?.animateCameraTo({
+      latitude: startLat,
+      longitude: startLng,
+      duration: 500,
+    });
+  }, [startLat, startLng, trackedRoutePaths]);
+
+  useEffect(() => {
+    if (!isFollowing || currentLat === undefined || currentLng === undefined) return;
+    mapRef.current?.animateCameraTo({
+      latitude: currentLat,
+      longitude: currentLng,
+      duration: 500,
+    });
+  }, [isFollowing, currentLat, currentLng]);
+
+  // 토글이 OFF여도 코스 전체 시설 수는 유지한다. 화면 안 마커 수와 구분한다.
+  const counts = useMemo(() => {
+    const result = { toilet: 0, store: 0, light: 0, security: 0, walklight: 0 };
+    for (const point of facilityPoints) result[point.type] += 1;
+    return result;
+  }, [facilityPoints]);
+  const natureCounts = mapLayers?.natureCounts;
+  const summaries = {
+    toilet: `${counts.toilet}개`,
+    store: `${counts.store}개`,
+    night: `${counts.light + counts.security + counts.walklight}개`,
+    slope: averageSlopePct == null ? '평균 정보 없음' : `평균 ${averageSlopePct.toFixed(1)}%`,
+    nature: natureCounts
+      ? `공원 ${natureCounts.park ?? '—'}개 · 하천 ${natureCounts.water ?? '—'}개`
+      : '개수 정보 없음',
+  };
 
   const available = {
     toilet: true,
@@ -116,13 +181,14 @@ export function CourseMap({
     night: Boolean(mapLayers?.nightFacilityTypes.length),
   };
 
+  const layerPath = featurePath ?? routePath;
   const slopeParts = useMemo(() => (mapLayers?.slopeSegments ?? [])
-    .filter(segment => segment.fromIndex >= 0 && segment.toIndex < routePath.length)
+    .filter(segment => segment.fromIndex >= 0 && segment.toIndex < layerPath.length)
     .map(segment => ({
-      coords: routePath.slice(segment.fromIndex, segment.toIndex + 1).map(toMapCoordinate),
+      coords: layerPath.slice(segment.fromIndex, segment.toIndex + 1).map(toMapCoordinate),
       color: slopeColor(segment.slopePct),
       outlineColor: '#FFFFFF',
-    })), [mapLayers, routePath]);
+    })), [mapLayers, layerPath]);
 
   // 조명은 확대된 화면 안의 시설만 마운트해 수백 개의 화면 밖 마커 생성을 피한다.
   const nightPoints = visible.night && viewport.zoom >= NIGHT_MIN_ZOOM
@@ -147,6 +213,7 @@ export function CourseMap({
         ref={mapRef}
         animationDuration={500}
         initialCamera={{ latitude: focusPoint.lat, longitude: focusPoint.lng, zoom: 15 }}
+        onInitialized={() => setMapReady(true)}
         onCameraIdle={({ zoom, region }) => setViewport({ zoom: zoom ?? 15, region })}
         isShowCompass
         isShowLocationButton={false}
@@ -278,13 +345,18 @@ export function CourseMap({
               key={`night-${point.type}-${index}`}
               latitude={point.lat}
               longitude={point.lng}
-              image={{ symbol: 'yellow' }}
-              tintColor={NIGHT_COLORS[point.type]}
-              width={12}
-              height={16}
+              width={28}
+              height={34}
               minZoom={NIGHT_MIN_ZOOM}
-              caption={{ minZoom: 18, text: `${NIGHT_LABELS[point.type]} · ${point.name ?? ''}` }}
-            />
+              caption={{ minZoom: 18, text: `${NIGHT_LABELS[point.type]} · ${point.name ?? ''}` }}>
+              <View collapsable={false} style={styles.nightMarker}>
+                <Svg width={28} height={34} viewBox="0 0 28 34">
+                  <Path d="M14 1C7 1 1 6 1 13c0 9 13 20 13 20s13-11 13-20C27 6 21 1 14 1Z"
+                    fill="#6828BC" stroke="#FFFFFF" strokeWidth={2} />
+                  <Path d="M16 5 8 15h5l-1 8 8-12h-5Z" fill="#FFFFFF" />
+                </Svg>
+              </View>
+            </NaverMapMarkerOverlay>
           );
         })}
 
@@ -299,14 +371,14 @@ export function CourseMap({
       </NaverMapView>
 
       {/* 경로가 있는 상세·러닝 화면에서만 표시 제어와 범례를 제공한다. */}
-      {routePath.length >= 2 ? (
+      {showLayerControls && (routePath.length >= 2 || layerPath.length >= 2) ? (
         <View pointerEvents="box-none" style={styles.layerPanel}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.layerButtons}>
             {(Object.keys(LAYER_LABELS) as LayerKey[]).map(key => (
               <Pressable
                 key={key}
                 accessibilityRole="switch"
-                accessibilityLabel={`${LAYER_LABELS[key]} 표시${available[key] ? '' : ', 데이터 없음'}`}
+                accessibilityLabel={`${LAYER_LABELS[key]} ${summaries[key]} 표시${available[key] ? '' : ', 데이터 없음'}`}
                 accessibilityState={{ checked: visible[key] && available[key], disabled: !available[key] }}
                 disabled={!available[key]}
                 onPress={() => setVisible(previous => ({ ...previous, [key]: !previous[key] }))}
@@ -316,7 +388,7 @@ export function CourseMap({
                   !available[key] && styles.layerButtonDisabled,
                 ]}>
                 <Text style={[styles.layerButtonText, visible[key] && available[key] && styles.layerButtonTextActive]}>
-                  {LAYER_LABELS[key]}{available[key] ? '' : ' · 정보 없음'}
+                  {LAYER_LABELS[key]} · {available[key] ? summaries[key] : '정보 없음'}
                 </Text>
               </Pressable>
             ))}
@@ -343,7 +415,7 @@ export function CourseMap({
             ) : null}
             {visible.night && available.night ? (
               <Text style={styles.legendText}>
-                {mapLayers?.nightFacilityTypes.map(type => NIGHT_LABELS[type]).join('·')}
+                {mapLayers?.nightFacilityTypes.map(type => `${NIGHT_LABELS[type]} ${counts[type]}개`).join(' · ')}
                 {viewport.zoom < NIGHT_MIN_ZOOM ? ' · 확대하면 표시됩니다' : ' · 경로 주변 50m'}
                 {!mapLayers?.nightFacilityTypes.includes('walklight') ? ' · 보행등 데이터 없음' : ''}
               </Text>
@@ -351,6 +423,37 @@ export function CourseMap({
           </View>
         </View>
       ) : null}
+
+      {/* 지도 관련 조작은 패널을 숨겨도 남겨 두어 언제든 되돌릴 수 있다. */}
+      <View pointerEvents="box-none" style={styles.mapActions}>
+        {currentLocation || followCurrentLocation ? (
+          <Pressable
+            accessibilityRole="switch"
+            accessibilityLabel="현재 위치 따라가기"
+            accessibilityState={{ checked: isFollowing, disabled: !currentLocation }}
+            disabled={!currentLocation}
+            onPress={() => setIsFollowing(previous => !previous)}
+            style={[styles.layerButton, isFollowing && styles.layerButtonActive]}>
+            <Text style={[styles.layerButtonText, isFollowing && styles.layerButtonTextActive]}>
+              {currentLocation ? `위치 따라가기 ${isFollowing ? 'ON' : 'OFF'}` : 'GPS 확인 중'}
+            </Text>
+          </Pressable>
+        ) : null}
+
+        {(trackedRoutePaths ?? []).filter(path => path.length >= 2).map((path, index) => (
+          <NaverMapPathOverlay key={`record-${index}`} coords={path.map(toMapCoordinate)}
+            color="#169E84" width={5} outlineColor="#FFFFFF" outlineWidth={1} zIndex={4} />
+        ))}
+        {highlightedPath && highlightedPath.length >= 2 ? (
+          <NaverMapPathOverlay coords={highlightedPath.map(toMapCoordinate)}
+            color="#F06D24" width={8} outlineWidth={1} outlineColor="#FFFFFF" zIndex={5} />
+        ) : null}
+        {onToggleExpanded ? (
+          <Pressable accessibilityRole="button" onPress={onToggleExpanded} style={styles.layerButton}>
+            <Text style={styles.layerButtonText}>{mapExpanded ? '러닝 UI 보기' : '지도 크게 보기'}</Text>
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -407,6 +510,17 @@ function getDistanceMeters(
 }
 
 const styles = StyleSheet.create({
+  mapActions: {
+    position: 'absolute',
+    right: 12,
+    bottom: 24,
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  nightMarker: {
+    width: 28,
+    height: 34,
+  },
   layerPanel: {
     position: 'absolute',
     top: 8,

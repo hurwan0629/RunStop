@@ -2,6 +2,7 @@ import type { Router } from "express";
 import {
   finishRunningSession,
   getRunningPace,
+  getRunningDetail,
   listRunningSessions,
   saveRunningTrackpoints,
   startRunningSession,
@@ -47,4 +48,5 @@ export function registerRunningRoutes(router: Router): void {
   router.get("/api/running-sessions/active", authenticate, asyncHandler(getActiveRunningSession));
   // 2026-09-02 15:48:25 검수 [x] 사용자 러닝 페이스 조회 (sessionIdx로)
   router.get("/api/running-sessions/:sessionIdx/pace", authenticate, asyncHandler(getRunningPace));
+  router.get("/api/running-sessions/:sessionIdx/detail", authenticate, asyncHandler(getRunningDetail));
 }

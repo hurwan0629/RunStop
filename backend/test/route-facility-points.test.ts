@@ -31,6 +31,10 @@ test("옛 경로의 레이어 부재와 새 경로의 구간 데이터를 구분
     nightFacilityTypes: ["light", "security"],
   };
   expect(routeMapLayersSchema.parse(layers)).toEqual(layers);
+  expect(routeMapLayersSchema.parse({ ...layers, natureCounts: { park: 2, water: null } }).natureCounts)
+    .toEqual({ park: 2, water: null });
+  expect(routeMapLayersSchema.safeParse({ ...layers, natureCounts: { park: -1, water: 0 } }).success)
+    .toBe(false);
 
   const detail = {
     idx: 1, name: "코스", totalDistance: 100, totalAscent: null,

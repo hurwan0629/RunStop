@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
@@ -10,9 +10,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/providers/AuthProvider';
-import { getApiErrorMessage } from '@/services/api/errors';
+import { getRecommendationFailure, type RecommendationFailure } from '@/services/api/errors';
 
 import { recommendCourses } from '../api/courseApi';
+import { RecommendationFeedback } from '../components/RecommendationFeedback';
 import { useCourseDraft } from '../context/CourseDraftContext';
 import type {
   CourseDraft,
@@ -53,7 +54,18 @@ export default function CourseConditionConfirmScreen() {
   const { accessToken } = useAuth();
   const { draft, setRecommendationResult, updateDraft } = useCourseDraft();
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [failure, setFailure] = useState<RecommendationFailure | null>(null);
+  const pendingRequest = useRef<AbortController | null>(null);
+
+  useEffect(() => () => pendingRequest.current?.abort(), []);
+
+  // 대기 취소는 응답 수신을 중단한다. 늦게 도착한 결과로 화면을 이동하지 않는다.
+  const closeFeedback = () => {
+    pendingRequest.current?.abort();
+    pendingRequest.current = null;
+    setIsLoading(false);
+    setFailure(null);
+  };
 
   const setImportance = (
     key: ImportanceKey,
@@ -63,22 +75,25 @@ export default function CourseConditionConfirmScreen() {
   };
 
   const handleRecommend = async () => {
-    setErrorMessage('');
+    if (pendingRequest.current) return;
+    setFailure(null);
 
     if (!accessToken) {
-      setErrorMessage('로그인 후 코스를 추천받을 수 있어요.');
+      setFailure({ title: '로그인이 필요해요', message: '로그인 후 코스를 추천받을 수 있어요.', action: 'login' });
       return;
     }
     if (!draft.startPoint) {
-      setErrorMessage('출발지를 먼저 설정해 주세요.');
+      setFailure({ title: '출발지가 없어요', message: '출발지를 먼저 설정해 주세요.', action: 'edit' });
       return;
     }
     if (!Number.isFinite(draft.targetDistanceKm) || draft.targetDistanceKm <= 0) {
-      setErrorMessage('0보다 큰 목표 거리를 입력해 주세요.');
+      setFailure({ title: '거리를 확인해 주세요', message: '0보다 큰 목표 거리를 입력해 주세요.', action: 'edit' });
       return;
     }
 
     setIsLoading(true);
+    const controller = new AbortController();
+    pendingRequest.current = controller;
 
     try {
       const result = await recommendCourses(accessToken, {
@@ -105,14 +120,26 @@ export default function CourseConditionConfirmScreen() {
           // requirements에 true를 넣으면 시설이 없는 fallback 후보도 제외될 수 있어요.
           requirements: {},
         },
-      });
+      }, controller.signal);
 
+      if (controller.signal.aborted) return;
+      if (result.recommendations.length === 0) {
+        setFailure({
+          title: '추천 결과가 없어요',
+          message: '요청한 위치와 조건으로 코스를 찾지 못했어요. 위치나 목표 거리를 조정해 보세요.',
+          action: 'edit',
+        });
+        return;
+      }
       setRecommendationResult(result);
       router.push('/course/compare');
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error));
+      if (!controller.signal.aborted) setFailure(getRecommendationFailure(error));
     } finally {
-      setIsLoading(false);
+      if (pendingRequest.current === controller) {
+        pendingRequest.current = null;
+        setIsLoading(false);
+      }
     }
   };
 
@@ -171,11 +198,6 @@ export default function CourseConditionConfirmScreen() {
             value={formatFacilities(draft)}
           />
         </View>
-        {errorMessage ? (
-          <Text style={[styles.noticeText, { color: '#E5484D' }]}>
-            {errorMessage}
-          </Text>
-        ) : null}
 
         <View style={styles.importanceSection}>
           <Text style={styles.sectionTitle}>{'조건별 중요도'}</Text>
@@ -242,6 +264,18 @@ export default function CourseConditionConfirmScreen() {
           </Pressable>
         </View>
       </ScrollView>
+      <RecommendationFeedback
+        loading={isLoading}
+        failure={failure}
+        onClose={closeFeedback}
+        onAction={() => {
+          const action = failure?.action;
+          setFailure(null);
+          if (action === 'retry') void handleRecommend();
+          else if (action === 'login') router.push('/login');
+          else router.back();
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -29,6 +29,10 @@ export const routeMapLayersSchema = z.object({
     water: z.boolean(),
   }),
   nightFacilityTypes: z.array(z.enum(["light", "security", "walklight"])),
+  natureCounts: z.object({
+    park: z.number().int().nonnegative().nullable(),
+    water: z.number().int().nonnegative().nullable(),
+  }).optional(),
 }).nullable().default(null);
 
 export const routeDetailSchema = z.object({

@@ -2,6 +2,7 @@ import { apiRequest } from '@/services/api/client';
 
 import type {
   RunningActiveSession,
+  RunningDetail,
   RunningEndResponse,
   RunningFinishResponse,
   RunningPaceResponse,
@@ -78,4 +79,7 @@ export function getRunningPace(accessToken: string, sessionIdx: number) {
     `/api/running-sessions/${sessionIdx}/pace`,
     { accessToken },
   );
+}
+export function getRunningDetail(accessToken: string, sessionIdx: number) {
+  return apiRequest<RunningDetail>(`/api/running-sessions/${sessionIdx}/detail`, { accessToken });
 }

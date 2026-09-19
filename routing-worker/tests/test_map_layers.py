@@ -33,6 +33,7 @@ class MapLayersTest(unittest.TestCase):
         self.assertEqual((second["fromIndex"], second["toIndex"]), (3, 4))
         self.assertIsNone(second["slopePct"])
         self.assertEqual(layers["availability"], {"slope": True, "park": False, "water": False})
+        self.assertEqual(layers["natureCounts"], {"park": None, "water": None})
         json.dumps(layers, allow_nan=False)
 
     def test_nature_clips_long_edge_and_distinguishes_missing_data(self):
@@ -51,6 +52,7 @@ class MapLayersTest(unittest.TestCase):
 
         self.assertEqual(layers["availability"], {"slope": False, "park": True, "water": True})
         self.assertEqual(layers["nightFacilityTypes"], ["security"])
+        self.assertEqual(layers["natureCounts"], {"park": 1, "water": 0})
         self.assertEqual(len(layers["natureSegments"]), 1)
         segment = layers["natureSegments"][0]
         self.assertEqual(segment["type"], "park")
@@ -58,6 +60,21 @@ class MapLayersTest(unittest.TestCase):
         self.assertAlmostEqual(min(xs), 350, places=2)
         self.assertAlmostEqual(max(xs), 650, places=2)
         json.dumps(layers, allow_nan=False)
+
+    def test_nature_count_deduplicates_named_places_and_unnamed_source_ids(self):
+        shape = box(self.x + 10, self.y - 10, self.x + 90, self.y + 10)
+        park = gpd.GeoDataFrame({
+            "name": ["공원", "공원", None, None, None],
+            "element": ["way"] * 5,
+            "id": [1, 2, 3, 3, 4],
+        }, geometry=[shape] * 5, crs=CRS_METRIC)
+        with (
+            patch.object(map_layers, "get_elevation", return_value=10),
+            patch.object(map_layers, "_load_nature_layers", return_value={"park": park}),
+            patch.object(map_layers, "get_available_night_facility_types", return_value=[]),
+        ):
+            layers = map_layers.build_map_layers([self.coordinate(0, 0), self.coordinate(100, 0)])
+        self.assertEqual(layers["natureCounts"], {"park": 3, "water": None})
 
 
 if __name__ == "__main__":

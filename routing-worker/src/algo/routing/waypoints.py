@@ -19,7 +19,10 @@ def circle_waypoints(lat, lon, radius_m, n=1, start_bearing=0.0):
     ]
 
 
-def ellipse_waypoints(start, end, target_sum_m, n=8):
+P2P_ANGLES = (70, 90, 110, 250, 270, 290)
+
+
+def ellipse_waypoints(start, end, target_sum_m, n=8, angles=None):
     """dist(start,P) + dist(P,end) ≈ target_sum_m 인 타원 위 n개.
     start == end 면 반지름 target_sum_m/2 인 원과 같다."""
     x1, y1 = to_5179.transform(start[1], start[0])
@@ -38,8 +41,9 @@ def ellipse_waypoints(start, end, target_sum_m, n=8):
     theta = math.atan2(y2 - y1, x2 - x1)      # start->end 축의 회전각
 
     pts = []
-    for i in range(n):
-        t = 2 * math.pi * i / n
+    # 편도 경로는 타원의 양 끝을 피하고 두 측면의 좁은 호만 탐색한다.
+    for angle in angles if angles is not None else (360 * i / n for i in range(n)):
+        t = math.radians(angle)
         ex, ey = a * math.cos(t), b * math.sin(t)              # 축 정렬 타원 위 점
         wx = mx + ex * math.cos(theta) - ey * math.sin(theta)  # theta 회전 + 중심 이동
         wy = my + ex * math.sin(theta) + ey * math.cos(theta)

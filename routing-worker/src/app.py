@@ -13,6 +13,10 @@ from .dto.parser import (
     parse_python_recommendation_to_node_require,
 )
 from .dto.recommend import RouteRecommendRequestDTO
+from .dto.track import TrackAnalysisRequest
+from .algo.features.map_layers import build_map_layers
+from .algo.features.elevation import analyze_elevation_profile
+from .algo.features.facilities import get_nearby_facility_points
 
 
 def log(level: str, message: str, data: dict | None = None) -> None:
@@ -34,6 +38,28 @@ else:
 idx = NodeIndex(G)
 
 app = FastAPI()
+
+
+@app.post("/routes/analyze-track")
+def analyze_track(request: TrackAnalysisRequest):
+    # 기록 조회 전용 분석이다. 경로 생성·AI 순위 결정은 실행하지 않는다.
+    results = []
+    for segment in request.segments:
+        coords = [(point.lat, point.lng) for point in segment]
+        slope = analyze_elevation_profile(coords)
+        results.append({
+            "facilityPoints": get_nearby_facility_points(coords),
+            "mapLayers": build_map_layers(coords),
+            "slope": {
+                "avgSlopePct": slope["avg_slope_pct"],
+                "maxSlopePct": slope["max_slope_pct"],
+                "slopeStdPct": slope["slope_std_pct"],
+                "elevationGainM": slope["elevation_gain_m"],
+                "elevationLossM": slope["elevation_loss_m"],
+                "sampleCount": slope["sample_count"],
+            },
+        })
+    return results
 
 
 @app.get("/health")

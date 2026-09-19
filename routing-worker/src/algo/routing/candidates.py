@@ -56,6 +56,8 @@ def generate_candidates_via(
     상위 3개 컷은 안 함 — recommend 가 conditionScore 매긴 뒤 자른다."""
     tail = end if mode == "point_to_point" else None   # LOOP/ROUND_TRIP 는 시작점 복귀
     out = []
+    if mode == "point_to_point":
+        n_directions = 6
     for k in range(n_directions):
         try:
             r = generate_course_via(G, idx, mode, start, vias, target_m, end=tail,
@@ -78,6 +80,8 @@ def generate_candidates(G, idx, mode, start, target_distance_m, end=None,
     if max_overlap is None:
         max_overlap = config.CAND_MAX_OVERLAP
     results = []
+    if mode == "point_to_point":
+        n_directions = 6
     for k in range(n_directions):
         bearing = 360.0 * k / n_directions
         try:

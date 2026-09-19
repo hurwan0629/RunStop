@@ -126,6 +126,7 @@ export type RouteMapLayers = {
   }[];
   availability: { slope: boolean; park: boolean; water: boolean };
   nightFacilityTypes: ('light' | 'security' | 'walklight')[];
+  natureCounts?: { park: number | null; water: number | null };
 };
 
 export type RouteDetail = {

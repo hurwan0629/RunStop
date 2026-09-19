@@ -12,7 +12,7 @@
 
 from src.algo import config
 from src.algo.routing.shortest_path import shortest_path, path_to_edge_set
-from src.algo.routing.waypoints import circle_waypoints, ellipse_waypoints
+from src.algo.routing.waypoints import circle_waypoints, ellipse_waypoints, P2P_ANGLES
 from src.algo.types import CandidateRoute, Coordinate, NodeId, NodePath, Requirements, RouteMode, Weights
 from src.algo.utils.geo import haversine_m
 
@@ -66,9 +66,8 @@ def _build(
 
     if mode == "point_to_point":
         e = idx.snap(*end)
-        ws = ellipse_waypoints(start, end, target_sum_m=scale, n=8)
-        # [2026-09-10 22:21:31] [ONE_WAY 타원 경유지는 start-end 선분에 수직인 양쪽 점만 번갈아 사용합니다.]
-        w = ws[2 if int(round(bearing / 30.0)) % 2 == 0 else 6]
+        ws = ellipse_waypoints(start, end, target_sum_m=scale, angles=P2P_ANGLES)
+        w = ws[int(round(bearing / 60.0)) % len(ws)]
         wn = idx.snap(*w)
         a, a_len = shortest_path(G, s, wn, weights=weights, requirements=requirements)
         b, b_len = shortest_path(G, wn, e, penalty_edges=path_to_edge_set(a),
@@ -288,12 +287,16 @@ def generate_course_via(
     best = None
     for iteration_index in range(max_iter):
         try:
-            cand_pts = ellipse_waypoints(a_last, b_last, target_sum_m=scale, n=8)
+            cand_pts = ellipse_waypoints(
+                a_last, b_last, target_sum_m=scale, n=8,
+                angles=P2P_ANGLES if mode == "point_to_point" else None,
+            )
         except ValueError:
             # 목표 거리보다
             scale *= 1.1
             continue
-        pn = idx.snap(*cand_pts[int(round(bearing / 45.0)) % 8])
+        step = 60.0 if mode == "point_to_point" else 45.0
+        pn = idx.snap(*cand_pts[int(round(bearing / step)) % len(cand_pts)])
         nodes, length = _route_chain(
             G,
             anchor_nodes[:-1] + [pn, anchor_nodes[-1]],
