@@ -10,13 +10,9 @@ import { getAdminDashboard } from '../api/dashboardApi'
 import './DashboardPage.css'
 
 import DashboardCardIcon from '../components/DashboardCardIcon'
+import ActivityList from '../components/ActivityList'
+import { ClickRow, Badge } from '../components/ExplorerUI'
 import RunningAnalytics from '../components/RunningAnalytics'
-
-const statusLabels = {
-  PENDING: '답변 대기',
-  IN_PROGRESS: '처리 중',
-  ANSWERED: '답변 완료',
-}
 
 function formatInquiryId(inquiryIdx) {
   return `INQ-${String(inquiryIdx).padStart(3, '0')}`
@@ -162,6 +158,7 @@ function DashboardPage() {
     </section>
 
       <RunningAnalytics />
+      <ActivityList compact />
 
       <section className="recent-inquiries-card">
         <header className="recent-inquiries-header">
@@ -186,7 +183,6 @@ function DashboardPage() {
                 <th>접수일</th>
                 <th>처리 상태</th>
                 <th>담당 관리자</th>
-                <th>상세</th>
               </tr>
             </thead>
 
@@ -194,7 +190,7 @@ function DashboardPage() {
               {isLoading && (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="6"
                     className="dashboard-empty-message"
                   >
                     대시보드 정보를 불러오는 중입니다.
@@ -205,7 +201,7 @@ function DashboardPage() {
               {!isLoading && errorMessage && (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="6"
                     className="dashboard-empty-message error"
                   >
                     {errorMessage}
@@ -218,7 +214,7 @@ function DashboardPage() {
                 recentInquiries.length === 0 && (
                   <tr>
                     <td
-                      colSpan="7"
+                      colSpan="6"
                       className="dashboard-empty-message"
                     >
                       최근 등록된 문의가 없습니다.
@@ -229,7 +225,7 @@ function DashboardPage() {
               {!isLoading &&
                 !errorMessage &&
                 recentInquiries.map((inquiry) => (
-                  <tr key={inquiry.inquiryIdx}>
+                  <ClickRow key={inquiry.inquiryIdx} to={`/inquiries?inquiryIdx=${inquiry.inquiryIdx}`}>
                     <td>
                       {formatInquiryId(
                         inquiry.inquiryIdx,
@@ -251,31 +247,14 @@ function DashboardPage() {
                     </td>
 
                     <td>
-                      <span
-                        className={
-                          `dashboard-inquiry-status ${inquiry.status.toLowerCase()}`
-                        }
-                      >
-                        {statusLabels[inquiry.status]}
-                      </span>
+                      <Badge status={inquiry.status} />
                     </td>
 
                     <td>
                       {inquiry.answererNickname ?? '-'}
                     </td>
 
-                    <td>
-                      <button
-                        type="button"
-                        className="dashboard-detail-button"
-                        onClick={() =>
-                          navigate('/inquiries')
-                        }
-                      >
-                        확인
-                      </button>
-                    </td>
-                  </tr>
+                  </ClickRow>
                 ))}
             </tbody>
           </table>

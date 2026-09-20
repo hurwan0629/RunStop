@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RunStop Admin Redesign Mock v2</title>
+<style>
+:root{
+  --bg:#f4f7fb;--panel:#fff;--ink:#172033;--muted:#748096;--line:#e5eaf2;
+  --nav:#10233f;--blue:#2563eb;--green:#16a36a;--amber:#d98b16;--red:#dc4c4c;
+  --violet:#7c3aed;--shadow:0 10px 30px rgba(20,35,60,.08)
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Pretendard,"Noto Sans KR",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select{font:inherit}
+button{color:inherit}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{background:var(--nav);color:#fff;padding:26px 18px;position:sticky;top:0;height:100vh}
+.brand{font-size:23px;font-weight:850;margin:0 10px 30px}
+.brand small{display:block;color:#9db0ca;font-size:11px;letter-spacing:1.5px;margin-top:4px}
+.nav{display:grid;gap:7px}
+.nav button{border:0;background:transparent;color:#c8d3e2;text-align:left;padding:12px 14px;border-radius:10px;cursor:pointer}
+.nav button:hover,.nav button.on{background:#1b365d;color:#fff}
+.main{padding:28px 34px 50px;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.crumb{font-size:13px;color:var(--muted)}
+h1{font-size:28px;margin:5px 0 0}
+.admin{font-size:13px;color:var(--muted)}
+.page{display:none}.page.on{display:block}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.metric{padding:18px}
+.metric span{font-size:12px;color:var(--muted)}
+.metric strong{display:block;font-size:26px;margin-top:8px}
+.metric em{font-style:normal;font-size:11px;color:var(--green)}
+.section{padding:20px;margin-top:16px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
+.section-head h2{font-size:17px;margin:0}
+.sub{font-size:12px;color:var(--muted)}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filters input,.filters select{border:1px solid var(--line);background:#fff;padding:9px 11px;border-radius:9px;color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:#68758b;font-weight:700;background:#f8fafc}
+th,td{padding:13px 12px;border-bottom:1px solid var(--line)}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover{background:#f5f8ff}
+.pill{display:inline-flex;align-items:center;padding:4px 8px;border-radius:99px;font-size:11px;font-weight:750}
+.green{background:#e7f8f0;color:#087c4b}.blue{background:#eaf1ff;color:#2458bd}.amber{background:#fff4dc;color:#9a6100}
+.gray{background:#eef1f5;color:#647084}.selected{background:#dcfce7;color:#137647}
+.back,.linkbtn{border:0;background:transparent;color:var(--blue);font-weight:700;cursor:pointer;padding:0}
+.profile{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+.profilebox{padding:20px}
+.person{display:flex;align-items:center;gap:13px}
+.avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#eaf1ff;color:#1d4ed8;font-weight:800}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.kv div{background:#f8fafc;border-radius:10px;padding:11px}
+.kv small{color:var(--muted);display:block;margin-bottom:5px}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.node{padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:12px}
+.arrow{color:#9aa6b8}
+.candidate-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.candidate{padding:16px;cursor:pointer;position:relative;transition:.18s}
+.candidate:hover{border-color:#b9cdfc;transform:translateY(-1px)}
+.candidate .rank{font-size:12px;color:var(--muted)}
+.candidate strong{display:block;font-size:18px;margin:6px 0}
+.candidate .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:var(--muted)}
+.map-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,.75fr);gap:16px}
+.map{height:440px;position:relative;overflow:hidden;background:linear-gradient(35deg,#edf3ee,#f9fbfd);border-radius:14px;border:1px solid var(--line)}
+.road{position:absolute;height:8px;background:#fff;border:1px solid #e4e8ed;border-radius:8px;transform-origin:left center}
+.r1{width:85%;left:5%;top:34%;transform:rotate(8deg)}
+.r2{width:72%;left:14%;top:62%;transform:rotate(-13deg)}
+.r3{width:55%;left:38%;top:15%;transform:rotate(65deg)}
+.route{position:absolute;left:14%;top:18%;width:64%;height:64%;border:6px solid #2563eb;border-radius:46% 54% 50% 50%;transform:rotate(8deg);box-shadow:0 0 0 2px rgba(255,255,255,.9);transition:.2s}
+.route.c1{left:17%;top:20%;width:60%;height:58%;border-radius:52% 48% 56% 44%;transform:rotate(3deg)}
+.route.c2{left:14%;top:18%;width:64%;height:64%;border-radius:46% 54% 50% 50%;transform:rotate(8deg)}
+.route.c3{left:12%;top:21%;width:67%;height:60%;border-radius:42% 58% 45% 55%;transform:rotate(-4deg)}
+.actual{position:absolute;left:19%;top:22%;width:56%;height:57%;border:3px dashed #16a36a;border-radius:48%;transform:rotate(11deg)}
+.pin{position:absolute;width:15px;height:15px;background:#fff;border:4px solid var(--blue);border-radius:50%;left:15%;top:45%}
+.legend{position:absolute;left:14px;bottom:14px;background:#fff;padding:9px 11px;border-radius:9px;box-shadow:var(--shadow);font-size:11px}
+.sidepanel{padding:18px}
+.toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:12px}
+.switch{width:36px;height:20px;background:#ccd4df;border-radius:20px;position:relative;cursor:pointer}
+.switch:after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}
+.switch.on{background:var(--blue)}.switch.on:after{left:19px}
+.feature{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.feature div{padding:12px;border-radius:10px;background:#f8fafc;font-size:11px;min-width:0}
+.feature b{display:block;font-size:15px;margin-top:4px;color:#172033}
+.feature .wide{grid-column:span 2}
+.segments{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.seg{padding:12px;background:#f8fafc;border:1px solid transparent;border-radius:10px;text-align:left;cursor:pointer;transition:.18s}
+.seg:hover{border-color:#b9cdfc;background:#f5f8ff}
+.seg.on{border-color:#2563eb;background:#eef4ff;box-shadow:0 0 0 2px rgba(37,99,235,.08)}
+.seg small{color:var(--muted)}
+.seg strong{display:block;margin-top:5px}
+.seg span{display:block;margin-top:5px;font-size:11px;color:var(--muted)}
+.segment-focus{display:none;position:absolute;border:8px solid rgba(124,58,237,.78);border-radius:50%;box-shadow:0 0 0 4px rgba(255,255,255,.72);pointer-events:none}
+.segment-focus.show{display:block}
+.segment-focus.s1{left:15%;top:18%;width:28%;height:22%;border-left-color:transparent;border-bottom-color:transparent;transform:rotate(-5deg)}
+.segment-focus.s2{right:17%;top:24%;width:24%;height:30%;border-left-color:transparent;border-bottom-color:transparent;transform:rotate(42deg)}
+.segment-focus.s3{right:22%;bottom:18%;width:31%;height:24%;border-left-color:transparent;border-top-color:transparent;transform:rotate(-5deg)}
+.segment-focus.s4{left:17%;bottom:19%;width:29%;height:27%;border-right-color:transparent;border-top-color:transparent;transform:rotate(36deg)}
+.segment-pop{display:none;position:absolute;right:14px;top:14px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;width:185px;font-size:11px}
+.segment-pop.show{display:block}
+.segment-pop b{display:block;font-size:13px;margin-bottom:6px}
+.segment-pop div{display:flex;justify-content:space-between;padding:3px 0;color:var(--muted)}
+.segment-pop strong{color:var(--ink)}
+.chart{height:250px;padding:15px;position:relative;background:linear-gradient(180deg,#fff,#f8fbff);border-radius:14px;border:1px solid var(--line);overflow:hidden}
+.bars{height:190px;display:flex;align-items:end;gap:7px;padding:18px 5px 0}
+.bar{flex:1;min-width:8px;background:linear-gradient(180deg,#3b82f6,#a9c5ff);border-radius:5px 5px 0 0;position:relative}
+.bar:hover{filter:brightness(.94)}
+.chart-label{font-size:11px;color:var(--muted);margin-top:8px}
+.runrow td:first-child{font-weight:750}
+.actions{display:flex;gap:8px}
+.btn{border:1px solid var(--line);background:#fff;padding:9px 12px;border-radius:9px;cursor:pointer;font-weight:700}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.note{padding:12px;background:#f6f8fb;border-radius:8px;font-size:12px;color:#52627a;margin-top:12px;line-height:1.55}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 16px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 13px;cursor:pointer;font-weight:750}
+.tab:hover{border-color:#b9cdfc}
+.tab.on{border-color:#2563eb;background:#eef4ff;color:#1d4ed8}
+.tab .mini{display:block;font-size:10px;color:var(--muted);font-weight:600;margin-top:3px}
+.tab.on .mini{color:#5d78a8}
+.inline-badge{margin-left:7px;vertical-align:2px}
+.compare{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.compare div{padding:11px;background:#f8fafc;border-radius:10px}
+.compare small{display:block;color:var(--muted);margin-bottom:4px}
+.compare b{font-size:14px}
+@media(max-width:1000px){
+  .app{grid-template-columns:76px 1fr}.side{padding:20px 8px}.brand{font-size:0}.brand:before{content:"RS";font-size:20px}.brand small{display:none}
+  .nav button{font-size:0}.nav button:before{content:"•";font-size:20px}.grid4,.candidate-grid{grid-template-columns:repeat(2,1fr)}
+  .map-layout,.profile{grid-template-columns:1fr}.main{padding:22px}.kv{grid-template-columns:1fr 1fr}.feature,.compare{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">RunStop<small>ADMIN CONSOLE</small></div>
+    <nav class="nav">
+      <button class="on" data-page="dashboard">대시보드</button>
+      <button data-page="users">회원 관리</button>
+      <button data-page="runs">러닝 기록</button>
+      <button data-page="requests">추천 요청</button>
+      <button>문의 관리</button>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <div>
+        <div class="crumb" id="crumb">운영 / 대시보드</div>
+        <h1 id="title">대시보드</h1>
+      </div>
+      <div class="admin">관리자 · admin@runstop.dev</div>
+    </div>
+
+    <section class="page on" id="dashboard">
+      <div class="grid4">
+        <div class="card metric"><span>전체 회원</span><strong>1,284</strong><em>+18 이번 주</em></div>
+        <div class="card metric"><span>추천 요청</span><strong>8,491</strong><em>오늘 126건</em></div>
+        <div class="card metric"><span>완료 러닝</span><strong>5,208</strong><em>완주율 61.3%</em></div>
+        <div class="card metric"><span>평균 추천 응답</span><strong>1.84s</strong><em>p95 2.71s</em></div>
+      </div>
+
+      <div class="card section">
+        <div class="section-head">
+          <div><h2>러닝 활동 추이</h2><div class="sub">최근 러닝 완료 건수를 날짜별로 확인합니다.</div></div>
+          <select><option>최근 14일</option></select>
+        </div>
+        <div class="chart"><div class="bars" id="bars"></div><div class="chart-label">완료 러닝 수</div></div>
+      </div>
+
+      <div class="card section">
+        <div class="section-head"><h2>최근 추천 요청</h2><button class="linkbtn" data-go="requests">전체 보기 →</button></div>
+        <table>
+          <thead><tr><th>요청</th><th>회원</th><th>형태</th><th>목표 거리</th><th>후보</th><th>선택</th><th>시간</th></tr></thead>
+          <tbody>
+            <tr class="click" data-go="request-detail"><td>REQ-8491</td><td>러너완</td><td>순환형</td><td>5.0 km</td><td>3</td><td><span class="pill selected">2번 선택</span></td><td>19:02</td></tr>
+            <tr class="click" data-go="request-detail"><td>REQ-8490</td><td>민지런</td><td>왕복형</td><td>7.0 km</td><td>3</td><td><span class="pill gray">미선택</span></td><td>18:57</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="page" id="users">
+      <div class="card section">
+        <div class="section-head">
+          <div><h2>회원</h2><div class="sub">회원을 선택하면 요청 기록과 러닝 기록을 함께 확인할 수 있습니다.</div></div>
+          <div class="filters"><input placeholder="닉네임 / ID 검색"/><select><option>전체 상태</option><option>활성</option><option>정지</option></select></div>
+        </div>
+        <table>
+          <thead><tr><th>회원</th><th>상태</th><th>가입일</th><th>추천 요청</th><th>완료 러닝</th><th>총 거리</th><th>최근 활동</th></tr></thead>
+          <tbody>
+            <tr class="click" data-go="user-detail"><td><b>러너완</b><br><span class="sub">hurwan0629</span></td><td><span class="pill green">활성</span></td><td>2026.08.23</td><td>42</td><td>31</td><td>164.8 km</td><td>12분 전</td></tr>
+            <tr class="click" data-go="user-detail"><td><b>민지런</b><br><span class="sub">minji_run</span></td><td><span class="pill green">활성</span></td><td>2026.09.02</td><td>18</td><td>12</td><td>61.2 km</td><td>1시간 전</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="page" id="user-detail">
+      <button class="back" data-go="users">← 회원 목록</button>
+      <div class="profile" style="margin-top:14px">
+        <div class="card profilebox">
+          <div class="person"><div class="avatar">RW</div><div><b style="font-size:19px">러너완</b><div class="sub">hurwan0629 · <span class="pill green">활성</span></div></div></div>
+          <div class="kv"><div><small>추천 요청</small><b>42건</b></div><div><small>완료 러닝</small><b>31회</b></div><div><small>누적 거리</small><b>164.8 km</b></div></div>
+        </div>
+        <div class="card profilebox">
+          <h2 style="margin-top:0;font-size:16px">사용자 선호</h2>
+          <div class="feature" style="grid-template-columns:1fr 1fr">
+            <div>선호 환경<b>공원 · 하천</b></div><div>평균 페이스<b>5'42"</b></div><div>거리 성향<b>5~8 km</b></div><div>안전 선호<b>높음</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <div class="section-head"><div><h2>추천 요청 기록</h2><div class="sub">요청을 선택하면 추천 후보와 선택 결과를 확인할 수 있습니다.</div></div></div>
+        <table>
+          <thead><tr><th>요청</th><th>요청 형태</th><th>목표 거리</th><th>추천 후보</th><th>선택 결과</th><th>요청 시각</th></tr></thead>
+          <tbody>
+            <tr class="click" data-go="request-detail"><td>REQ-8491</td><td>순환형</td><td>5.0 km</td><td>3개</td><td><span class="pill selected">후보 2 선택</span></td><td>09.19 19:02</td></tr>
+            <tr class="click" data-go="request-detail"><td>REQ-8322</td><td>편도형</td><td>6.0 km</td><td>3개</td><td><span class="pill selected">후보 1 선택</span></td><td>09.17 21:11</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card section">
+        <div class="section-head"><h2>러닝 기록</h2><button class="linkbtn" data-go="runs">전체 보기 →</button></div>
+        <table>
+          <thead><tr><th>러닝</th><th>코스</th><th>거리</th><th>시간</th><th>평균 페이스</th><th>완료일</th></tr></thead>
+          <tbody><tr class="click runrow" data-go="run-detail"><td>RUN-5208</td><td>REQ-8491 · 후보 2</td><td>5.14 km</td><td>29:18</td><td>5'42"</td><td>09.19 19:41</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="page" id="requests">
+      <div class="card section">
+        <div class="section-head">
+          <div><h2>추천 요청</h2><div class="sub">회원별 추천 요청과 선택 결과를 확인합니다.</div></div>
+          <div class="filters"><input placeholder="REQ / 회원 검색"/><select><option>전체 형태</option><option>순환형</option><option>편도형</option><option>왕복형</option></select></div>
+        </div>
+        <table>
+          <thead><tr><th>요청</th><th>회원</th><th>형태</th><th>목표 거리</th><th>후보 수</th><th>선택 결과</th><th>요청 시각</th></tr></thead>
+          <tbody>
+            <tr class="click" data-go="request-detail"><td>REQ-8491</td><td>러너완</td><td>순환형</td><td>5.0 km</td><td>3</td><td><span class="pill selected">후보 2</span></td><td>09.19 19:02</td></tr>
+            <tr class="click" data-go="request-detail"><td>REQ-8490</td><td>민지런</td><td>왕복형</td><td>7.0 km</td><td>3</td><td><span class="pill gray">미선택</span></td><td>09.19 18:57</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="page" id="request-detail">
+      <button class="back" data-go="user-detail">← 러너완의 요청</button>
+      <div class="card section">
+        <div class="section-head">
+          <div><h2>REQ-8491 · 추천 요청 상세</h2><div class="sub">2026.09.19 19:02 · 사용자: <button class="linkbtn" data-go="user-detail">러너완</button></div></div>
+          <span class="pill blue">순환형</span>
+        </div>
+        <div class="flow">
+          <div class="node">출발 · 삼성중앙역 인근</div><span class="arrow">→</span>
+          <div class="node">목표 거리 · 5.0 km</div><span class="arrow">→</span>
+          <div class="node">예상 시간 · 약 30분</div><span class="arrow">→</span>
+          <div class="node">선호 · 공원 · 안전</div>
+        </div>
+      </div>
+
+      <div class="candidate-grid" style="margin-top:16px">
+        <div class="card candidate" data-candidate="1" data-go="candidate-detail">
+          <span class="rank">후보 1</span><strong>4.92 km</strong>
+          <div class="stats"><span>평균 경사 2.1%</span><span>공원 3곳</span><span>CCTV 18개</span><span>예상 28분</span></div>
+        </div>
+        <div class="card candidate" data-candidate="2" data-go="candidate-detail">
+          <span class="pill selected" style="position:absolute;right:14px;top:14px">사용자 선택</span>
+          <span class="rank">후보 2</span><strong>5.14 km</strong>
+          <div class="stats"><span>평균 경사 1.8%</span><span>공원 4곳</span><span>CCTV 22개</span><span>예상 30분</span></div>
+        </div>
+        <div class="card candidate" data-candidate="3" data-go="candidate-detail">
+          <span class="rank">후보 3</span><strong>5.27 km</strong>
+          <div class="stats"><span>평균 경사 2.7%</span><span>공원 2곳</span><span>CCTV 16개</span><span>예상 31분</span></div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <div class="section-head"><h2>요청 조건</h2><span class="sub">추천 생성 시 적용된 사용자 조건입니다.</span></div>
+        <div class="feature">
+          <div>목표 거리<b>5.0 km</b></div>
+          <div>요청 형태<b>순환형</b></div>
+          <div>선호 환경<b>공원 · 하천</b></div>
+          <div>안전 선호<b>높음</b></div>
+          <div>평균 페이스<b>5'42" / km</b></div>
+          <div>허용 경사<b>최대 5%</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="candidate-detail">
+      <button class="back" data-go="request-detail">← REQ-8491 후보 목록</button>
+
+      <div class="tabs" id="candidateTabs">
+        <button class="tab" data-candidate-tab="1">후보 1<span class="mini">4.92 km · 예상 28분</span></button>
+        <button class="tab on" data-candidate-tab="2">후보 2 <span class="pill selected inline-badge">선택됨</span><span class="mini">5.14 km · 예상 30분</span></button>
+        <button class="tab" data-candidate-tab="3">후보 3<span class="mini">5.27 km · 예상 31분</span></button>
+      </div>
+
+      <div class="section-head" style="margin-top:6px">
+        <div>
+          <h2 style="margin:0" id="candidateTitle">후보 2 · 5.14 km <span class="pill selected">사용자 선택</span></h2>
+          <div class="sub" id="candidateSubtitle">예상 30분 · 실제 러닝 RUN-5208과 연결됨</div>
+        </div>
+        <button class="btn primary" id="runButton" data-go="run-detail">실제 러닝 보기</button>
+      </div>
+
+      <div class="map-layout">
+        <div class="map" id="candidateMap">
+          <div class="road r1"></div><div class="road r2"></div><div class="road r3"></div>
+          <div class="route c2" id="routeShape"></div>
+          <div class="actual" id="actualShape"></div>
+          <div class="segment-focus" id="segmentFocus"></div>
+          <div class="pin"></div>
+          <div class="segment-pop" id="segmentPop">
+            <b id="segmentPopTitle">1–2 km 구간</b>
+            <div><span>평균 페이스</span><strong id="segmentPopPace">5'39"</strong></div>
+            <div><span>평균 경사</span><strong id="segmentPopSlope">+2.8%</strong></div>
+            <div><span>구간 시간</span><strong id="segmentPopTime">5:39</strong></div>
+          </div>
+          <div class="legend" id="mapLegend"><b style="color:#2563eb">━ 추천 경로</b> &nbsp; <b style="color:#16a36a">┄ 실제 주행</b></div>
+        </div>
+
+        <div class="card sidepanel">
+          <h2 style="font-size:16px;margin-top:0">지도 표시</h2>
+          <div class="toggle">실제 주행 궤적 <span class="switch on" data-layer="actual"></span></div>
+          <div class="toggle">추천 경로 <span class="switch on" data-layer="route"></span></div>
+          <div class="toggle">공원 <span class="switch on"></span></div>
+          <div class="toggle">CCTV / 보안등 <span class="switch"></span></div>
+          <div class="toggle">편의점 / 화장실 <span class="switch"></span></div>
+          <div class="toggle">경사 구간 <span class="switch on"></span></div>
+          <div class="note">필요한 정보만 켜서 경로와 주변 환경을 함께 확인할 수 있습니다.</div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <div class="section-head"><h2>추천 결과 지표</h2><span class="sub">선택한 후보의 주요 특성을 한눈에 확인합니다.</span></div>
+        <div class="feature" id="responseFeatures"></div>
+      </div>
+
+      <div class="card section">
+        <div class="section-head">
+          <div><h2>구간별 요약</h2><div class="sub">구간을 선택하면 지도에서 해당 구간과 러닝 기록을 확인할 수 있습니다.</div></div>
+          <button class="linkbtn" id="clearSegment">선택 해제</button>
+        </div>
+        <div class="segments" id="segmentList"></div>
+      </div>
+    </section>
+
+    <section class="page" id="runs">
+      <div class="card section">
+        <div class="section-head">
+          <div><h2>러닝 기록</h2><div class="sub">기록을 선택하면 지도와 상세 분석을 확인할 수 있습니다.</div></div>
+          <div class="filters"><input placeholder="RUN / 회원 검색"/></div>
+        </div>
+        <table>
+          <thead><tr><th>러닝</th><th>회원</th><th>추천 연결</th><th>거리</th><th>시간</th><th>평균 페이스</th><th>완료일</th></tr></thead>
+          <tbody>
+            <tr class="click runrow" data-go="run-detail"><td>RUN-5208</td><td>러너완</td><td>REQ-8491 / 후보 2</td><td>5.14 km</td><td>29:18</td><td>5'42"</td><td>09.19 19:41</td></tr>
+            <tr class="click runrow" data-go="run-detail"><td>RUN-5207</td><td>민지런</td><td>일반 러닝</td><td>7.21 km</td><td>43:10</td><td>5'59"</td><td>09.19 18:30</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="page" id="run-detail">
+      <button class="back" data-go="runs">← 러닝 기록</button>
+      <div class="section-head" style="margin-top:12px">
+        <div><h2 style="margin:0">RUN-5208 · 러닝 상세</h2><div class="sub">추천 경로 기반 러닝 · 2026.09.19 19:12–19:41</div></div>
+        <div class="actions"><button class="btn" data-go="user-detail">사용자 보기</button><button class="btn" data-go="candidate-detail">추천 후보 보기</button></div>
+      </div>
+
+      <div class="grid4">
+        <div class="card metric"><span>실제 거리</span><strong>5.14 km</strong></div>
+        <div class="card metric"><span>러닝 시간</span><strong>29:18</strong></div>
+        <div class="card metric"><span>평균 페이스</span><strong>5'42"</strong></div>
+        <div class="card metric"><span>추천 경로 일치</span><strong>93.8%</strong></div>
+      </div>
+
+      <div class="map-layout" style="margin-top:16px">
+        <div class="map"><div class="road r1"></div><div class="road r2"></div><div class="road r3"></div><div class="route c2"></div><div class="actual"></div><div class="pin"></div><div class="legend"><b style="color:#16a36a">┄ 실제 주행</b> &nbsp; <b style="color:#2563eb">━ 추천 경로</b></div></div>
+        <div class="card sidepanel">
+          <h2 style="font-size:16px;margin-top:0">러닝 분석</h2>
+          <div class="feature" style="grid-template-columns:1fr">
+            <div>최고 페이스<b>4'58" / km</b></div><div>누적 상승<b>74 m</b></div><div>경로 이탈<b>2회 · 318 m</b></div><div>완주 여부<b>완료</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <div class="section-head"><h2>km별 페이스</h2><span class="sub">거리별 페이스 변화를 확인합니다.</span></div>
+        <div class="bars" style="height:180px"><div class="bar" style="height:78%"></div><div class="bar" style="height:69%"></div><div class="bar" style="height:58%"></div><div class="bar" style="height:64%"></div><div class="bar" style="height:61%"></div></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const meta={
+  dashboard:['운영 / 대시보드','대시보드'],
+  users:['회원 관리','회원 관리'],
+  'user-detail':['회원 관리 / 러너완','회원 상세'],
+  requests:['추천 관리','추천 요청'],
+  'request-detail':['추천 요청 / REQ-8491','요청 상세'],
+  'candidate-detail':['REQ-8491 / 후보 비교','후보 경로 상세'],
+  runs:['러닝 관리','러닝 기록'],
+  'run-detail':['러닝 기록 / RUN-5208','러닝 상세']
+};
+
+const candidates={
+  1:{
+    distance:'4.92 km', expected:'28분', selected:false, hasRun:false,
+    features:[
+      ['후보 거리','4.92 km'],['목표 거리 차이','1.6% 짧음'],['예상 소요 시간','28분'],['평균 경사도','2.1%'],
+      ['공원 인접','3곳'],['CCTV 밀도','3.66개 / km'],['가로등 밀도','6.72개 / km'],['보안시설','11곳'],
+      ['종합 추천 점수','87.3점']
+    ],
+    segments:[
+      ['0–1 km',"5'25\"","+1.7%","5:25"],['1–2 km',"5'33\"","+2.4%","5:33"],['2–3 km',"5'48\"","-0.2%","5:48"],['3–4.92 km',"5'41\"","+1.9%","10:55"]
+    ]
+  },
+  2:{
+    distance:'5.14 km', expected:'30분', selected:true, hasRun:true,
+    features:[
+      ['후보 거리','5.14 km'],['목표 거리 차이','2.8% 김'],['예상 소요 시간','30분'],['평균 경사도','1.8%'],
+      ['공원 인접','4곳'],['CCTV 밀도','4.28개 / km'],['가로등 밀도','7.11개 / km'],['보안시설','13곳'],
+      ['종합 추천 점수','90.1점']
+    ],
+    segments:[
+      ['0–1 km',"5'28\"","+1.2%","5:28"],['1–2 km',"5'39\"","+2.8%","5:39"],['2–3 km',"5'51\"","-0.4%","5:51"],['3–5.14 km',"5'47\"","+1.7%","12:20"]
+    ]
+  },
+  3:{
+    distance:'5.27 km', expected:'31분', selected:false, hasRun:false,
+    features:[
+      ['후보 거리','5.27 km'],['목표 거리 차이','5.4% 김'],['예상 소요 시간','31분'],['평균 경사도','2.7%'],
+      ['공원 인접','2곳'],['CCTV 밀도','3.04개 / km'],['가로등 밀도','5.88개 / km'],['보안시설','10곳'],
+      ['종합 추천 점수','85.6점']
+    ],
+    segments:[
+      ['0–1 km',"5'31\"","+2.0%","5:31"],['1–2 km',"5'46\"","+3.1%","5:46"],['2–3 km',"6'02\"","+0.8%","6:02"],['3–5.27 km',"5'53\"","+2.5%","13:22"]
+    ]
+  }
+};
+
+let currentCandidate=2;
+let currentSegment=null;
+
+function go(id){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
+  document.getElementById(id)?.classList.add('on');
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('on',x.dataset.page===id));
+  document.getElementById('crumb').textContent=meta[id]?.[0]||'';
+  document.getElementById('title').textContent=meta[id]?.[1]||'RunStop';
+  if(id==='candidate-detail') renderCandidate(currentCandidate);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderCandidate(id){
+  currentCandidate=Number(id);
+  currentSegment=null;
+  const data=candidates[currentCandidate];
+
+  document.querySelectorAll('[data-candidate-tab]').forEach(btn=>{
+    btn.classList.toggle('on',Number(btn.dataset.candidateTab)===currentCandidate);
+  });
+
+  const selectedBadge=data.selected ? ' <span class="pill selected">사용자 선택</span>' : '';
+  document.getElementById('candidateTitle').innerHTML=`후보 ${currentCandidate} · ${data.distance}${selectedBadge}`;
+  document.getElementById('candidateSubtitle').textContent=data.hasRun
+    ? `예상 ${data.expected} · 실제 러닝 RUN-5208과 연결됨`
+    : `예상 ${data.expected} · 선택되지 않은 후보`;
+
+  const runButton=document.getElementById('runButton');
+  runButton.style.display=data.hasRun?'inline-block':'none';
+
+  const route=document.getElementById('routeShape');
+  route.className=`route c${currentCandidate}`;
+
+  const actual=document.getElementById('actualShape');
+  actual.style.display=data.hasRun?'block':'none';
+
+  document.getElementById('mapLegend').innerHTML=data.hasRun
+    ? '<b style="color:#2563eb">━ 추천 경로</b> &nbsp; <b style="color:#16a36a">┄ 실제 주행</b>'
+    : '<b style="color:#2563eb">━ 추천 경로</b>';
+
+  document.getElementById('responseFeatures').innerHTML=data.features
+    .map(([label,value])=>`<div>${label}<b>${value}</b></div>`).join('');
+
+  document.getElementById('segmentList').innerHTML=data.segments
+    .map((s,i)=>`<button class="seg" data-segment="${i+1}"><small>${s[0]}</small><strong>${s[1]} · ${s[2]}</strong><span>구간 시간 ${s[3]}</span></button>`).join('');
+
+  clearSegment();
+}
+
+function selectSegment(index){
+  currentSegment=Number(index);
+  const data=candidates[currentCandidate].segments[currentSegment-1];
+  document.querySelectorAll('.seg').forEach((el,i)=>el.classList.toggle('on',i===currentSegment-1));
+
+  const focus=document.getElementById('segmentFocus');
+  focus.className=`segment-focus show s${currentSegment}`;
+
+  const pop=document.getElementById('segmentPop');
+  pop.classList.add('show');
+  document.getElementById('segmentPopTitle').textContent=`${data[0]} 구간`;
+  document.getElementById('segmentPopPace').textContent=data[1];
+  document.getElementById('segmentPopSlope').textContent=data[2];
+  document.getElementById('segmentPopTime').textContent=data[3];
+}
+
+function clearSegment(){
+  currentSegment=null;
+  document.querySelectorAll('.seg').forEach(el=>el.classList.remove('on'));
+  document.getElementById('segmentFocus').className='segment-focus';
+  document.getElementById('segmentPop').classList.remove('show');
+}
+
+document.addEventListener('click',e=>{
+  const candCard=e.target.closest('[data-candidate]');
+  if(candCard) currentCandidate=Number(candCard.dataset.candidate);
+
+  const tab=e.target.closest('[data-candidate-tab]');
+  if(tab){renderCandidate(tab.dataset.candidateTab);return;}
+
+  const seg=e.target.closest('[data-segment]');
+  if(seg){selectSegment(seg.dataset.segment);return;}
+
+  if(e.target.closest('#clearSegment')){clearSegment();return;}
+
+  const g=e.target.closest('[data-go]');
+  if(g){go(g.dataset.go);return;}
+
+  const p=e.target.closest('[data-page]');
+  if(p){go(p.dataset.page);return;}
+
+  const s=e.target.closest('.switch');
+  if(s){
+    s.classList.toggle('on');
+    const layer=s.dataset.layer;
+    if(layer==='actual') document.getElementById('actualShape').style.opacity=s.classList.contains('on')?'1':'0';
+    if(layer==='route') document.getElementById('routeShape').style.opacity=s.classList.contains('on')?'1':'0';
+  }
+});
+
+const vals=[42,56,49,71,65,83,74,96,88,103,91,117,109,126];
+document.getElementById('bars').innerHTML=vals.map((v,i)=>`<div class="bar" title="${i+6}일 · ${v}회" style="height:${35+v/1.5}px"></div>`).join('');
+renderCandidate(2);
+</script>
+</body>
+</html>

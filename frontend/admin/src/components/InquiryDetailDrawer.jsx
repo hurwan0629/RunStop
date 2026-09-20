@@ -59,7 +59,18 @@ function InquiryDetailDrawer({
   }
 
   useEffect(() => {
-    loadInquiry()
+    let active = true
+    getInquiryDetail(inquiryIdx).then(response => {
+      if (!active) return
+      const data = response.data ?? response
+      setInquiry(data)
+      setAnswer(data.answer ?? '')
+      setMemo(data.memo ?? '')
+      setErrorMessage('')
+    }).catch(() => {
+      if (active) setErrorMessage('정보를 불러오지 못했습니다.')
+    }).finally(() => { if (active) setIsLoading(false) })
+    return () => { active = false }
   }, [inquiryIdx])
 
   // 문의 상태 변경
