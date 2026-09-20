@@ -135,32 +135,74 @@
 
 ## 서비스 구조
 
----
+<p align="center">
+  <a href="./assets/service-summary/image-1.png">
+    <img src="./assets/service-summary/image-1.png" width="60%" alt="RunStop 전체 시스템 아키텍처: 모바일·관리자, Caddy, Node.js Backend, FastAPI Worker, PostgreSQL 연결 구조" />
+  </a>
+</p>
 
-Backend는 인증, 요청 검증, 외부 API 연동과 데이터 저장을 담당하고, Worker는 경로 생성과 평가·추론을 담당합니다. 모바일 앱은 Backend를 통해 서비스를 이용합니다. 운영 환경에서는 Caddy가 Backend 앞에서 HTTPS 요청을 전달합니다.
+모바일 앱과 관리자 웹은 HTTPS로 Backend API를 이용합니다. 운영 환경은 AWS EC2에서 Docker Compose로 구성하며, Route 53이 도메인 DNS를 관리하고 Caddy가 HTTPS 연결과 리버스 프록시를 담당합니다.
+
+| 구성 요소 | 역할 |
+|---|---|
+| 모바일 앱 · 관리자 웹 | 코스 추천·러닝 기록 이용, 회원·요청·러닝·문의 운영 관리 |
+| Node.js Backend | 인증, 요청 검증, 외부 API 연동, Worker 호출, 서비스 데이터 저장·조회 |
+| FastAPI Worker | 보행 경로 후보 생성, 고도·시설·자연환경 분석, 조건 평가, AI 모델 추론 |
+| PostgreSQL · PostGIS | 회원·추천 요청·선택 코스·러닝 기록과 경로·GPS 좌표 저장 |
+| 공간 데이터 · AI 모델 | OSM 보행 그래프, DEM 고도, 공원·하천·시설 데이터와 학습된 모델을 경로 생성·평가에 활용 |
+
+Backend와 Worker는 Docker 내부 네트워크에서 HTTP로 통신하며, Backend는 SQL로 데이터베이스에 접근합니다. 모바일 앱과 관리자 웹의 데이터 요청은 Backend를 거칩니다.
 
 ### 경로 추천과 AI
 
-1. Backend에서 입력 조건과 자연어 요구사항을 정리합니다.
-2. Worker가 서울 보행 그래프에서 코스 유형과 경유지를 반영한 후보를 생성합니다.
-3. DEM 고도, 주변 시설, 녹지·하천, 도로 환경 특성을 계산하고 조건 점수를 부여합니다.
-4. 학습된 모델로 후보 순위를 정해 최대 3개를 반환합니다. 모델 추론에 실패하면 조건 점수 순으로 선택합니다.
-
----
+1. Backend가 목표 거리, 경사, 선호 환경, 필요 시설, 야간 중요도와 출발지·도착지·경유지를 검증해 Worker에 전달합니다.
+2. Worker가 서울 보행 그래프에서 사용자 조건을 반영한 후보를 생성합니다. 방향 기반 후보와 시설·자연환경 등의 접근성을 고려한 경유 후보를 함께 탐색합니다.
+3. 후보별 거리 오차, 고도·경사, 시설 접근성, 공원·하천 인접률, 신호등·횡단보도, 경로 중복 등 특성을 계산하고 조건 점수를 부여합니다.
+4. 학습된 AI 모델이 후보 순위를 정해 최대 3개를 반환합니다. 모델 추론에 실패하면 조건 점수 순으로 선택합니다.
+5. Backend가 추천 요청과 반환된 후보를 저장하고, 사용자의 코스 선택과 이후 러닝 기록을 연결합니다.
 
 ## 기술 구성
 
-| 영역 | 기술 |
-|---|---|
-| 모바일 | React Native 0.86, Expo 57, React 19, TypeScript, Expo Router, Naver Map, Expo Location |
-| 관리자 웹 | React 19, Vite 8, React Router, Axios |
-| Backend | Node.js 24, TypeScript, Express 5, Zod, pg, JWT, bcrypt, Pino |
-| Routing Worker | Python 3.12, FastAPI, NetworkX, NumPy 및 공간 데이터 처리 라이브러리 |
-| AI 실험 | Logistic Regression, Random Forest, LightGBM, XGBoost, CatBoost, RankNet 등 비교 |
-| 데이터베이스 | PostgreSQL 17, PostGIS 3.5, node-pg-migrate |
-| 배포 | Docker Compose, Caddy |
+<p align="center">
+  <a href="./assets/service-summary/image.png">
+    <img src="./assets/service-summary/image.png" width="60%" alt="RunStop 기술 스택: TypeScript, Zod, React·React Native, Node.js, FastAPI, PostgreSQL, Route 53, EC2, Docker, Caddy" />
+  </a>
+</p>
+
+| 영역 | 주요 기술 · 라이브러리 | 사용 목적 |
+|---|---|---|
+| 모바일 | React Native 0.86, Expo 57, React 19, TypeScript, Expo Router, Naver Map, Expo Location | 모바일 화면·탐색, 지도 표시, GPS 수집과 러닝 기록 |
+| 관리자 웹 | React 19, Vite 8, React Router, Axios, Naver Maps JavaScript API | 운영 화면, API 조회, 추천 경로·실제 주행 지도 비교 |
+| Backend | Node.js 24, TypeScript, Express 5, Zod, pg, JWT, bcrypt, Pino | API 제공, 입력 검증, DB 접근, 인증·비밀번호 보호, 요청 로깅 |
+| Routing Worker | Python 3.12, FastAPI, Pydantic, NetworkX, NumPy, GeoPandas, Shapely | 요청 검증, 그래프 경로 탐색, 수치 계산, 공간 데이터 분석 |
+| AI 실험 | scikit-learn, LightGBM, XGBoost, CatBoost, RankNet 등 | 모델별 학습·평가, 후보 순위 예측과 추천 품질 비교 |
+| 데이터베이스 | PostgreSQL 17, PostGIS 3.5, node-pg-migrate | 관계형·공간 데이터 저장과 스키마 마이그레이션 |
+| 인프라 · 배포 | AWS EC2, Route 53, Docker Compose, Caddy | 서버 운영, 도메인 DNS, 컨테이너 실행, HTTPS·리버스 프록시 |
 
 버전은 저장소의 패키지 선언과 Dockerfile 기준입니다.
+
+## 데이터베이스 설계
+
+<p align="center">
+  <a href="./assets/service-summary/RunStop.service.png">
+    <img src="./assets/service-summary/RunStop.service.png" width="60%" alt="RunStop 서비스 ERD: 회원, 추천 요청·후보, 러닝 세션·GPS 기록, 목표, 즐겨찾기, 문의 관계" />
+  </a>
+</p>
+
+추천 요청부터 실제 주행까지의 관계를 연결해, 사용자가 어떤 조건으로 어떤 코스를 선택했고 실제로 어디를 달렸는지 확인할 수 있습니다.
+
+| 데이터 영역 | 주요 테이블 | 관리 정보 |
+|---|---|---|
+| 회원 · 프로필 | `users`, `user_profiles` | 계정·권한·상태, 사용자 프로필과 러닝 설정 |
+| 추천 요청 | `route_requests`, `route_request_points` | 요청 조건, 코스 유형, 출발지·도착지·경유지, 선택한 후보 |
+| 추천 코스 | `route_recommendations`, `route_points` | 후보 경로, 거리·고도·경사, 평가 점수와 경로 특성 |
+| 러닝 기록 | `running_sessions`, `running_trackpoints` | 선택한 코스와 연결된 러닝, 거리·시간·페이스, 시간순 GPS 좌표 |
+| 목표 · 즐겨찾기 | `running_goals`, `route_bookmarks`, `point_bookmarks` | 주간·월간 목표, 저장한 코스와 장소 |
+| 문의 | `inquiries` | 문의 내용, 처리 상태, 관리자 답변 |
+
+`route_requests`에 연결된 추천 후보 중 사용자가 선택한 코스를 `running_sessions`에서 참조하고, 실제 이동 좌표는 `running_trackpoints`에 기록합니다. 추천 경로의 점수와 특성은 `feature_scores`·`feature_values`에 보관해 코스 비교와 기록 상세 조회에 활용합니다.
+
+이미지를 클릭하면 원본 크기로 확인할 수 있습니다. 상세 정의는 [서비스 DBML](docs/07_datas/database/service_ERD_dbml.md)과 [서비스 ERD 설명](docs/07_datas/database/service_ERD.md)을 참고하세요.
 
 ## 저장소 구성
 
@@ -173,7 +215,7 @@ RunStop/
 ├─ routing-worker/     경로 생성 · 특성 계산 · 점수화 · AI 추론
 ├─ ai/                 데이터 생성 · 모델 학습 · 평가 실험
 ├─ infra/db/           DB 마이그레이션 · 데이터 적재
-├─ assets/             README용 앱 아이콘 · 서비스 스크린샷
+├─ assets/             앱 아이콘 · 서비스 스크린샷 · 아키텍처·기술·ERD 이미지
 ├─ docs/               설계 · API 명세 · 회의 및 개발 문서
 ├─ notebooks/          분석 및 실험 노트북
 ├─ test/               팀원별 기술 검증 및 테스트 자료
