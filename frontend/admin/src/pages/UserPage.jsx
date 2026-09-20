@@ -4,17 +4,11 @@ import {
 } from 'react'
 
 import { getAdminUsers } from '../api/usersApi'
-import UserDetailDrawer from '../components/UserDetailDrawer'
+import { ClickRow, Badge } from '../components/ExplorerUI'
 
 import './UserPage.css'
 
 const LIMIT = 10
-
-const statusLabels = {
-  ENABLED: '정상',
-  SUSPENDED: '이용 정지',
-  WITHDRAWN: '탈퇴',
-}
 
 function formatUserId(userIdx) {
   return `U${String(userIdx).padStart(3, '0')}`
@@ -62,11 +56,6 @@ function UserPage() {
   const [errorMessage, setErrorMessage] =
     useState('')
 
-  const [selectedUserIdx, setSelectedUserIdx] =
-    useState(null)
-
-  const [reloadKey, setReloadKey] = useState(0)
-
   useEffect(() => {
     const loadUsers = async () => {
       try {
@@ -97,7 +86,7 @@ function UserPage() {
     }
 
     loadUsers()
-  }, [page, keyword, status, reloadKey])
+  }, [page, keyword, status])
 
   const handleStatusChange = (nextStatus) => {
     setStatus(nextStatus)
@@ -248,7 +237,6 @@ function UserPage() {
                 <th>최근 접속일</th>
                 <th>계정 상태</th>
                 <th>문의 수</th>
-                <th>상세</th>
               </tr>
             </thead>
 
@@ -256,7 +244,7 @@ function UserPage() {
               {isLoading && (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="6"
                     className="users-empty-message"
                   >
                     회원 목록을 불러오는 중입니다.
@@ -267,7 +255,7 @@ function UserPage() {
               {!isLoading && errorMessage && (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="6"
                     className="users-empty-message error"
                   >
                     {errorMessage}
@@ -280,7 +268,7 @@ function UserPage() {
                 users.length === 0 && (
                   <tr>
                     <td
-                      colSpan="7"
+                      colSpan="6"
                       className="users-empty-message"
                     >
                       등록된 회원이 없습니다.
@@ -291,7 +279,7 @@ function UserPage() {
               {!isLoading &&
                 !errorMessage &&
                 users.map((user) => (
-                  <tr key={user.userIdx}>
+                  <ClickRow key={user.userIdx} to={`/users/${user.userIdx}`}>
                     <td>
                       {formatUserId(user.userIdx)}
                     </td>
@@ -323,33 +311,14 @@ function UserPage() {
                     </td>
 
                     <td>
-                      <span
-                        className={
-                          `user-status-badge ${user.status.toLowerCase()}`
-                        }
-                      >
-                        {statusLabels[user.status]}
-                      </span>
+                      <Badge status={user.status} />
                     </td>
 
                     <td>
                       {user.inquiryCount ?? 0}건
                     </td>
 
-                    <td>
-                      <button
-                        type="button"
-                        className="user-detail-button"
-                        onClick={() =>
-                          setSelectedUserIdx(
-                            user.userIdx,
-                          )
-                        }
-                      >
-                        상세 보기
-                      </button>
-                    </td>
-                  </tr>
+                  </ClickRow>
                 ))}
             </tbody>
           </table>
@@ -405,17 +374,6 @@ function UserPage() {
         </section>
       </main>
 
-      {selectedUserIdx && (
-        <UserDetailDrawer
-          userIdx={selectedUserIdx}
-          onClose={() => setSelectedUserIdx(null)}
-          onUpdated={() =>
-            setReloadKey(
-              (previous) => previous + 1,
-            )
-          }
-        />
-      )}
     </>
   )
 }

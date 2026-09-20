@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadNaverMaps } from '../api/naverMaps'
 
-export default function RunningMap({ detail, mode, alternativeId, segmentIndex, fitVersion }) {
+export default function RunningMap({ detail, mode, alternativeId, segmentIndex, fitVersion, layers, facilityPoints = [], natureSegments = [], actualSegments = [] }) {
   const container = useRef(null)
   const lastFocus = useRef('')
   const [map, setMap] = useState(null)
@@ -13,7 +13,7 @@ export default function RunningMap({ detail, mode, alternativeId, segmentIndex, 
     let instance
     let resizeObserver
     const authFailed = () => {
-      if (active) setError('네이버 지도 인증을 확인해 주세요. 웹 지도 사용 설정과 서비스 URL 등록이 필요합니다.')
+      if (active) setError('현재 지도 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.')
     }
     window.addEventListener('runstop:map-auth-error', authFailed)
 
@@ -30,8 +30,8 @@ export default function RunningMap({ detail, mode, alternativeId, segmentIndex, 
       resizeObserver = new ResizeObserver(() => instance.autoResize())
       resizeObserver.observe(container.current)
       setMap(instance)
-    }).catch(error => {
-      if (active) setError(error.message)
+    }).catch(() => {
+      if (active) setError('지도 연결을 확인한 후 다시 시도해 주세요.')
     })
 
     return () => {
@@ -64,12 +64,35 @@ export default function RunningMap({ detail, mode, alternativeId, segmentIndex, 
     // 기본은 실제 주행 하나, 비교할 때만 선택 코스와 다른 후보를 추가한다.
     const alternative = detail.alternatives.find(route => route.idx === alternativeId)
     if (mode === 'compare' && alternative) draw(alternative.path, '#9762BD', true, 3)
-    if (mode !== 'track' && detail.route) draw(detail.route.path, '#303C87', mode === 'compare', 4, mode === 'compare' ? 0.65 : 0.95)
-    if (mode !== 'course') detail.trackPaths.forEach(path => draw(path, '#118A75', false, 4, segmentIndex === null ? 0.95 : 0.35))
+    if ((layers ? layers.planned : mode !== 'track') && detail.route) draw(detail.route.path, '#303C87', true, 5, 0.8)
+    if (layers ? layers.actual : mode !== 'course') detail.trackPaths.forEach(path => draw(path, '#118A75', false, 5, segmentIndex === null ? 0.95 : 0.35))
+
+    // 주변 환경은 선택한 항목만 추가하며 카메라 범위에는 경로만 사용한다.
+    const routeBounds = [...allPoints]
+    for (const part of natureSegments) {
+      if (layers?.[part.type]) draw(part.path, part.type === 'park' ? '#41a269' : '#2e9ed8', false, 9, .6)
+    }
+    if (layers?.slope) {
+      const sources = [{ path: detail.route?.path || [], mapLayers: detail.route?.featureValues?.mapLayers },
+        ...actualSegments.map(s => ({ path: s.path, mapLayers: s.environment?.mapLayers }))]
+      sources.forEach(source => source.mapLayers?.slopeSegments?.forEach(part => {
+        if (part.slopePct != null) draw(source.path.slice(part.fromIndex, part.toIndex + 1), part.slopePct < 3 ? '#41a269' : part.slopePct < 7 ? '#e7a126' : '#dd5a52', false, 6)
+      }))
+    }
+    const facilityStyles = { toilet: ['WC', '#5866c9'], store: ['편', '#cb6599'], cctv: ['C', '#ab48db'], light: ['등', '#e78421'], security: ['보', '#d04376'] }
+    facilityPoints.forEach(point => {
+      if (!layers?.[point.type] || !facilityStyles[point.type]) return
+      const [label, color] = facilityStyles[point.type]
+      overlays.push(new maps.Marker({ map, position: new maps.LatLng(point.lat, point.lng), title: point.name, zIndex: 90,
+        icon: { content: `<span style="display:grid;place-items:center;width:24px;height:24px;border:2px solid white;border-radius:50%;background:${color};color:white;font:700 10px sans-serif;box-shadow:0 2px 5px #0004">${label}</span>`,
+          size: new maps.Size(28, 28), anchor: new maps.Point(14, 14) },
+      }))
+    })
     const segment = segmentIndex === null ? null : detail.segments[segmentIndex]
     if (segment) draw(segment.path, '#E87831', false, 5)
 
-    const primaryPaths = mode === 'course' ? [detail.route?.path || []] : detail.trackPaths
+    const primaryPaths = layers ? (layers.actual && detail.trackPaths.length ? detail.trackPaths : layers.planned ? [detail.route?.path || []] : [])
+      : mode === 'course' ? [detail.route?.path || []] : detail.trackPaths
     const first = primaryPaths.find(path => path.length)?.[0]
     const last = primaryPaths.filter(path => path.length).at(-1)?.at(-1)
     for (const [point, title, color] of [[first, '출발', '#fff'], [last, '도착', '#17204e']]) {
@@ -85,14 +108,15 @@ export default function RunningMap({ detail, mode, alternativeId, segmentIndex, 
     // 구간·표시 대상 변경과 전체 보기 요청에만 카메라를 맞춘다.
     const focus = `${detail.sessionIdx}:${mode}:${alternativeId}:${segmentIndex}:${fitVersion}`
     if (lastFocus.current !== focus) {
-      const points = segment ? coordinates(segment.path) : allPoints
+      const points = segment ? coordinates(segment.path) : routeBounds.length ? routeBounds
+        : coordinates([...(detail.route?.path || []), ...detail.trackPaths.flat()])
       if (points.length) map.fitBounds(points, { top: 40, right: 40, bottom: 40, left: 40, maxZoom: 17 })
       lastFocus.current = focus
     }
     return () => {
       if (window.naver?.maps === maps) overlays.forEach(overlay => overlay.setMap(null))
     }
-  }, [map, error, detail, mode, alternativeId, segmentIndex, fitVersion])
+  }, [map, error, detail, mode, alternativeId, segmentIndex, fitVersion, layers, facilityPoints, natureSegments, actualSegments])
 
   return <div className="run-map-shell">
     <div className="run-map" ref={container} aria-label="네이버 지도에서 추천 코스와 실제 주행 비교" />

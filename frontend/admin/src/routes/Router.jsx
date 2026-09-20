@@ -13,6 +13,8 @@ import UserPage from '../pages/UserPage'
 import AdminRoute from './AdminRoute'
 import AdminLayout from '../components/AdminLayout'
 import UserDetailPage from '../pages/UserDetailPage'
+import RequestsPage from '../pages/RequestsPage'
+import RequestDetailPage from '../pages/RequestDetailPage'
 import RunningPage from '../pages/RunningPage'
 import RunningDetailPage from '../pages/RunningDetailPage'
 
@@ -27,6 +29,9 @@ function Router() {
 
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
+            <Route path="/requests" element={<RequestsPage />} />
+            <Route path="/requests/:requestIdx" element={<RequestDetailPage />} />
+            <Route path="/requests/:requestIdx/candidates/:candidateIdx" element={<RequestDetailPage />} />
             <Route path="/running" element={<RunningPage />} />
             <Route path="/running/:sessionIdx" element={<RunningDetailPage />} />
             <Route

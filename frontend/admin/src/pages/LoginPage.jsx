@@ -12,7 +12,6 @@ function LoginPage(){
   
   const [loginId, setLoginId] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 

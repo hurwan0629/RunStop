@@ -28,61 +28,88 @@
     <td align="center">
       <strong>홈 · 러닝 목표</strong><br />
       <a href="./assets/service-screenshot/3.jpg">
-        <img src="./assets/service-screenshot/3.jpg" width="180" alt="홈 화면" />
+        <img src="./assets/service-screenshot/3.jpg" width="180" alt="홈 화면과 러닝 목표" />
       </a>
     </td>
     <td align="center">
       <strong>출발지 · 도착지 설정</strong><br />
-      <a href="./assets/service-screenshot/6.jpg">
-        <img src="./assets/service-screenshot/6.jpg" width="180" alt="출발지 도착지 설정" />
+      <a href="./assets/service-screenshot/4.jpg">
+        <img src="./assets/service-screenshot/4.jpg" width="180" alt="출발지 도착지 경유지 설정" />
       </a>
     </td>
   </tr>
 
   <tr>
     <td align="center">
-      <strong>러닝 조건 입력</strong><br />
-      <a href="./assets/service-screenshot/4.jpg">
-        <img src="./assets/service-screenshot/4.jpg" width="180" alt="러닝 조건 입력" />
+      <strong>러닝 조건 설정</strong><br />
+      <a href="./assets/service-screenshot/5.jpg">
+        <img src="./assets/service-screenshot/5.jpg" width="180" alt="목표 거리 경사 선호 환경과 필요 시설 설정" />
       </a>
     </td>
     <td align="center">
-      <strong>조건별 중요도 확인</strong><br />
-      <a href="./assets/service-screenshot/5.jpg">
-        <img src="./assets/service-screenshot/5.jpg" width="180" alt="조건별 중요도" />
+      <strong>요청 조건 확인</strong><br />
+      <a href="./assets/service-screenshot/6.jpg">
+        <img src="./assets/service-screenshot/6.jpg" width="180" alt="추천받을 코스의 요청 조건 확인" />
       </a>
     </td>
+    <td align="center">
+      <strong>코스 탐색</strong><br />
+      <a href="./assets/service-screenshot/7.jpg">
+        <img src="./assets/service-screenshot/7.jpg" width="180" alt="추천 코스 탐색 대기 화면" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>응원 인터랙션</strong><br />
+      <a href="./assets/service-screenshot/8.jpg">
+        <img src="./assets/service-screenshot/8.jpg" width="180" alt="코스 탐색 중 터치로 응원하기" />
+      </a>
+    </td>
+  </tr>
+
+  <tr>
     <td align="center">
       <strong>추천 코스 비교</strong><br />
-      <a href="./assets/service-screenshot/7.jpg">
-        <img src="./assets/service-screenshot/7.jpg" width="180" alt="추천 코스 비교" />
+      <a href="./assets/service-screenshot/9.jpg">
+        <img src="./assets/service-screenshot/9.jpg" width="180" alt="거리 예상 시간 경사와 추천 이유 비교" />
       </a>
     </td>
     <td align="center">
-      <strong>코스 상세</strong><br />
-      <a href="./assets/service-screenshot/8.jpg">
-        <img src="./assets/service-screenshot/8.jpg" width="180" alt="코스 상세" />
+      <strong>추천 코스 선택</strong><br />
+      <a href="./assets/service-screenshot/10.jpg">
+        <img src="./assets/service-screenshot/10.jpg" width="180" alt="후보 코스 비교와 코스 선택" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>코스 상세 · 지도 토글</strong><br />
+      <a href="./assets/service-screenshot/11.jpg">
+        <img src="./assets/service-screenshot/11.jpg" width="180" alt="추천 경로와 시설 개수 경사 자연환경 야간 인프라 표시" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>실시간 러닝</strong><br />
+      <a href="./assets/service-screenshot/12.jpg">
+        <img src="./assets/service-screenshot/12.jpg" width="180" alt="GPS 기반 이동 경로와 러닝 시간 거리 페이스" />
       </a>
     </td>
   </tr>
 
   <tr>
     <td align="center">
-      <strong>실시간 러닝</strong><br />
-      <a href="./assets/service-screenshot/9.jpg">
-        <img src="./assets/service-screenshot/9.jpg" width="180" alt="실시간 러닝" />
-      </a>
-    </td>
-    <td align="center">
-      <strong>러닝 테스트</strong><br />
-      <a href="./assets/service-screenshot/10.jpg">
-        <img src="./assets/service-screenshot/10.jpg" width="180" alt="러닝 테스트" />
+      <strong>지도 집중 보기</strong><br />
+      <a href="./assets/service-screenshot/13.jpg">
+        <img src="./assets/service-screenshot/13.jpg" width="180" alt="러닝 UI 숨김과 현재 위치 따라가기 설정" />
       </a>
     </td>
     <td align="center">
       <strong>러닝 기록</strong><br />
-      <a href="./assets/service-screenshot/11.jpg">
-        <img src="./assets/service-screenshot/11.jpg" width="180" alt="러닝 기록" />
+      <a href="./assets/service-screenshot/14.jpg">
+        <img src="./assets/service-screenshot/14.jpg" width="180" alt="기간별 러닝 통계와 기록 목록" />
+      </a>
+    </td>
+    <td align="center">
+      <strong>기록 상세 · 경로 비교</strong><br />
+      <a href="./assets/service-screenshot/15.jpg">
+        <img src="./assets/service-screenshot/15.jpg" width="180" alt="추천 코스와 실제 GPS 주행 경로 비교" />
       </a>
     </td>
     <td></td>
@@ -94,13 +121,17 @@
 | 영역 | 구현 내용 |
 |---|---|
 | 코스 설정 | 장소 검색, 현재 위치·출발지·도착지·경유지 설정, 순환·편도·왕복 코스 |
-| 맞춤 추천 | 목표 거리, 경사, 화장실·편의점, 야간 인프라 등 조건 및 중요도 반영 |
-| 자연어 입력 | LLM을 이용한 러닝 요구사항 구조화 및 서버 검증 |
-| 코스 비교 | 최대 3개 후보의 지도, 거리, 고도·경사 정보, 조건 충족도 및 추천 이유 확인 |
-| 러닝 | GPS 이동 경로 기록, 거리·시간·페이스 표시, 일시정지·종료, 진행 중 세션 복구, 코스 방향 표시 |
-| 기록 관리 | 러닝 내역·통계, 목표 설정, 코스·장소 즐겨찾기 |
-| 계정·문의 | 자체 회원가입·로그인, JWT 인증, SMS 인증 연동, 회원정보 관리·탈퇴, 문의 등록 |
-| 관리자 | 관리자 로그인, 대시보드, 사용자·문의 관리 |
+| 맞춤 조건 | 목표 거리(km), 경사 선택(완만·약간 경사짐·상관없음), 공원·하천 선호, 신호등·횡단보도가 적은 길 선호, 화장실·편의점 선택, 야간 인프라 중요도(1~5) |
+| 경로 추천 | 사용자 조건을 후보 생성 단계부터 반영하고 시설·자연환경을 경유하는 후보를 함께 탐색, 거리·경사·시설·도로 환경 평가 후 AI로 최대 3개 코스 추천 |
+| 추천 안내 | 요청 조건 확인, 코스 탐색 중 터치 응원 인터랙션, 추천 실패 원인과 조정 방법을 안내하는 모달 |
+| 코스 비교 | 후보별 거리·예상 시간·누적 오르막·평균 및 최대 경사·조건 충족도·추천 이유 확인, 코스 선택과 상세 지도 조회 |
+| 지도 · 주변 환경 | 네이버 지도에서 화장실·편의점·경사·녹지·하천·야간 인프라 표시 토글, 시설 개수와 평균 경사 표시, 경사별 경로 색상 구분, CCTV·보안등·가로등 위치 확인 |
+| 실시간 러닝 | GPS 이동 경로 기록, 거리·시간·페이스 표시, 일시정지·종료, 진행 중 세션 복구, 코스 방향 표시 |
+| 러닝 화면 조작 | 현재 위치 따라가기 ON/OFF, 러닝 UI 숨김·복원, 지도 집중 보기 |
+| 기록 상세 | 추천 코스와 실제 GPS 주행 경로를 한 지도에서 비교, 구간별 거리·시간·페이스 및 제공되는 경사·주변 환경 확인, 추천 당시 요청 조건과 선택 코스 특징 조회 |
+| 기록 · 목표 관리 | 기간별 러닝 내역·거리·횟수·최장 거리 통계, 러닝 목표 설정, 코스·장소 즐겨찾기 |
+| 계정 · 문의 | 자체 회원가입·로그인, JWT 인증, SMS 인증 연동, 회원정보 관리·탈퇴, 문의 등록 |
+| 관리자 | 관리자 로그인, 기간별 러닝·추천 통계 그래프, 회원·문의 관리, 사용자 요청 조건과 추천 후보·선택 결과 비교, 추천 코스와 실제 주행 지도 및 구간별 기록 조회 |
 
 ## 서비스 구조
 

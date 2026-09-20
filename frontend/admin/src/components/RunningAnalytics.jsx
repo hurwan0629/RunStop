@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getAnalytics, period } from '../api/runningApi'
 import '../pages/RunningPage.css'
 
-const metrics = { runs: '러닝 횟수', completed: '완료 횟수', distance: '완료 러닝 거리 (km)', requests: '저장된 추천 요청', selected: '선택된 추천 요청' }
+const metrics = { runs: '러닝 횟수', completed: '완료 횟수', distance: '완료 러닝 거리 (km)', requests: '추천 요청', selected: '선택된 추천 요청' }
 
 export default function RunningAnalytics() {
   const navigate = useNavigate()
@@ -29,9 +29,10 @@ export default function RunningAnalytics() {
   const total = key => days.reduce((sum, day) => sum + Number(day[key]), 0)
   const values = days.map(day => Number(day[metric]) / (metric === 'distance' ? 1000 : 1))
   const maximum = Math.max(1, ...values)
-  const x = index => 50 + index * 840 / Math.max(1, days.length - 1)
+  const step = 840 / Math.max(1, days.length)
+  const x = index => 50 + (index + .5) * step
   const y = value => 210 - value * 170 / maximum
-  const openDay = day => navigate(`/running?from=${day.date}&to=${day.date}`)
+  const openDay = day => navigate(`${['requests', 'selected'].includes(metric) ? '/requests' : '/running'}?from=${day.date}&to=${day.date}${metric === 'selected' ? '&selection=SELECTED' : ''}`)
   const current = days[hover] || days[days.length - 1]
 
   return <section className="run-card">
@@ -63,18 +64,18 @@ export default function RunningAnalytics() {
           <line x1="50" x2="890" y1={y(maximum * ratio)} y2={y(maximum * ratio)} stroke="#e4e5ec" />
           <text x="42" y={y(maximum * ratio) + 4} textAnchor="end" fontSize="12" fill="#687286">{(maximum * ratio).toFixed(metric === 'distance' ? 1 : 0)}</text>
         </g>)}
-        <polyline points={values.map((value, index) => `${x(index)},${y(value)}`).join(' ')} fill="none" stroke="#6652BB" strokeWidth="3" />
-        {days.map((day, index) => <circle key={day.date} cx={x(index)} cy={y(values[index])} r={hover === index ? 7 : 4}
-          fill="#6652BB" tabIndex="0" role="button" aria-label={`${day.date}: ${values[index].toFixed(1)}. 러닝 목록 보기`}
+        {days.map((day, index) => <rect key={day.date} x={x(index) - step * .33} y={y(values[index])} width={step * .66}
+          height={Math.max(2, 210 - y(values[index]))} rx="5"
+          fill={hover === index ? '#493495' : '#9b8bd3'} tabIndex="0" role="button" aria-label={`${day.date}: ${values[index].toFixed(1)}. 기록 목록 보기`}
           onMouseEnter={() => setHover(index)} onFocus={() => setHover(index)} onClick={() => openDay(day)}
           onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openDay(day) } }}>
           <title>{day.date}: {values[index].toFixed(1)}</title>
-        </circle>)}
+        </rect>)}
         <text x="50" y="240" fill="#687286" fontSize="12">{range.from}</text>
         <text x="890" y="240" textAnchor="end" fill="#687286" fontSize="12">{range.to}</text>
       </svg>
-      {current && <p aria-live="polite">{current.date} · 러닝 {current.runs}회 · 완료 {current.completed}회 · 추천 {current.requests}건 · 선택 {current.selected}건</p>}
-      <p className="run-legend">한국 시간 기준. 러닝은 시작일 기준이며, 추천 선택은 해당 기간 요청의 현재 선택 상태입니다. 저장되지 않는 추천 실패는 집계하지 않습니다.</p>
+      {current && <p aria-live="polite">{current.date} · 러닝 {current.runs}회 · 거리 {(Number(current.distance) / 1000).toFixed(2)} km · 추천 {current.requests}건 · 선택 {current.selected}건</p>}
+      <p className="run-legend">한국 시간 기준 · 그래프의 날짜를 선택하면 해당 기간의 기록으로 이동합니다.</p>
     </>}
   </section>
 }

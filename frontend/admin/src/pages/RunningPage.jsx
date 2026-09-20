@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import { getRuns, period } from '../api/runningApi'
+import { useSearchParams } from 'react-router-dom'
+import { period } from '../api/runningApi'
+import { getActivityRuns as getRuns } from '../api/explorerApi'
+import { RunsTable } from '../components/ExplorerUI'
 import './RunningPage.css'
 
-const statusLabels = { COMPLETED: '완료', IN_PROGRESS: '진행 중', STOPPED: '중단', CANCELLED: '취소', FAILED: '실패' }
+
 
 export default function RunningPage() {
   const [params, setParams] = useSearchParams()
@@ -48,19 +50,7 @@ export default function RunningPage() {
       <button type="submit">기록 조회</button>
     </form>
     {error ? <p role="alert">{error}</p> : !result ? <p role="status">조회 중…</p> : <>
-      <div className="run-table-wrap"><table className="run-table">
-        <thead><tr><th>러닝</th><th>사용자</th><th>시작 시각 (KST)</th><th>선택한 코스</th><th>거리</th><th>상태</th></tr></thead>
-        <tbody>{result.items.map(run => <tr key={run.sessionIdx}>
-          <td><Link to={`/running/${run.sessionIdx}`}>#{run.sessionIdx} 지도 보기</Link></td>
-          <td><Link to={`/users/${run.userIdx}`}>{run.nickname}</Link></td>
-          <td>{new Date(run.startedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</td>
-          <td>{run.routeName || '코스 정보 없음'}</td>
-          <td>{run.distance == null ? '—' : `${(run.distance / 1000).toFixed(2)}km`}</td>
-          <td><span className={`run-status ${run.status === 'COMPLETED' ? 'complete' : ''}`}>{statusLabels[run.status] || run.status}</span></td>
-        </tr>)}</tbody>
-      </table>
-      {!result.items.length && <p className="run-empty">해당 기간의 러닝이 없습니다. 조회 기간을 변경해 보세요.</p>}
-      </div>
+      <RunsTable items={result.items} />
       <div className="run-pagination">
         <button className="run-button" disabled={page <= 1} onClick={() => update({ page: String(page - 1) })}>이전</button>
         <span>{page}페이지</span>

@@ -72,7 +72,15 @@ function UserDetailDrawer({
   }
 
   useEffect(() => {
-    loadUserDetail()
+    let active = true
+    getAdminUserDetail(userIdx).then(data => {
+      if (!active) return
+      setDetail(data)
+      setErrorMessage('')
+    }).catch(() => {
+      if (active) setErrorMessage('정보를 불러오지 못했습니다.')
+    }).finally(() => { if (active) setIsLoading(false) })
+    return () => { active = false }
   }, [userIdx])
 
   const closeActionForm = () => {
