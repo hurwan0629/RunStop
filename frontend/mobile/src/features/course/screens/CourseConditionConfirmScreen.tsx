@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
@@ -10,34 +10,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/providers/AuthProvider';
-import { getApiErrorMessage } from '@/services/api/errors';
+import { getRecommendationFailure, type RecommendationFailure } from '@/services/api/errors';
 
 import { recommendCourses } from '../api/courseApi';
+import { RecommendationFeedback } from '../components/RecommendationFeedback';
 import { useCourseDraft } from '../context/CourseDraftContext';
 import type {
   CourseDraft,
-  ImportanceLevel,
   SlopePreference,
 } from '../types';
 import { ImportanceSelector } from './CourseConditionsScreen';
 import { courseFlowStyles as styles } from './CourseFlow.styles';
 
-type ImportanceKey =
-  | 'distanceImportance'
-  | 'slopeImportance'
-  | 'nightImportance';
-
-const importanceItems: {
-  key: ImportanceKey;
-  label: string;
-}[] = [
-    { key: 'distanceImportance', label: '거리' },
-    { key: 'slopeImportance', label: '경사도' },
-  ];
-
 const slopeLabels: Record<SlopePreference, string> = {
   GENTLE: '완만',
-  NORMAL: '보통',
+  NORMAL: '약간 경사짐',
   ANY: '상관없음',
 };
 // 경사도 기준과 적용
@@ -53,32 +40,39 @@ export default function CourseConditionConfirmScreen() {
   const { accessToken } = useAuth();
   const { draft, setRecommendationResult, updateDraft } = useCourseDraft();
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [failure, setFailure] = useState<RecommendationFailure | null>(null);
+  const pendingRequest = useRef<AbortController | null>(null);
 
-  const setImportance = (
-    key: ImportanceKey,
-    value: ImportanceLevel,
-  ) => {
-    updateDraft({ [key]: value } as Pick<CourseDraft, ImportanceKey>);
+  useEffect(() => () => pendingRequest.current?.abort(), []);
+
+  // 대기 취소는 응답 수신을 중단한다. 늦게 도착한 결과로 화면을 이동하지 않는다.
+  const closeFeedback = () => {
+    pendingRequest.current?.abort();
+    pendingRequest.current = null;
+    setIsLoading(false);
+    setFailure(null);
   };
 
   const handleRecommend = async () => {
-    setErrorMessage('');
+    if (pendingRequest.current) return;
+    setFailure(null);
 
     if (!accessToken) {
-      setErrorMessage('로그인 후 코스를 추천받을 수 있어요.');
+      setFailure({ title: '로그인이 필요해요', message: '로그인 후 코스를 추천받을 수 있어요.', action: 'login' });
       return;
     }
     if (!draft.startPoint) {
-      setErrorMessage('출발지를 먼저 설정해 주세요.');
+      setFailure({ title: '출발지가 없어요', message: '출발지를 먼저 설정해 주세요.', action: 'edit' });
       return;
     }
     if (!Number.isFinite(draft.targetDistanceKm) || draft.targetDistanceKm <= 0) {
-      setErrorMessage('0보다 큰 목표 거리를 입력해 주세요.');
+      setFailure({ title: '거리를 확인해 주세요', message: '0보다 큰 목표 거리를 입력해 주세요.', action: 'edit' });
       return;
     }
 
     setIsLoading(true);
+    const controller = new AbortController();
+    pendingRequest.current = controller;
 
     try {
       const result = await recommendCourses(accessToken, {
@@ -90,6 +84,9 @@ export default function CourseConditionConfirmScreen() {
         elementConditions: {
           targetDistance: Math.round(draft.targetDistanceKm * 1000),
           maxSlope: maxSlopeByPreference[draft.slopePreference],
+          slopePreference: draft.slopePreference,
+          preferNature: draft.preferNature,
+          preferFlow: draft.preferFlow,
           facilityPreferences: {
             toilet: draft.facilities.includes('TOILET') ? 'PREFER' : 'IGNORE',
             store: draft.facilities.includes('CONVENIENCE_STORE')
@@ -97,22 +94,32 @@ export default function CourseConditionConfirmScreen() {
               : 'IGNORE',
           },
           weights: {
-            distance: draft.distanceImportance,
-            elevation: draft.slopeImportance,
             night: draft.nightImportance,
           },
           // 시설의 체크 여부는 facilityPreferences에서만 판단합니다.
           // requirements에 true를 넣으면 시설이 없는 fallback 후보도 제외될 수 있어요.
           requirements: {},
         },
-      });
+      }, controller.signal);
 
+      if (controller.signal.aborted) return;
+      if (result.recommendations.length === 0) {
+        setFailure({
+          title: '추천 결과가 없어요',
+          message: '요청한 위치와 조건으로 코스를 찾지 못했어요. 위치나 목표 거리를 조정해 보세요.',
+          action: 'edit',
+        });
+        return;
+      }
       setRecommendationResult(result);
       router.push('/course/compare');
     } catch (error) {
-      setErrorMessage(getApiErrorMessage(error));
+      if (!controller.signal.aborted) setFailure(getRecommendationFailure(error));
     } finally {
-      setIsLoading(false);
+      if (pendingRequest.current === controller) {
+        pendingRequest.current = null;
+        setIsLoading(false);
+      }
     }
   };
 
@@ -136,13 +143,13 @@ export default function CourseConditionConfirmScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}>
         <View style={styles.completeBadge}>
-          <Text style={styles.completeBadgeText}>{'✓ AI 조건 분석 완료'}</Text>
+          <Text style={styles.completeBadgeText}>{'✓ 러닝 조건 확인'}</Text>
         </View>
         <Text style={[styles.introTitle, { marginTop: 14 }]}>
           {'이 조건으로 찾아볼까요?'}
         </Text>
         <Text style={styles.introText}>
-          {'중요도를 조절하면 어떤 조건을 먼저 볼지 정할 수 있어요.'}
+          {'선택한 조건을 반영해 코스 후보를 만들어요.'}
         </Text>
 
         <View style={styles.summaryCard}>
@@ -170,29 +177,12 @@ export default function CourseConditionConfirmScreen() {
             label="필요 시설"
             value={formatFacilities(draft)}
           />
+          <SummaryRow label="공원·하천" value={draft.preferNature ? '선호' : '상관없음'} />
+          <SummaryRow label="신호등·횡단보도 적게" value={draft.preferFlow ? '선호' : '상관없음'} />
         </View>
-        {errorMessage ? (
-          <Text style={[styles.noticeText, { color: '#E5484D' }]}>
-            {errorMessage}
-          </Text>
-        ) : null}
 
         <View style={styles.importanceSection}>
-          <Text style={styles.sectionTitle}>{'조건별 중요도'}</Text>
-          {importanceItems.map((item) => (
-            <View key={item.key} style={styles.importanceItem}>
-              <View style={styles.importanceLabelRow}>
-                <Text style={styles.importanceLabel}>{item.label}</Text>
-                <Text style={styles.importanceValue}>
-                  {`${draft[item.key]} / 5`}
-                </Text>
-              </View>
-              <ImportanceSelector
-                onChange={(value) => setImportance(item.key, value)}
-                value={draft[item.key]}
-              />
-            </View>
-          ))}
+          <Text style={styles.sectionTitle}>{'시설 선호'}</Text>
           <FacilityStatusRow
             label="화장실"
             selected={draft.facilities.includes('TOILET')}
@@ -209,7 +199,7 @@ export default function CourseConditionConfirmScreen() {
               </Text>
             </View>
             <ImportanceSelector
-              onChange={(value) => setImportance('nightImportance', value)}
+              onChange={(nightImportance) => updateDraft({ nightImportance })}
               value={draft.nightImportance}
             />
           </View>
@@ -242,6 +232,18 @@ export default function CourseConditionConfirmScreen() {
           </Pressable>
         </View>
       </ScrollView>
+      <RecommendationFeedback
+        loading={isLoading}
+        failure={failure}
+        onClose={closeFeedback}
+        onAction={() => {
+          const action = failure?.action;
+          setFailure(null);
+          if (action === 'retry') void handleRecommend();
+          else if (action === 'login') router.push('/login');
+          else router.back();
+        }}
+      />
     </SafeAreaView>
   );
 }

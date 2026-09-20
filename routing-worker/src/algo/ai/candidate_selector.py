@@ -57,6 +57,11 @@ def select_candidates_with_ai(
             requirements,
             facility_preferences,
         )
+        if len(scores) != len(candidates):
+            raise ValueError("AI score count mismatch")
+        for candidate, score in zip(candidates, scores):
+            candidate["ai_score"] = float(score)
+            candidate["ranking_source"] = "artifact"
         ranked = [
             candidate
             for _, candidate in sorted(
@@ -86,6 +91,9 @@ def select_candidates_with_ai(
             "error": str(error),
         })
 
+    for candidate in candidates:
+        candidate["ai_score"] = None
+        candidate["ranking_source"] = "condition_score"
     selected = sorted(
         candidates,
         key=lambda candidate: candidate["condition_score"],

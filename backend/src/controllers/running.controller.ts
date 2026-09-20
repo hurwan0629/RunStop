@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { z } from "zod";
+import { getRunningDetail as getRunningDetailService } from "../services/running-detail.service.js";
 import { runningFinishSchema } from "../dto/running/running-finish.dto.js";
 import { runningHistoryResponseSchema } from "../dto/running/running-history.dto.js";
 import { runningListQuerySchema } from "../dto/running/running-list-query.dto.js";
@@ -27,6 +28,11 @@ import {
 const runningSessionParamsSchema = z.object({
   sessionIdx: z.coerce.number().int().positive(),
 });
+
+export async function getRunningDetail(req: Request, res: Response): Promise<void> {
+  const result = await getRunningDetailService(getAuthenticatedUserIdx(req), parseSessionIdx(req));
+  res.json({ success: true, data: result });
+}
 
 function getAuthenticatedUserIdx(req: Request): number {
   if (!req.user) {

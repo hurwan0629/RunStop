@@ -47,11 +47,11 @@ def environment_snapshot():
             "git_commit": commit, "ai_worktree_changes": dirty, "ai_source_sha256": code_hash.hexdigest()}
 
 
-def begin_run(output: str | Path, config: ExperimentConfig) -> tuple[Path, dict[str, Any]]:
+def begin_run(output: str | Path, config: ExperimentConfig, stage: str = "train") -> tuple[Path, dict[str, Any]]:
     """새 실험 artifact 디렉터리를 만들고 실행 시점 runtime을 복사합니다."""
 
     # 중복을 피하기 위해 UTC 시각과 짧은 uuid를 디렉터리명에 포함합니다.
-    path = Path(output) / (datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S") + "_" + config.name + "_" + uuid.uuid4().hex[:8])
+    path = Path(output) / (datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S") + "_" + stage + "_" + config.name + "_" + uuid.uuid4().hex[:8])
 
     # 해당 디렉토리를 생성합니다
     path.mkdir(parents=True, exist_ok=False)
@@ -70,7 +70,7 @@ def begin_run(output: str | Path, config: ExperimentConfig) -> tuple[Path, dict[
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
     
-    manifest = {"schema_version": 1, "status": "running", "started_at": datetime.now(timezone.utc).isoformat(), "name": config.name, "model": config.model.name}
+    manifest = {"schema_version": 1, "stage": stage, "status": "running", "started_at": datetime.now(timezone.utc).isoformat(), "name": config.name, "model": config.model.name}
     write_json(path / "manifest.json", manifest)
     return path, manifest
 

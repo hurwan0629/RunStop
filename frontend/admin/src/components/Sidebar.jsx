@@ -14,51 +14,18 @@ function Sidebar({ onLogout }) {
         </div>
 
         <nav className="sidebar-menu">
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) =>
-              `sidebar-link ${isActive ? 'active' : ''}`
-            }
-          >
-            <span className="sidebar-icon">
-              <SidebarMenuIcon type="dashboard" />
-            </span>
-
-            <span>대시보드</span>
-          </NavLink>
-
-          <NavLink
-            to="/users"
-            className={({ isActive }) =>
-              `sidebar-link ${isActive ? 'active' : ''}`
-            }
-          >
-            <span className="sidebar-icon">
-              <SidebarMenuIcon type="users" />
-            </span>
-
-            <span>회원 관리</span>
-          </NavLink>
-
-          <NavLink
-            to="/inquiries"
-            className={({ isActive }) =>
-              `sidebar-link ${isActive ? 'active' : ''}`
-            }
-          >
-            <span className="sidebar-icon">
-              <SidebarMenuIcon type="inquiries" />
-            </span>
-
-            <span>문의 관리</span>
-          </NavLink>
+          {[['/dashboard', '대시보드', 'dashboard'], ['/users', '회원 관리', 'users'],
+            ['/requests', '추천 요청', 'inquiries'], ['/running', '러닝 기록', 'dashboard'], ['/inquiries', '문의 관리', 'inquiries']]
+            .map(([to, label, icon]) => <NavLink key={to} to={to} className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+              <span className="sidebar-icon"><SidebarMenuIcon type={icon} /></span><span>{label}</span>
+            </NavLink>)}
         </nav>
       </div>
 
       <div className="sidebar-footer">
         <div className="admin-info">
           <strong>관리자</strong>
-          <span>admin@runstop.com</span>
+          <span>운영 관리</span>
         </div>
 
         <button

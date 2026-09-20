@@ -10,6 +10,7 @@
 
 # ── 0점 ↔ 100점 기준 (튜닝 포인트) ─────────────────────────────
 from src.algo.types import CandidateRoute, Requirements, SubScores, Weights
+from src.algo import config
 
 DIST_ERR_ZERO_PCT   = 10.0    # 거리 오차 10% -> 0점, 0% -> 100점
 # [유지] DIST_TOLERANCE_PCT/config.CAND_DIST_TOL_PCT와 값을 맞춰둔 것 — 임의로 바꾸면 하드컷·점수 레이어가 어긋남
@@ -138,9 +139,11 @@ def compute_sub_scores(cand: CandidateRoute) -> SubScores:
         stairs_penalty = STAIRS_PENALTY * surf.get("stairs_count", 0)
         subs["surface"] = round(_clamp(base - bigroad_penalty - stairs_penalty), 1)
 
-    # 흐름: 신호등 적을수록 좋음 (None 이면 제외)
+    # 탐색 비용과 같이 신호등·횡단보도를 모두 평가한다.
     spk = surf.get("signal_per_km")
-    subs["flow"] = None if spk is None else round(_score_lower_is_better(spk, 0.0, SIGNAL_PER_KM_ZERO), 1)
+    cpk = surf.get("crossing_per_km")
+    subs["flow"] = None if spk is None and cpk is None else round(
+        _score_lower_is_better((spk or 0) + 0.5 * (cpk or 0), 0.0, SIGNAL_PER_KM_ZERO), 1)
 
     # 겹침: 왕복(out_and_back)은 의미 없어 제외
     if cand.get("mode") == "out_and_back":
@@ -169,6 +172,8 @@ def compute_condition_score(
     facility_preferences: dict[str, str] | None = None,
 ) -> float:
     w = {**_DEFAULT_W, **(weights or {})}
+    if weights and "nature" in weights:
+        w["park"] = weights["nature"]
     preferences = facility_preferences or {}
 
     num = den = 0.0
@@ -224,6 +229,12 @@ def score_candidate(
 ) -> CandidateRoute:
     # pipeline에서  scoring의 모듈들을 이용해서 누적한 점수들을 한곳에서 처리하는 코드
     subs = compute_sub_scores(cand)
+    # '약간 경사짐'은 평지 만점이 아닌 탐색과 동일한 완만한 경사 목표를 쓴다.
+    if (requirements or {}).get("slope_preference") == "NORMAL":
+        average = (cand.get("slope") or {}).get("avg_slope_pct")
+        if average is not None:
+            target = config.ROLLING_TARGET_SLOPE_PCT
+            subs["elevation"] = round(_clamp(100 * (1 - abs(average - target) / target)), 1)
 
     failed, exact = check_requirements(cand, requirements)
 

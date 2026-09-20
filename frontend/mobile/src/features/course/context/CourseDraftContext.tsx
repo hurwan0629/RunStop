@@ -20,8 +20,8 @@ const initialCourseDraft: CourseDraft = {
   prompt: '',
   slopePreference: 'ANY',
   facilities: [],
-  distanceImportance: 3,
-  slopeImportance: 3,
+  preferNature: false,
+  preferFlow: false,
   nightImportance: 3,
 };
 

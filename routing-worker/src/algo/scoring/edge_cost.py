@@ -114,6 +114,13 @@ def _single_edge_cost(
         bad=config.EDGE_SLOPE_BAD_PCT,
     )
 
+    # 약간 경사짐은 평지보다 실험으로 선택한 완만한 오르내림을 선호한다.
+    # 급경사 제외(max_slope_pct)는 위의 공통 조건 검사에서 그대로 적용한다.
+    if (requirements or {}).get("slope_preference") == "NORMAL":
+        slope = extract_slope_pct(edge_data)
+        target = config.ROLLING_TARGET_SLOPE_PCT
+        slope_penalty = 0.5 if slope is None else min(abs(slope - target) / target, 1.0)
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
     # [가중치 설계 추가] 거리를 기본 비용으로 두고 모든 선호 요소를 비음수 벌점으로 합산한다. #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -133,7 +140,8 @@ def _single_edge_cost(
     cost_multiplier += (
         FEATURE_COST_SCALES["nature"]
         * normalize_preference_weight(weights, "nature")
-        * _nature_penalty(edge_data)
+        * (float(from_node_id not in requirements["_nature_nodes"] and to_node_id not in requirements["_nature_nodes"])
+           if requirements and "_nature_nodes" in requirements else _nature_penalty(edge_data))
     )
     cost_multiplier += (
         FEATURE_COST_SCALES["surface"]

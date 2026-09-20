@@ -7,6 +7,8 @@ import {
 import { useSearchParams } from 'react-router-dom'
 
 import { getInquiries, getInquirySummary } from '../api/inquiriesApi'
+import { Badge } from '../components/ExplorerUI'
+import { rowAction } from '../utils/explorer'
 import InquiryDetailDrawer from '../components/InquiryDetailDrawer.jsx'
 
 import './InquiriesPage.css'
@@ -14,12 +16,6 @@ import './InquiriesPage.css'
 
 
 const LIMIT = 20
-
-const statusLabels = {
-  PENDING: '답변 대기',
-  IN_PROGRESS: '처리 중',
-  ANSWERED: '답변 완료',
-}
 
 function formatInquiryNumber(idx) {
   return `INQ-${String(idx).padStart(3, '0')}`
@@ -61,8 +57,13 @@ function InquiriesPage() {
 
   const [keyword, setKeyword] = useState('')
 
-  const [selectedInquiryIdx, setSelectedInquiryIdx] =
-    useState(null)
+  const selectedInquiryIdx = Number(searchParams.get('inquiryIdx')) || null
+  const setSelectedInquiryIdx = idx => {
+    const next = new URLSearchParams(searchParams)
+    if (idx) next.set('inquiryIdx', idx)
+    else next.delete('inquiryIdx')
+    setSearchParams(next)
+  }
 
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -339,7 +340,6 @@ function InquiriesPage() {
                 <th>제목</th>
                 <th>접수일</th>
                 <th>처리 상태</th>
-                <th>상세</th>
               </tr>
             </thead>
 
@@ -347,7 +347,7 @@ function InquiriesPage() {
               {filteredInquiries.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="5"
+                    colSpan="4"
                     className="empty-table-cell"
                   >
                     조회된 문의가 없습니다.
@@ -355,7 +355,9 @@ function InquiriesPage() {
                 </tr>
               ) : (
                 filteredInquiries.map((inquiry) => (
-                  <tr key={inquiry.idx}>
+                  <tr key={inquiry.idx} className="explorer-row" tabIndex={0}
+                    onClick={event => rowAction(event, () => setSelectedInquiryIdx(inquiry.idx))}
+                    onKeyDown={event => rowAction(event, () => setSelectedInquiryIdx(inquiry.idx))}>
                     <td>
                       {formatInquiryNumber(inquiry.idx)}
                     </td>
@@ -369,27 +371,9 @@ function InquiriesPage() {
                     </td>
 
                     <td>
-                      <span
-                        className={`status-badge status-${inquiry.status.toLowerCase()}`}
-                      >
-                        {statusLabels[inquiry.status] ??
-                          inquiry.status}
-                      </span>
+                      <Badge status={inquiry.status} />
                     </td>
 
-                    <td>
-                      <button
-                        type="button"
-                        className="detail-button"
-                        onClick={() =>
-                          setSelectedInquiryIdx(
-                            inquiry.idx,
-                          )
-                        }
-                      >
-                        상세보기
-                      </button>
-                    </td>
                   </tr>
                 ))
               )}

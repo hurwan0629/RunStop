@@ -34,6 +34,10 @@ def flatten_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
     # slope/facilities/nature/surface 내부 feature는 명시된 schema만 허용합니다.
     for section in ("slope", "facilities", "nature", "surface"):
         for key, value in candidate.get(section, {}).items():
+            # 지도에 쓰는 자연환경 이름은 학습용 숫자 feature에서 제외한다.
+            if section == "nature" and key in {"park_names", "water_names"}:
+                continue
+
             if key not in CANDIDATE_SECTIONS[section]:
                 raise ValueError(f"Unknown worker feature; update the schema explicitly: {section}.{key}")
             if value is not None and (not isinstance(value, (int, float, bool)) or not np.isfinite(value)):

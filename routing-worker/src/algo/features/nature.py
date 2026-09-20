@@ -86,6 +86,7 @@ def analyze_nature_adjacency(
         matched_features = nature_layer_gdf.iloc[intersecting_indices]
 
         # GeoJSON에 들어 있는 실제 명칭 추출
+        names = []
         if "name" in matched_features.columns:
             names = [
                 str(name).strip()

@@ -7,11 +7,12 @@ import type {
   RouteSelectResponse,
 } from '../types';
 
-export function recommendCourses(accessToken: string, input: RouteRequest) {
+export function recommendCourses(accessToken: string, input: RouteRequest, signal?: AbortSignal) {
   return apiRequest<RouteRecommendResponse>('/api/routes/recommend', {
     method: 'POST',
     accessToken,
     body: input,
+    signal,
   });
 }
 

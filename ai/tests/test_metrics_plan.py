@@ -1,6 +1,6 @@
 """Bootstrap must preserve repeated requests within each user."""
 import pandas as pd
-from ai.src.metrics.ranking import confidence_interval
+from ai.src.experiment.metrics import confidence_interval
 
 
 def test_cluster_bootstrap_reproducibility_and_missing_cases():

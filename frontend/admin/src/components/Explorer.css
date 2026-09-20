@@ -1,0 +1,39 @@
+/* 기존 남색·흰색 카드 스타일을 탐색 화면 전체에 공유한다. */
+.explorer-breadcrumb { display:flex; gap:10px; flex-wrap:wrap; font-size:13px; color:#798194; }
+.explorer-breadcrumb b { margin-right:10px; font-weight:400; color:#b7bdca; }
+.explorer-badge { display:inline-flex; white-space:nowrap; padding:6px 10px; border-radius:99px; font-size:12px; font-weight:700; background:#eef0f6; color:#687286; }
+.explorer-badge.positive { color:#287a60; background:#e8f7ef; }
+.explorer-badge.warning { color:#b76628; background:#fff1e5; }
+.explorer-row { cursor:pointer; transition:background .15s; }
+.explorer-row:hover { background:#f4f5ff; }
+.explorer-row:focus-visible, .explorer-tabs a:focus-visible { outline:2px solid #6652bb; outline-offset:-2px; }
+.explorer-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin:20px 0 0; }
+.explorer-metrics > div { padding:18px; border:1px solid #eceef5; border-radius:12px; background:#fafbfe; min-width:0; }
+.explorer-metrics dt { color:#788093; font-size:12px; margin-bottom:10px; }
+.explorer-metrics dd { margin:0; color:#252d5d; font-size:18px; font-weight:700; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.explorer-conditions .explorer-metrics dd { font-size:14px; }
+.explorer-tabs { display:flex; gap:12px; overflow:auto; padding:2px; }
+.explorer-tabs a { min-width:150px; flex:1; padding:20px; border:1px solid #e0e4ee; border-radius:14px; background:white; display:flex; flex-direction:column; gap:10px; }
+.explorer-tabs a.active { border-color:#6652bb; background:#f5f3ff; box-shadow:inset 0 3px #6652bb; }
+.explorer-tabs small { color:#798194; }
+.explorer-heading-links { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.explorer-map-layout { display:grid; grid-template-columns:minmax(0,1fr) 240px; gap:20px; align-items:start; }
+.explorer-map-layout > * { min-width:0; }
+.explorer-layers { display:flex; flex-direction:column; gap:15px; }
+.explorer-layers label { display:flex; align-items:center; gap:9px; font-size:13px; cursor:pointer; }
+.explorer-layers input { accent-color:#6652bb; width:16px; height:16px; }
+.explorer-layers i { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.explorer-layer-count { margin-left:auto; color:#7b8493; font-variant-numeric:tabular-nums; }
+.explorer-run-picker { margin:0 0 20px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.explorer-run-picker select { padding:9px; border:1px solid #dde1ea; border-radius:8px; max-width:100%; }
+.explorer-pace-bars { display:flex; align-items:flex-end; gap:10px; height:150px; padding-top:15px; }
+.explorer-pace-bars button { flex:1; min-width:35px; border:0; background:#bcb4e6; color:#342760; border-radius:7px 7px 0 0; cursor:pointer; font:inherit; font-size:12px; }
+.explorer-pace-bars button[aria-pressed="true"] { background:#6652bb; color:white; }
+.explorer-pace-bars span { display:block; padding:7px 2px; }
+.explorer-comparison { margin-top:18px; }
+.explorer-comparison summary { cursor:pointer; color:#303c87; font-weight:700; }
+.run-chart-stats > div { background:linear-gradient(130deg,#f0edfb,#f7f8fc); border:1px solid #e4e0f1; }
+.run-chart-stats strong { color:#453183; }
+.run-table caption { text-align:left; padding:12px 0; font-weight:600; }
+@media(max-width:1000px) { .explorer-map-layout { grid-template-columns:1fr; } .explorer-layers { display:grid; grid-template-columns:repeat(3,1fr); } .explorer-layers h2 { grid-column:1/-1; } }
+@media(max-width:600px) { .explorer-layers { grid-template-columns:repeat(2,1fr); } .explorer-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } }

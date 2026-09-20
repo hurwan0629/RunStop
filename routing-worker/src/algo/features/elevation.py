@@ -5,6 +5,8 @@
 """
 
 import sys
+import math
+from threading import Lock
 
 # query_elevation.py + 서울_DEM_10m.npy + _meta.json 이 있는 폴더 (배포 패키지 기준)
 from src.algo._datapaths import DEM_DIR
@@ -18,6 +20,30 @@ from query_elevation import get_elevation  # noqa: E402
 from src.algo.utils.geo import haversine_m
 from src.algo import config
 from src.algo.types import Coordinate, ElevationProfile
+
+
+_GRAPH_ELEVATION_LOCK = Lock()
+
+
+def prepare_graph_elevation(graph):
+    """경사 속성이 없는 도로에 기존 DEM 고도차를 연결한다. 그래프당 한 번만 수행."""
+    with _GRAPH_ELEVATION_LOCK:
+        if graph.graph.get("routing_elevation_prepared"):
+            return
+        elevations = {}
+        for node, data in graph.nodes(data=True):
+            value = get_elevation(data["y"], data["x"])
+            elevations[node] = value if value is not None and math.isfinite(value) else None
+
+        for start, end, data in graph.edges(data=True):
+            if data.get("grade_abs") is not None or data.get("grade") is not None:
+                continue
+            first, last = elevations[start], elevations[end]
+            # 짧은 edge에서 DEM 격자 경계가 급경사로 증폭되지 않게 기존 샘플 간격을 사용.
+            length = max(float(data.get("length", 0)), config.SLOPE_SAMPLE_M)
+            if first is not None and last is not None:
+                data["routing_slope_pct"] = abs(last - first) / length * 100
+        graph.graph["routing_elevation_prepared"] = True
 
 
 def sample_route_coordinates(

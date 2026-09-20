@@ -6,14 +6,26 @@ import pytest
 from pydantic import ValidationError
 from ai.src.config.schema import ExperimentConfig, GenerationConfig, ModelConfig, UtilityConfig, SplitConfig, FeatureConfig
 from ai.src.config.loader import load_config, dump_config, AI_ROOT
-from ai.src.dataset.schema import validate_dataset
+from ai.src.dataset.schema import flatten_candidate, validate_dataset
 from ai.src.dataset.features import select_feature_columns
 from ai.src.dataset.splits import split_user_temporal_holdout
 from ai.src.generation.request_sampler import normalize_requests
 from ai.src.generation.user_sampler import load_users
 from ai.src.generation.utility import utility_score, label_candidates
 from ai.src.generation.candidate_worker import select_pool
-from ai.src.metrics.ranking import ndcg_at_k, request_metrics, confidence_interval
+from ai.src.experiment.metrics import ndcg_at_k, request_metrics, confidence_interval
+
+
+def test_nature_display_names_do_not_change_training_features():
+    candidate = {"condition_score": 80, "nature": {"park_ratio": 0.2, "water_ratio": 0.1}}
+    expected = flatten_candidate(candidate)
+    candidate["nature"].update({"park_names": ["공원"], "water_names": ["하천"]})
+    assert flatten_candidate(candidate) == expected
+
+    # 이름 두 필드만 제외하며, 알 수 없는 신규 feature를 묵인하지 않는다.
+    candidate["nature"]["unexpected_names"] = []
+    with pytest.raises(ValueError, match="Unknown worker feature"):
+        flatten_candidate(candidate)
 
 
 def test_configs_validate_params_and_roundtrip(tmp_path):

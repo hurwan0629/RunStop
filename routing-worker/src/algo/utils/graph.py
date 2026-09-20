@@ -64,6 +64,12 @@ class NodeIndex:
         _, i = self._tree.query([x, y])
         return self.ids[i]
 
+    def nearby(self, center: Coordinate, radius_m: float):
+        """유도 후보용 도로 노드만 조회한다. 기존 KD-tree와 미터 좌표를 재사용."""
+        xy = to_5179.transform(center[1], center[0])
+        indices = sorted(self._tree.query_ball_point(xy, radius_m))
+        return [self.ids[i] for i in indices], self._tree.data[indices]
+
 
 def grid_graph(
     rows: int = 80,

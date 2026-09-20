@@ -33,7 +33,7 @@ model = BaseRankingModel.load(directory)
 
 추론은 Utility나 정답 컬럼을 요구하지 않습니다. 입력 컬럼 순서는 저장된 스키마를 사용하며 누락된 필수 특성은 오류입니다. 요청 간 점수 절대값 비교는 계약에 포함하지 않습니다. 분류 모델도 확률을 공통 출력 의미로 사용하지 않습니다.
 
-현재 모든 학습 모델은 CPU를 사용합니다. 일부 모델의 내부 검증 지표는 기록용이며, 고정 반복 횟수/epoch로 학습합니다. 조기 종료나 최적 trial 자동 선택은 현재 지원하지 않습니다. 평가용 Warm/Cold 데이터는 fit에 전달하지 않습니다.
+현재 모든 학습 모델은 CPU를 사용합니다. 일부 모델의 내부 검증 지표는 기록용이며, 고정 반복 횟수/epoch로 학습합니다. 조기 종료나 최적 trial 자동 선택은 현재 지원하지 않습니다. `train.py`는 Train/Val만 모델에 전달하고 모든 모델에 공통 Val 지표를 생성합니다. Warm/Cold 평가는 `test.py`에서 저장된 모델을 복원해 실행합니다.
 
 ## Split and evaluation
 
@@ -45,17 +45,18 @@ Cold 사용자를 seed로 먼저 분리하고, 나머지 사용자별 유효 요
 - Top1 best utility: 예측 1위가 해당 요청의 최대 Utility와 같으면 1. 공동 1위도 정답.
 - Utility regret: 최대 Utility - 예측 1위 Utility, 낮을수록 좋음.
 - Pairwise accuracy: Utility가 서로 다른 후보 쌍 중 예측 순서가 맞는 비율. 비교 가능한 쌍이 없으면 null.
-- Overall/Warm/Cold에서 요청별 지표를 동일 가중 평균. 신뢰구간은 사용자 단위 cluster bootstrap으로 반복 요청의 종속성을 보존. 유효 사용자가 2명 미만이거나 bootstrap_samples=0이면 신뢰구간 null.
+- 학습은 Overall/Validation, 테스트는 Overall/Warm/Cold에서 요청별 지표를 동일 가중 평균. 신뢰구간은 사용자 단위 cluster bootstrap으로 반복 요청의 종속성을 보존. 유효 사용자가 2명 미만이거나 bootstrap_samples=0이면 신뢰구간 null.
 
 실제 선택 데이터가 없으므로 selected/HitRate/MRR을 가정해서 생성하지 않습니다.
 
 ## Artifacts
 
-UTC 시각 + 실험 이름 + 임의 suffix로 새 폴더를 만들며 덮어쓰지 않습니다.
+UTC 시각 + 단계(train/test) + 실험 이름 + 임의 suffix로 새 폴더를 만들며 덮어쓰지 않습니다.
+Test는 학습 당시 저장된 배정표를 복원하며 데이터와 metadata, 모델·설정·분할표의 해시를 검사합니다. 분할을 다시 생성하거나 모델·전처리를 fit하지 않습니다. 기존 stage 없는 완료된 artifact도 지원합니다.
 
 ```text
-RUN/
-  manifest.json                   running / complete / failed, 파일 해시와 크기
+TRAIN_RUN/
+  manifest.json                   stage=train, running / complete / failed, 파일 해시와 크기
   config.yaml                     기본값 포함 실행 설정
   dataset_reference.json          원본 데이터 경로·해시·metadata 사본(Utility 포함)
   environment.json                Python·패키지·git·소스 해시
@@ -63,17 +64,25 @@ RUN/
   model/model.pkl                 모델 및 fitted 전처리를 포함하는 번들
   model/input_schema.json         입력 컬럼 순서·타입·결측 처리·출력 계약
   split_assignments.parquet       제외 요청 포함 실제 요청 배정
-  predictions.parquet             평가 후보 특성·정답·모델/기존 점수·순위
-  request_metrics.parquet         요청별 모델/기존 지표
-  metrics.json                    cohort별 평균·CI·baseline 대비 차이
+  validation/predictions.parquet   Val 후보 특성·정답·모델/기존 점수·순위
+  validation/request_metrics.parquet  Val 요청별 모델/기존 지표
+  validation/metrics.json         Val 평균·CI·baseline 대비 차이
   resource_usage.json             학습·추론 시간·CPU 시간·샘플링 RSS·번들 크기
   diagnostics/training_history.json
   diagnostics/feature_importance.json  지원 모델만; 전처리 이후 컬럼 기준
   diagnostics/split_summary.json
-  plots/ranking_metrics.png
+  validation/plots/ranking_metrics.png
   run.log
+
+TEST_RUN/                         원본 학습 결과 옆에 생성
+  manifest.json                   stage=test, running / complete / failed
+  training_reference.json         원본 학습 폴더·manifest/모델/분할표 해시
+  config.yaml, dataset_reference.json, environment.json, runtime/
+  predictions.parquet, request_metrics.parquet, metrics.json
+  plots/ranking_metrics.png
+  resource_usage.json, run.log
 ```
 
 추론 시간은 요청별 전처리+예측을 포함하며 첫 호출을 제외하지 않습니다. CPU는 실험 프로세스의 모든 스레드 CPU 시간, RSS는 20ms 간격 샘플의 최대값입니다. OS 수준의 엄밀한 peak가 아니며 별도 자식 프로세스는 측정 범위 밖입니다. 모델 파일 크기는 전처리 포함 pickle 번들 크기입니다.
 
-예측 artifact는 원본 좌표를 복제하지 않습니다. `model.pkl`은 이 실험 환경이 만든 신뢰할 수 있는 파일만 로드해야 합니다. export는 모델과 스키마, 당시 소스, 버전 고정 요구 패키지, 독립 predict.py를 복사합니다. routing-worker에 자동 배포하지 않습니다.
+예측 artifact는 원본 좌표를 복제하지 않습니다. `model.pkl`은 이 실험 환경이 만든 신뢰할 수 있는 파일만 로드해야 합니다. 모델 import 경로와 pickle 저장 방식은 유지하며, 테스트 결과가 원본 모델을 변경하지 않습니다. routing-worker에 자동 배포하지 않습니다.

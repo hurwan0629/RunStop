@@ -7,6 +7,8 @@ import './Header.css'
 
 const pageTitles = {
   '/dashboard': '대시보드',
+  '/requests': '추천 요청',
+  '/running': '러닝 기록',
   '/users': '회원 관리',
   '/inquiries': '문의 관리',
 }
@@ -17,8 +19,7 @@ function Header({ onLogout }) {
   const [isProfileOpen, setIsProfileOpen] =
     useState(false)
 
-  const pageTitle =
-    pageTitles[location.pathname] ?? '관리자'
+  const pageTitle = Object.entries(pageTitles).find(([path]) => location.pathname.startsWith(path))?.[1] || '관리자'
 
   const handleLogout = () => {
     setIsProfileOpen(false)

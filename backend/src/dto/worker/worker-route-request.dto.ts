@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { routeCoordinateSchema } from "../route/route-coordinate.dto.js";
-import { routeElementConditionsSchema } from "../route/route-request.dto.js";
+import { routeElementConditionsInputSchema } from "../route/route-request.dto.js";
 
 export const workerRouteRequestSchema = z.object({
   startPoint: routeCoordinateSchema,
@@ -10,7 +10,8 @@ export const workerRouteRequestSchema = z.object({
   // [2026-09-06 11:27:36] 파이썬 요구사항에 맞춰서 경로 타입 변경
   routeType: z.enum(["LOOP", "ONE_WAY", "ROUND_TRIP"]),
   prompt: z.string().optional(),
-  elementConditions: routeElementConditionsSchema,
+  // Node에서 적용한 경사 완화 값을 원래 UI 설정으로 다시 덮어쓰지 않는다.
+  elementConditions: routeElementConditionsInputSchema,
   maxCandidates: z.number().int().min(1).max(10).default(3),
 });
 

@@ -2,6 +2,7 @@ import { getRouteConditionLlmClient, generateRouteNames } from "../adapters/llm/
 import type { ParsedRouteConditions } from "../adapters/llm/llm.client.js";
 import { requestRouteRecommendations } from "../adapters/worker/routing-worker.client.js";
 import type { RouteDetailDTO } from "../dto/route/route-detail.dto.js";
+import { routeFacilityPointsSchema, routeMapLayersSchema } from "../dto/route/route-detail.dto.js";
 import type {
   RouteRecommendResponseDTO,
   RouteRecommendationDTO,
@@ -219,6 +220,7 @@ function readSlopeConstraint(
     requestedMaxSlopePct: readNumber(slopeConstraint.requestedMaxSlopePct),
     appliedMaxSlopePct: readNumber(slopeConstraint.appliedMaxSlopePct),
     status: normalizedStatus,
+    evaluation: typeof slopeConstraint.evaluation === "string" ? slopeConstraint.evaluation : undefined,
   };
 }
 
@@ -252,6 +254,7 @@ function toRouteRecommendationDTO(row: {
     slope: readSlopeProfile(row.featureValues),
     featureScores: row.featureScores ?? {},
     facilities: readFacilitySummary(row.featureValues),
+    slopeConstraint: readSlopeConstraint(row.featureValues),
   };
 }
 
@@ -391,10 +394,11 @@ function withSlopeFallbackStatus(
   requestedMaxSlope: number | undefined,
   appliedMaxSlope: number | undefined,
 ): WorkerRouteCandidateDTO {
+  const measuredMaxSlope = readSlopeProfile(candidate.featureValues)?.maxSlopePct;
   const status =
     requestedMaxSlope === undefined
       ? "IGNORE"
-      : requestedMaxSlope === appliedMaxSlope
+      : requestedMaxSlope === appliedMaxSlope && measuredMaxSlope != null && measuredMaxSlope <= requestedMaxSlope
         ? "MET"
         : "RELAXED";
 
@@ -406,6 +410,7 @@ function withSlopeFallbackStatus(
         requestedMaxSlopePct: requestedMaxSlope ?? null,
         appliedMaxSlopePct: appliedMaxSlope ?? null,
         status,
+        evaluation: measuredMaxSlope == null ? "UNAVAILABLE" : "MEASURED",
       },
     },
   };
@@ -894,5 +899,7 @@ export async function getRouteDetail(
     isBookmarked,
     path: route.path ?? [],
     points,
+    facilityPoints: routeFacilityPointsSchema.parse(route.featureValues?.facilityPoints),
+    mapLayers: routeMapLayersSchema.parse(route.featureValues?.mapLayers),
   };
 }

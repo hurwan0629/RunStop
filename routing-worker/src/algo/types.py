@@ -26,7 +26,7 @@ RouteType: TypeAlias = Literal["LOOP", "ONE_WAY", "ROUND_TRIP"]
 Weights: TypeAlias = dict[str, int]
 
 # 계단 제외, 최대 경사 같은 필수 경로 조건입니다.
-Requirements: TypeAlias = dict[str, bool | int | float]
+Requirements: TypeAlias = dict[str, bool | int | float | str]
 
 
 # DEM 기반 경사와 고도 요약 정보입니다.

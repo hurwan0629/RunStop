@@ -217,3 +217,22 @@ export async function findRouteRequestByIdxAndUserIdx(
 
   return row ? mapRouteRequestRow(row) : null;
 }
+
+/** 소유권/관리자 권한 확인 후에만 호출한다. 좌표는 기존 요청 point 테이블에서 읽는다. */
+export async function findRouteRequestPoints(routeRequestIdx: number) {
+  const result = await getPool().query<{
+    sequence: number; pointType: "START" | "WAYPOINT" | "END"; lat: number; lng: number;
+  }>(`
+    SELECT sequence, point_type AS "pointType", ST_Y(point) AS lat, ST_X(point) AS lng
+    FROM service.route_request_points WHERE route_requests_idx = $1 ORDER BY sequence
+  `, [routeRequestIdx]);
+  return result.rows;
+}
+
+/** 관리자 요청 비교용 조회. 사용자 API에서는 소유권 조건이 있는 함수를 사용한다. */
+export async function findRouteRequestOwner(routeRequestIdx: number): Promise<number | null> {
+  const result = await getPool().query<{ users_idx: number }>(
+    "SELECT users_idx FROM service.route_requests WHERE idx = $1", [routeRequestIdx],
+  );
+  return result.rows[0]?.users_idx ?? null;
+}

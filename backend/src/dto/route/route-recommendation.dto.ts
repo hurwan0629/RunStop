@@ -38,6 +38,12 @@ export const routeRecommendationSchema = z.object({
   slope: routeSlopeProfileSchema.nullable(),
   featureScores: z.record(z.string(), z.number().nullable()),
   facilities: routeFacilitySummarySchema,
+  slopeConstraint: z.object({
+    requestedMaxSlopePct: z.number().nullable(),
+    appliedMaxSlopePct: z.number().nullable(),
+    status: routeFacilityStatusSchema,
+    evaluation: z.string().optional(),
+  }).optional(),
 });
 
 export const routeRecommendResponseSchema = z.object({

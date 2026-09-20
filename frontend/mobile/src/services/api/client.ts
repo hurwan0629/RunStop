@@ -17,6 +17,7 @@ interface ApiRequestOptions {
   method?: HttpMethod;
   body?: unknown;
   accessToken?: string | null;
+  signal?: AbortSignal;
 }
 
 export async function apiRequest<T>(
@@ -38,6 +39,7 @@ export async function apiRequest<T>(
   const response = await fetch(`${config.apiBaseUrl}${path}`, {
     method: options.method ?? 'GET',
     headers,
+    signal: options.signal,
     body:
       options.body === undefined
         ? undefined

@@ -1,5 +1,24 @@
 # React + Vite
 
+## 러닝 조회
+
+- 러닝 상세의 **요청 조건과 후보 비교**에서 저장된 A/B/C의 feature와 사용자 선택을 확인한다. 다른 **요청 번호**를 입력하면 두 요청을 같은 표로 비교한다.
+- 과거 기록에 저장되지 않은 AI 점수·원시 overlap 등은 `—`로 표시한다. [조건 추천 변경과 검증 결과](../../docs/2026-09-19-route-preferences.md).
+
+- 사이드바 **러닝 기록** 또는 회원 상세의 **러닝 지도 보기**에서 목록으로 이동한다.
+- 상세 지도는 실제 GPS(초록)를 기본으로 보여준다. `실제 주행 / 추천 코스 / 겹쳐 보기`로 전환하며, 옆의 다른 추천에서 `비교`를 누르면 한 코스씩 점선으로 추가한다. 선택 구간은 주황색으로 강조한다.
+- 지도는 공식 네이버 Maps JavaScript API v3를 사용하며 네이버 기본 출처·로고를 유지한다.
+- 대시보드의 기간·항목을 바꾸면 실제 DB 집계로 그래프를 갱신한다. 날짜를 클릭하면 해당 날짜의 러닝 목록으로 이동한다.
+- 새 백엔드·워커와 DB 마이그레이션 적용이 필요하다. GPS가 없는 과거 러닝도 저장된 선택 코스는 표시한다.
+
+## 네이버 지도 설정
+
+1. `.env.example`을 `.env.local`로 복사하고 `VITE_NAVER_MAP_CLIENT_ID`에 네이버 클라우드 Maps Application의 **Client ID**를 넣는다. Client Secret은 사용하지 않는다.
+2. 해당 Application의 **Web Dynamic Map**을 활성화하고 Web 서비스 URL에 `http://localhost:3000`과 배포 시 관리자 사이트 주소를 등록한다. 모바일과 같은 Client ID를 사용하더라도 웹 서비스 등록이 필요하다.
+3. 개발 서버를 재시작한다. 배포에서는 빌드 시 이 환경변수를 제공하고 `npm run build`를 다시 실행한다.
+
+설정 안내: https://guide.ncloud-docs.com/docs/maps-app
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

@@ -3,6 +3,21 @@ import { getPool } from "../infra/db/pool.js";
 
 type QueryClient = Pool | PoolClient;
 
+/** 완료된 GPS 구간의 환경 분석만 캐시한다. 원본 트랙포인트는 그대로 둔다. */
+export async function findRunningTrackAnalysis(sessionIdx: number): Promise<unknown> {
+  const result = await getPool().query(
+    "SELECT track_analysis FROM service.running_sessions WHERE idx = $1", [sessionIdx],
+  );
+  return result.rows[0]?.track_analysis ?? null;
+}
+
+export async function saveRunningTrackAnalysis(sessionIdx: number, analysis: unknown): Promise<void> {
+  await getPool().query(
+    "UPDATE service.running_sessions SET track_analysis = $2::jsonb WHERE idx = $1",
+    [sessionIdx, JSON.stringify(analysis)],
+  );
+}
+
 export type RunningSessionStatus =
   | "IN_PROGRESS"
   | "COMPLETED"

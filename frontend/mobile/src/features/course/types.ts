@@ -42,8 +42,8 @@ export type CourseDraft = {
   prompt: string;
   slopePreference: SlopePreference;
   facilities: FacilityPreference[];
-  distanceImportance: ImportanceLevel;
-  slopeImportance: ImportanceLevel;
+  preferNature: boolean;
+  preferFlow: boolean;
   nightImportance: ImportanceLevel;
 };
 
@@ -56,6 +56,9 @@ export type RouteRequest = {
   elementConditions: {
     targetDistance: number;
     maxSlope?: number;
+    slopePreference?: SlopePreference;
+    preferNature?: boolean;
+    preferFlow?: boolean;
     weights: Record<string, number>;
     requirements?: Record<string, boolean>;
     facilityPreferences: {
@@ -97,6 +100,12 @@ export type RouteRecommendation = {
   slope?: RouteSlopeProfile | null;
   featureScores?: Record<string, number | null>;
   facilities?: RouteFacilitySummary;
+  slopeConstraint?: {
+    requestedMaxSlopePct: number | null;
+    appliedMaxSlopePct: number | null;
+    status: FacilityStatus;
+    evaluation?: string;
+  };
 };
 
 export type RouteRecommendResponse = {
@@ -109,6 +118,26 @@ export type RoutePoint = LocationPoint & {
   pointType: 'START' | 'WAYPOINT' | 'END';
 };
 
+export type RouteFacilityPoint = LocationPoint & {
+  type: 'toilet' | 'store' | 'light' | 'security' | 'cctv' | 'walklight';
+};
+
+/** 추천 완료 후 추가되는 지도 전용 데이터입니다. */
+export type RouteMapLayers = {
+  slopeSegments: {
+    fromIndex: number;
+    toIndex: number;
+    slopePct: number | null;
+  }[];
+  natureSegments: {
+    type: 'park' | 'water';
+    path: LocationPoint[];
+  }[];
+  availability: { slope: boolean; park: boolean; water: boolean };
+  nightFacilityTypes: ('light' | 'security' | 'cctv' | 'walklight')[];
+  natureCounts?: { park: number | null; water: number | null };
+};
+
 export type RouteDetail = {
   idx: number;
   name: string;
@@ -119,6 +148,8 @@ export type RouteDetail = {
   isBookmarked: boolean;
   path: LocationPoint[];
   points: RoutePoint[];
+  facilityPoints?: RouteFacilityPoint[];
+  mapLayers?: RouteMapLayers | null;
 };
 
 export type RouteSelectResponse = {
