@@ -319,6 +319,9 @@ $RECYCLE.BIN/
 # Dockerfile
 # docker-compose.yml
 
+# 로컬 전용 오버라이드 (팀원마다 다른 호스트 경로 등 포함)
+docker-compose.override.yml
+
 # Docker runtime / local volumes
 docker-data/
 volumes/
